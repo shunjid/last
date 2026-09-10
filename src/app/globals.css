@@ -1,0 +1,120 @@
+:root {
+  --last-font-sans: var(--font-sans), system-ui, -apple-system, "Segoe UI", sans-serif;
+  --last-font-mono: var(--font-mono), ui-monospace, SFMono-Regular, Menlo, monospace;
+
+  --last-bg-page: var(--mui-palette-background-default);
+  --last-bg-secondary: var(--mui-palette-background-secondary);
+  --last-bg-tertiary: var(--mui-palette-background-tertiary);
+  --last-bg-overlay: var(--mui-palette-background-overlay);
+  --last-bg-accent: var(--mui-palette-primary-main);
+  --last-bg-error: var(--mui-palette-error-main);
+  --last-bg-success: var(--mui-palette-success-main);
+
+  --last-surface-lowest: var(--mui-palette-background-surfaceLowest);
+  --last-surface-low: var(--mui-palette-background-surfaceLow);
+  --last-surface: var(--mui-palette-background-surface);
+  --last-surface-high: var(--mui-palette-background-surfaceHigh);
+  --last-surface-highest: var(--mui-palette-background-surfaceHighest);
+
+  --last-bg-primary-container: var(--mui-palette-primary-container);
+  --last-fg-primary-container: var(--mui-palette-primary-onContainer);
+  --last-bg-secondary-container: var(--mui-palette-secondary-container);
+  --last-fg-secondary-container: var(--mui-palette-secondary-onContainer);
+  --last-bg-error-container: var(--mui-palette-error-container);
+  --last-fg-error-container: var(--mui-palette-error-onContainer);
+  --last-bg-warning-container: var(--mui-palette-warning-container);
+  --last-fg-warning-container: var(--mui-palette-warning-onContainer);
+
+  --last-fg-default: var(--mui-palette-text-primary);
+  --last-fg-secondary: var(--mui-palette-text-secondary);
+  --last-fg-tertiary: var(--mui-palette-text-tertiary);
+  --last-fg-disabled: var(--mui-palette-text-disabled);
+  --last-fg-black: var(--mui-palette-primary-contrastText);
+  --last-fg-accent: var(--mui-palette-accent-fg);
+  --last-fg-error: var(--mui-palette-error-main);
+  --last-fg-warning: var(--mui-palette-warning-main);
+  --last-fg-warning-strong: var(--mui-palette-warning-dark);
+  --last-fg-success: var(--mui-palette-success-main);
+  --last-fg-success-strong: var(--mui-palette-success-dark);
+  --last-fg-link: var(--mui-palette-link-main);
+  --last-fg-link-hovered: var(--mui-palette-link-hover);
+
+  --last-border-default: var(--mui-palette-outline-default);
+  --last-border-secondary: var(--mui-palette-outline-subtle);
+  --last-border-accent: var(--mui-palette-outline-accent);
+  --last-border-focus: var(--mui-palette-outline-focus);
+  --last-border-error: var(--mui-palette-outline-error);
+  --last-border-warning: var(--mui-palette-outline-warning);
+  --last-border-success: var(--mui-palette-outline-success);
+
+  --last-state-hover: color-mix(in srgb, var(--last-fg-default) 8%, transparent);
+  --last-state-press: color-mix(in srgb, var(--last-fg-default) 12%, transparent);
+  --last-state-on-container: color-mix(in srgb, var(--last-fg-secondary-container) 8%, transparent);
+
+  --last-radius-xs: 4px;
+  --last-radius-sm: 8px;
+  --last-radius-md: 12px;
+  --last-radius-lg: 16px;
+  --last-radius-xl: 28px;
+  --last-radius-full: 999px;
+
+  --last-elev-1:
+    0 1px 2px 0 var(--mui-palette-shadow-key), 0 1px 3px 1px var(--mui-palette-shadow-ambient);
+  --last-elev-2:
+    0 1px 2px 0 var(--mui-palette-shadow-key), 0 2px 6px 2px var(--mui-palette-shadow-ambient);
+  --last-elev-3:
+    0 1px 3px 0 var(--mui-palette-shadow-key), 0 4px 8px 3px var(--mui-palette-shadow-ambient);
+
+  --last-duration-sm: 120ms;
+  --last-duration-md: 200ms;
+  --last-ease-standard: cubic-bezier(0.2, 0, 0, 1);
+  --last-ease-emphasized: cubic-bezier(0.05, 0.7, 0.1, 1);
+
+  --last-z-popover: 1500;
+
+  --last-sidebar: 312px;
+
+  --shiki-foreground: var(--last-fg-default);
+  --shiki-background: transparent;
+  --shiki-token-constant: var(--mui-palette-code-constant);
+  --shiki-token-string: var(--mui-palette-code-string);
+  --shiki-token-comment: var(--mui-palette-code-comment);
+  --shiki-token-keyword: var(--mui-palette-code-keyword);
+  --shiki-token-parameter: var(--mui-palette-code-parameter);
+  --shiki-token-function: var(--mui-palette-code-function);
+  --shiki-token-string-expression: var(--mui-palette-code-string);
+  --shiki-token-punctuation: var(--mui-palette-code-punctuation);
+  --shiki-token-link: var(--mui-palette-code-link);
+}
+
+::-webkit-scrollbar {
+  height: 10px;
+  width: 10px;
+}
+
+::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+::-webkit-scrollbar-thumb {
+  background: var(--last-border-secondary);
+  border: 3px solid transparent;
+  background-clip: content-box;
+  border-radius: 999px;
+}
+
+::-webkit-scrollbar-thumb:hover {
+  background: var(--last-border-default);
+  background-clip: content-box;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+    scroll-behavior: auto !important;
+  }
+}

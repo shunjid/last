@@ -1,0 +1,91 @@
+.root {
+  border-radius: var(--last-radius-lg);
+  background: var(--last-bg-warning-container);
+  color: var(--last-fg-warning-container);
+  padding: 16px;
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  animation: rise var(--last-duration-md) ease;
+}
+
+.safe {
+  background: var(--last-bg-primary-container);
+  color: var(--last-fg-primary-container);
+}
+
+@keyframes rise {
+  from {
+    opacity: 0;
+    transform: translateY(6px);
+  }
+  to {
+    opacity: 1;
+    transform: none;
+  }
+}
+
+.head {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.glyph {
+  display: grid;
+  place-items: center;
+  flex: none;
+  width: 40px;
+  height: 40px;
+  border-radius: var(--last-radius-full);
+  background: var(--last-surface-lowest);
+  color: var(--last-fg-warning);
+}
+
+.safe .glyph {
+  color: var(--last-fg-accent);
+}
+
+.title {
+  font-size: 15px;
+  font-weight: 500;
+  letter-spacing: 0.00937em;
+}
+
+.subtitle {
+  font-size: 12.5px;
+  opacity: 0.85;
+  font-family: var(--last-font-mono);
+  overflow-wrap: anywhere;
+}
+
+.truncated {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  border-radius: var(--last-radius-sm);
+  background: var(--last-surface-lowest);
+  color: var(--last-fg-warning-strong);
+  padding: 10px 12px;
+  font-size: 12.5px;
+}
+
+.actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  align-items: center;
+}
+
+.hint {
+  margin-left: auto;
+  font-size: 11.5px;
+  opacity: 0.75;
+}
+
+.key {
+  font-family: var(--last-font-mono);
+  padding: 1px 6px;
+  border-radius: var(--last-radius-xs);
+  background: var(--last-surface-lowest);
+}

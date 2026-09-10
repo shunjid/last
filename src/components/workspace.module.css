@@ -1,0 +1,34 @@
+.shell {
+  display: grid;
+  grid-template-columns: var(--last-sidebar) minmax(0, 1fr);
+  height: 100%;
+  background: var(--last-bg-page);
+  transition: grid-template-columns var(--last-duration-md) ease;
+}
+
+.collapsed {
+  grid-template-columns: 0 minmax(0, 1fr);
+}
+
+.rail {
+  min-width: 0;
+  overflow: hidden;
+}
+
+@media (max-width: 900px) {
+  .shell {
+    grid-template-columns: minmax(0, 1fr);
+  }
+
+  .rail {
+    position: fixed;
+    inset: 0 auto 0 0;
+    z-index: var(--last-z-popover);
+    width: var(--last-sidebar);
+    box-shadow: var(--last-elev-3);
+  }
+
+  .collapsed .rail {
+    display: none;
+  }
+}

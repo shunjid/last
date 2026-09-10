@@ -1,0 +1,110 @@
+.row {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  animation: enter var(--last-duration-md) ease;
+}
+
+@keyframes enter {
+  from {
+    opacity: 0;
+    transform: translateY(4px);
+  }
+  to {
+    opacity: 1;
+    transform: none;
+  }
+}
+
+.user {
+  align-items: flex-end;
+}
+
+.bubble {
+  max-width: min(680px, 82%);
+  padding: 12px 18px;
+  border-radius: var(--last-radius-xl);
+  border-bottom-right-radius: var(--last-radius-xs);
+  background: var(--last-bg-primary-container);
+  color: var(--last-fg-primary-container);
+  font-size: 14.5px;
+  line-height: 1.65;
+  white-space: pre-wrap;
+  overflow-wrap: anywhere;
+}
+
+.pending {
+  opacity: 0.6;
+}
+
+.slash {
+  display: inline-flex;
+  align-items: baseline;
+  gap: 8px;
+  font-family: var(--last-font-mono);
+}
+
+.slashName {
+  font-weight: 500;
+  color: var(--last-fg-accent);
+}
+
+.assistant {
+  align-items: stretch;
+  gap: 2px;
+}
+
+.tools {
+  display: flex;
+  gap: 4px;
+  margin-top: -2px;
+  opacity: 0;
+  transition: opacity var(--last-duration-sm) ease;
+}
+
+.assistant:hover .tools,
+.tools:focus-within {
+  opacity: 1;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .tools {
+    transition: none;
+  }
+}
+
+.blocks {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  min-width: 0;
+}
+
+.caret {
+  display: inline-block;
+  width: 7px;
+  height: 15px;
+  margin-left: 2px;
+  vertical-align: text-bottom;
+  border-radius: 1px;
+  background: var(--last-fg-accent);
+  animation: blink 1.1s steps(2, start) infinite;
+}
+
+@keyframes blink {
+  to {
+    visibility: hidden;
+  }
+}
+
+.attachment {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  align-self: flex-start;
+  padding: 5px 12px;
+  border-radius: var(--last-radius-sm);
+  border: 1px solid var(--last-border-secondary);
+  font-size: 12.5px;
+  color: var(--last-fg-secondary);
+}

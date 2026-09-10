@@ -1,0 +1,74 @@
+.root {
+  border-left: 2px solid var(--last-border-secondary);
+  padding-left: 12px;
+}
+
+.head {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  padding: 2px 0;
+  background: none;
+  border: 0;
+  font: inherit;
+  color: var(--last-fg-tertiary);
+  cursor: pointer;
+  font-size: 13px;
+}
+
+.head:hover {
+  color: var(--last-fg-secondary);
+}
+
+.head:focus-visible {
+  outline: 2px solid var(--last-border-focus);
+  outline-offset: 2px;
+  border-radius: var(--last-radius-xs);
+}
+
+.chevron {
+  display: grid;
+  place-items: center;
+  transition: transform var(--last-duration-sm) ease;
+}
+
+.open .chevron {
+  transform: rotate(90deg);
+}
+
+.shimmer {
+  background: linear-gradient(
+    90deg,
+    var(--last-fg-tertiary) 0%,
+    var(--last-fg-default) 40%,
+    var(--last-fg-tertiary) 80%
+  );
+  background-size: 220% 100%;
+  -webkit-background-clip: text;
+  background-clip: text;
+  color: transparent;
+  animation: sweep 2.4s linear infinite;
+}
+
+@keyframes sweep {
+  from {
+    background-position: 140% 0;
+  }
+  to {
+    background-position: -40% 0;
+  }
+}
+
+.body {
+  margin-top: 6px;
+  font-size: 13.5px;
+  line-height: 1.7;
+  color: var(--last-fg-secondary);
+  white-space: pre-wrap;
+  overflow-wrap: anywhere;
+}
+
+.redacted {
+  font-style: italic;
+  color: var(--last-fg-tertiary);
+}
