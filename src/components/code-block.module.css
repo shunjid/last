@@ -1,0 +1,97 @@
+.root {
+  border: 1px solid transparent;
+  border-radius: var(--last-radius-md);
+  overflow: hidden;
+  background: var(--last-surface);
+  font-family: var(--last-font-mono);
+}
+
+.bar {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 4px 8px 4px 14px;
+  background: var(--last-surface-high);
+  min-height: 40px;
+}
+
+.label {
+  font-size: 11px;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+  color: var(--last-fg-tertiary);
+  font-family: var(--last-font-sans);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.actions {
+  margin-left: auto;
+  display: flex;
+  align-items: center;
+  gap: 2px;
+}
+
+.scroll {
+  overflow-x: auto;
+  overflow-y: hidden;
+}
+
+.pre {
+  margin: 0;
+  padding: 12px 14px;
+  font-size: 12.5px;
+  line-height: 1.65;
+  tab-size: 2;
+  min-width: max-content;
+}
+
+.line {
+  display: block;
+  min-height: 1.65em;
+}
+
+.line::before {
+  content: attr(data-line);
+  display: inline-block;
+  width: 2.5ch;
+  margin-right: 14px;
+  text-align: right;
+  color: var(--last-fg-disabled);
+  user-select: none;
+}
+
+.plain .line::before {
+  content: none;
+}
+
+.clipped {
+  position: relative;
+  max-height: 320px;
+  overflow: hidden;
+}
+
+.clipped::after {
+  content: "";
+  position: absolute;
+  inset: auto 0 0 0;
+  height: 72px;
+  background: linear-gradient(to bottom, transparent, var(--last-surface));
+  pointer-events: none;
+}
+
+.expand {
+  display: flex;
+  justify-content: center;
+  background: var(--last-surface-high);
+}
+
+.error {
+  border-color: var(--last-border-error);
+}
+
+.error .bar {
+  background: var(--last-bg-error-container);
+  color: var(--last-fg-error-container);
+}
