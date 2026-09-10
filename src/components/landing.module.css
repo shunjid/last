@@ -121,3 +121,28 @@
   text-align: center;
   color: var(--last-fg-tertiary);
 }
+
+@media (max-width: 640px) {
+  .root {
+    justify-content: flex-start;
+    gap: 14px;
+    padding: 68px 14px 28px;
+  }
+
+  .corner {
+    top: 10px;
+    right: 10px;
+  }
+
+  .card {
+    padding: 28px 20px 24px;
+  }
+
+  .wordmark {
+    font-size: 1.875rem;
+  }
+
+  .actions {
+    margin-top: 20px;
+  }
+}

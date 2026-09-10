@@ -174,3 +174,28 @@
   border-radius: var(--last-radius-xs);
   background: color-mix(in srgb, var(--last-fg-default) 8%, transparent);
 }
+
+@media (max-width: 640px) {
+  .backdrop {
+    padding: 6dvh 10px 10px;
+  }
+
+  .panel {
+    max-height: 82dvh;
+  }
+
+  .search {
+    min-height: 52px;
+    padding: 6px 16px;
+  }
+
+  .input {
+    font-size: 16px;
+  }
+
+  .foot {
+    flex-wrap: wrap;
+    gap: 6px 14px;
+    padding: 10px 16px;
+  }
+}

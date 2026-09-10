@@ -158,3 +158,24 @@
 .dotError {
   background: var(--last-bg-error);
 }
+
+@media (max-width: 640px) {
+  .head {
+    gap: 10px;
+    padding: 6px 8px 6px 10px;
+  }
+
+  .glyph {
+    width: 28px;
+    height: 28px;
+  }
+
+  .body {
+    padding: 10px 10px 12px;
+  }
+
+  .sub {
+    padding: 10px 12px;
+    font-size: 12.5px;
+  }
+}

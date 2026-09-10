@@ -73,6 +73,12 @@
   }
 }
 
+@media (hover: none) {
+  .tools {
+    opacity: 1;
+  }
+}
+
 .blocks {
   display: flex;
   flex-direction: column;
@@ -107,4 +113,12 @@
   border: 1px solid var(--last-border-secondary);
   font-size: 12.5px;
   color: var(--last-fg-secondary);
+}
+
+@media (max-width: 640px) {
+  .bubble {
+    max-width: 92%;
+    padding: 10px 14px;
+    font-size: 14px;
+  }
 }

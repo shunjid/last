@@ -23,6 +23,13 @@
   padding: 28px 24px 40px;
 }
 
+@media (max-width: 900px) {
+  .inner {
+    gap: 18px;
+    padding: 18px 14px 28px;
+  }
+}
+
 .divider {
   display: flex;
   align-items: center;

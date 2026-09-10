@@ -29,10 +29,12 @@
 .chips {
   display: flex;
   align-items: center;
+  flex-wrap: nowrap;
   gap: 8px;
   font-size: 11.5px;
   color: var(--last-fg-tertiary);
   min-width: 0;
+  overflow: hidden;
 }
 
 .chip {
@@ -165,8 +167,37 @@
   background: color-mix(in srgb, var(--last-fg-default) 8%, transparent);
 }
 
-@media (max-width: 860px) {
+@media (max-width: 900px) {
+  .root {
+    gap: 6px;
+    min-height: 56px;
+    padding: 8px 8px 8px 10px;
+  }
+
+  .title {
+    font-size: 15px;
+  }
+
   .paletteLabel {
+    display: none;
+  }
+
+  .palette {
+    justify-content: center;
+    width: 40px;
+    height: 40px;
+    padding: 0;
+    background: none;
+  }
+
+  .palette .key {
+    display: none;
+  }
+}
+
+@media (max-width: 640px) {
+  .pathChip,
+  .branchChip {
     display: none;
   }
 }

@@ -66,12 +66,12 @@ export function ChatHeader({
       <div className={styles.identity}>
         <span className={styles.title}>{title}</span>
         <span className={styles.chips}>
-          <span className={styles.chip} title={cwd ?? undefined}>
+          <span className={`${styles.chip} ${styles.pathChip}`} title={cwd ?? undefined}>
             <IconFolder />
             {truncateMiddle(homeRelative(cwd, home), 46)}
           </span>
           {branch && (
-            <span className={styles.chip}>
+            <span className={`${styles.chip} ${styles.branchChip}`}>
               <IconCodeBranch />
               {truncateMiddle(branch, 28)}
             </span>
