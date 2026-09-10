@@ -1,0 +1,142 @@
+.title {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  font-size: 1.375rem;
+  font-weight: 400;
+  line-height: 1.3;
+  letter-spacing: 0;
+}
+
+.subtitle {
+  font-size: 0.875rem;
+  font-weight: 400;
+  line-height: 1.45;
+  letter-spacing: 0.0178em;
+  color: var(--last-fg-secondary);
+}
+
+.content {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.list {
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+  min-height: 160px;
+  max-height: 46vh;
+  overflow-y: auto;
+  margin: 0 -8px;
+  padding: 0 8px 4px;
+}
+
+.group {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+
+.groupHead {
+  display: flex;
+  align-items: baseline;
+  gap: 8px;
+  margin: 0 0 4px;
+  padding: 0 6px;
+}
+
+.groupName {
+  font-size: 0.6875rem;
+  font-weight: 500;
+  letter-spacing: 0.045em;
+  text-transform: uppercase;
+  color: var(--last-fg-secondary);
+}
+
+.groupNote {
+  font-size: 0.75rem;
+  color: var(--last-fg-tertiary);
+}
+
+.item {
+  display: grid;
+  grid-template-columns: auto minmax(0, 1fr) auto;
+  align-items: center;
+  gap: 14px;
+  width: 100%;
+  min-height: 56px;
+  padding: 8px 16px;
+  border: 0;
+  border-radius: var(--last-radius-md);
+  background: none;
+  text-align: left;
+  cursor: pointer;
+  transition: background var(--last-duration-sm) var(--last-ease-standard);
+}
+
+.item:hover {
+  background: var(--last-state-hover);
+}
+
+.item:active {
+  background: var(--last-state-press);
+}
+
+.item:focus-visible {
+  outline: 2px solid var(--last-border-focus);
+  outline-offset: -2px;
+}
+
+.glyph {
+  display: grid;
+  place-items: center;
+  flex: none;
+  width: 40px;
+  height: 40px;
+  border-radius: var(--last-radius-full);
+  background: var(--last-bg-secondary-container);
+  color: var(--last-fg-secondary-container);
+}
+
+.text {
+  display: flex;
+  flex-direction: column;
+  min-width: 0;
+  gap: 1px;
+}
+
+.name {
+  overflow: hidden;
+  font-size: 0.875rem;
+  font-weight: 500;
+  white-space: nowrap;
+  text-overflow: ellipsis;
+  color: var(--last-fg-default);
+}
+
+.path {
+  overflow: hidden;
+  font-family: var(--last-font-mono);
+  font-size: 0.75rem;
+  white-space: nowrap;
+  text-overflow: ellipsis;
+  color: var(--last-fg-tertiary);
+}
+
+.meta {
+  flex: none;
+  font-size: 0.75rem;
+  white-space: nowrap;
+  color: var(--last-fg-tertiary);
+}
+
+.empty {
+  margin: 0;
+  padding: 24px 8px;
+  font-size: 0.8125rem;
+  line-height: 1.55;
+  text-align: center;
+  color: var(--last-fg-secondary);
+}
