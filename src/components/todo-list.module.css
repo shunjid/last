@@ -1,0 +1,98 @@
+.root {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.track {
+  height: 4px;
+  border-radius: 999px;
+  background: var(--last-bg-secondary-container);
+  overflow: hidden;
+}
+
+.fill {
+  display: block;
+  height: 100%;
+  border-radius: 999px;
+  background: var(--last-bg-accent);
+  transition: width var(--last-duration-md) ease;
+}
+
+.list {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.item {
+  display: flex;
+  align-items: flex-start;
+  gap: 8px;
+  padding: 3px 0;
+  font-size: 13px;
+  line-height: 1.5;
+  color: var(--last-fg-secondary);
+}
+
+.mark {
+  display: grid;
+  place-items: center;
+  flex: none;
+  width: 16px;
+  height: 16px;
+  margin-top: 2px;
+  color: var(--last-fg-tertiary);
+}
+
+.mark svg {
+  width: 13px;
+  height: 13px;
+}
+
+.ring {
+  width: 11px;
+  height: 11px;
+  border: 1.5px solid currentColor;
+  border-radius: 999px;
+}
+
+.done {
+  color: var(--last-fg-tertiary);
+}
+
+.done .text {
+  text-decoration: line-through;
+}
+
+.done .mark {
+  color: var(--last-fg-success);
+}
+
+.active {
+  color: var(--last-fg-default);
+  font-weight: 500;
+}
+
+.active .mark {
+  color: var(--last-fg-accent);
+}
+
+.active .ring {
+  border-color: var(--last-border-accent);
+  background: var(--last-bg-accent);
+}
+
+.text {
+  min-width: 0;
+  overflow-wrap: anywhere;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .fill {
+    transition: none;
+  }
+}
