@@ -286,7 +286,7 @@ export const theme = createTheme({
     MuiCssBaseline: {
       styleOverrides: {
         "html, body": {
-          height: "100%",
+          height: "100dvh",
         },
         body: {
           fontSize: "0.875rem",
@@ -304,7 +304,7 @@ export const theme = createTheme({
           letterSpacing: 0,
         },
         "#app-root": {
-          height: "100%",
+          height: "100dvh",
         },
         "::selection": {
           background: "var(--mui-palette-background-accentSubtle)",
@@ -408,6 +408,9 @@ export const theme = createTheme({
           borderRadius: 28,
           backgroundColor: "var(--mui-palette-background-surfaceHigh)",
           boxShadow: "var(--last-elev-3)",
+          "&.MuiDialog-paperFullScreen": {
+            borderRadius: 0,
+          },
         },
       },
     },

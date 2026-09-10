@@ -156,8 +156,34 @@
   font-variant-numeric: tabular-nums;
 }
 
-@media (max-width: 720px) {
+@media (max-width: 900px) {
+  .dock {
+    padding: 0 12px 12px;
+  }
+
+  .field {
+    min-height: 48px;
+    padding: 14px 16px 4px;
+    font-size: 16px;
+  }
+
+  .bar {
+    gap: 4px;
+    padding: 4px 8px 8px 10px;
+  }
+
+  .bar > * {
+    min-width: 0;
+    max-width: 100%;
+  }
+}
+
+@media (max-width: 640px) {
   .hint {
     display: none;
+  }
+
+  .bar > :last-child {
+    margin-left: auto;
   }
 }

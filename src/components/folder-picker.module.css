@@ -140,3 +140,23 @@
   text-align: center;
   color: var(--last-fg-secondary);
 }
+
+@media (max-width: 640px) {
+  .title {
+    font-size: 1.25rem;
+  }
+
+  .list {
+    min-height: 0;
+    max-height: none;
+  }
+
+  .item {
+    gap: 12px;
+    padding: 8px 10px;
+  }
+
+  .meta {
+    display: none;
+  }
+}

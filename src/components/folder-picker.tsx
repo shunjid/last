@@ -10,6 +10,7 @@ import InputAdornment from "@mui/material/InputAdornment";
 import TextField from "@mui/material/TextField";
 import { useMemo, useState } from "react";
 
+import { PHONE_QUERY, useMediaQuery } from "@/client/use-media-query";
 import { basename, homeRelative, relativeStamp } from "@/lib/format";
 import type { FolderChoice } from "@/lib/types";
 
@@ -43,6 +44,7 @@ export function FolderPicker({
   open: boolean;
 }) {
   const [query, setQuery] = useState("");
+  const phone = useMediaQuery(PHONE_QUERY);
 
   const matches = useMemo(() => {
     const needle = query.trim().toLowerCase();
@@ -66,7 +68,7 @@ export function FolderPicker({
   }
 
   return (
-    <Dialog fullWidth maxWidth="sm" onClose={close} open={open}>
+    <Dialog fullScreen={phone} fullWidth maxWidth="sm" onClose={close} open={open}>
       <DialogTitle className={styles.title}>
         Where should this chat run?
         <span className={styles.subtitle}>

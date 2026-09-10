@@ -89,3 +89,13 @@
   border-radius: var(--last-radius-xs);
   background: var(--last-surface-lowest);
 }
+
+@media (max-width: 640px) {
+  .root {
+    padding: 14px;
+  }
+
+  .hint {
+    display: none;
+  }
+}
