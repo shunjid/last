@@ -12,6 +12,46 @@ import { Markdown } from "./markdown";
 import styles from "./turn-bubble.module.css";
 import { ThinkingCard } from "./thinking-card";
 import { ToolCard } from "./tool-card";
+import { ToolRunGroup } from "./tool-run-group";
+
+type ToolBlock = Extract<Block, { kind: "tool" }>;
+
+type Segment =
+  { kind: "block"; block: Block; index: number } | { kind: "toolRun"; blocks: ToolBlock[] };
+
+function segmentBlocks(blocks: Block[], liveIndex: number | null): Segment[] {
+  const segments: Segment[] = [];
+  let run: ToolBlock[] = [];
+  let runStart = -1;
+
+  const flush = () => {
+    if (run.length === 0) return;
+    const hasLive =
+      liveIndex !== null && liveIndex >= runStart && liveIndex < runStart + run.length;
+    if (run.length > 1 && !hasLive) {
+      segments.push({ blocks: run, kind: "toolRun" });
+    } else {
+      run.forEach((block, offset) =>
+        segments.push({ block, index: runStart + offset, kind: "block" }),
+      );
+    }
+    run = [];
+    runStart = -1;
+  };
+
+  blocks.forEach((block, index) => {
+    if (block.kind === "tool") {
+      if (run.length === 0) runStart = index;
+      run.push(block);
+      return;
+    }
+    flush();
+    segments.push({ block, index, kind: "block" });
+  });
+  flush();
+
+  return segments;
+}
 
 function BlockView({ block, live }: { block: Block; live: boolean }) {
   switch (block.kind) {
@@ -106,12 +146,22 @@ export const TurnBubble = memo(function TurnBubble({
     .join("\n\n")
     .trim();
 
+  const segments = segmentBlocks(turn.blocks, live ? lastIndex : null);
+
   return (
     <div className={`${styles.row} ${styles.assistant}`}>
       <div className={styles.blocks}>
-        {turn.blocks.map((block, index) => (
-          <BlockView block={block} key={index} live={live && index === lastIndex} />
-        ))}
+        {segments.map((segment) =>
+          segment.kind === "toolRun" ? (
+            <ToolRunGroup blocks={segment.blocks} key={`run-${segment.blocks[0].id}`} />
+          ) : (
+            <BlockView
+              block={segment.block}
+              key={segment.index}
+              live={live && segment.index === lastIndex}
+            />
+          ),
+        )}
       </div>
 
       {!live && answer && <CopyAnswer text={answer} />}
