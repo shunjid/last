@@ -130,7 +130,10 @@ design.
 
 LAST reads `LAST_SETTING_SOURCES`, a comma separated list of `user`, `project` and `local`. It is
 empty by default, so the app loads no `~/.claude/settings.json`, no `<cwd>/.claude/settings.json`
-and no `.claude/settings.local.json`, and every tool call reaches the browser permission prompt.
+and no `.claude/settings.local.json`, and every tool call reaches the browser permission prompt in
+Ask before changes, Auto-accept edits, and Plan only. Auto mode is the exception: Anthropic's
+classifier decides the calls it's confident about on its own, and only escalates the rest to the
+same prompt. See the README for what that trade-off means in practice.
 
 The trade-off is that your project instruction files are not loaded either. `CLAUDE.md` and
 `AGENTS.md` are read for a run only when you opt in.
@@ -139,6 +142,31 @@ The trade-off is that your project instruction files are not loaded either. `CLA
 `CLAUDE.md` and `AGENTS.md`. `LAST_SETTING_SOURCES=user,project,local` restores full CLI parity.
 Once a settings file is loaded, the SDK applies its allow rules before the browser prompt ever
 appears, so anything on your allow list runs unprompted, and hooks in those files execute too.
+
+## Ultracode and the Workflow tool
+
+Typing "ultracode" in a prompt is a Claude Code trigger, not something LAST builds. It's on by
+default in the SDK; LAST doesn't set `workflowKeywordTriggerEnabled` or `Options.settings.ultracode`
+anywhere. Whether it does anything still depends on Workflows being enabled for the account's plan
+and the session running a model that supports the deepest effort level, and there's no field in the
+SDK that tells a host either of those things in advance.
+
+`src/server/sdk-frames.ts` turns a workflow's `task_started` and `task_notification` system messages
+into the two divider lines you see in the transcript. It does not handle `task_progress` or
+`task_updated`, so there's no live status while a workflow runs, only a start and an end. It also
+only tracks tasks with `task_type === "local_workflow"`; other background task types (shell,
+subagent, MCP) still go through `mapSystem`'s default `return [];` and stay invisible.
+
+`src/client/thread.ts`'s `isTaskTool` only matches `"Task"` and `"Agent"`, and its `taskPos`/`subText`
+fields hold exactly one nested stream at a time. A workflow's internal `agent()` calls, if the SDK
+tags them with the same `parent_tool_use_id` nesting Task subagents use, would either get dropped or
+mixed together under whatever tool card `taskPos` happens to point at. Nobody has confirmed whether
+the SDK nests them that way at all.
+
+Route.ts never sets `Options.perTaskStopAffordance`. That's deliberate: the SDK fails closed without
+it, so pressing Stop or Escape kills any background workflow along with the current turn, which is
+the safe default given LAST has no per-task stop control. If that ever changes, a real stop control
+has to ship in the same change, per the SDK's docs on that field.
 
 ## Where your data lives
 

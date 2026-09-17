@@ -287,7 +287,7 @@ export function applyFrame(run: RunState, frame: StreamFrame): void {
     }
 
     case "notice": {
-      pushDivider(run, frame.message, undefined, frame.level === "info" ? "neutral" : "warning");
+      pushDivider(run, frame.message, frame.detail, frame.level === "info" ? "neutral" : "warning");
       return;
     }
 

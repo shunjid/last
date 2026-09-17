@@ -5,6 +5,7 @@ import type { SDKMessage } from "@anthropic-ai/claude-agent-sdk";
 import type { ResultStats, StreamFrame, ToolResult } from "@/lib/types";
 
 const MAX_RESULT_CHARS = 20_000;
+const MAX_NOTICE_CHARS = 160;
 
 type OpenBlock = { kind: "text" | "thinking" | "tool"; id?: string; name?: string };
 
@@ -12,6 +13,10 @@ function clip(value: string) {
   return value.length <= MAX_RESULT_CHARS
     ? value
     : `${value.slice(0, MAX_RESULT_CHARS)}\n… (${value.length - MAX_RESULT_CHARS} more characters)`;
+}
+
+function clipNotice(value: string) {
+  return value.length <= MAX_NOTICE_CHARS ? value : `${value.slice(0, MAX_NOTICE_CHARS - 1)}…`;
 }
 
 function flattenResult(content: unknown): ToolResult {
@@ -62,6 +67,7 @@ export class FrameMapper {
   private open = new Map<number, OpenBlock>();
   private committedOutput = 0;
   private messageOutput = 0;
+  private workflows = new Map<string, string | null>();
 
   map(message: SDKMessage): StreamFrame[] {
     const record = message as unknown as Record<string, never>;
@@ -117,6 +123,36 @@ export class FrameMapper {
     if (raw.subtype === "permission_denied") {
       const tool = typeof raw.tool_name === "string" ? raw.tool_name : "A tool";
       return [{ level: "warning", message: `${tool} was denied by your settings.`, t: "notice" }];
+    }
+    if (raw.subtype === "task_started" && raw.task_type === "local_workflow") {
+      const taskId = typeof raw.task_id === "string" ? raw.task_id : null;
+      if (!taskId || raw.skip_transcript === true) return [];
+      const name = typeof raw.workflow_name === "string" ? raw.workflow_name : null;
+      this.workflows.set(taskId, name);
+      return [
+        {
+          level: "info",
+          message: name ? `Workflow started · ${name}` : "Workflow started",
+          t: "notice",
+        },
+      ];
+    }
+    if (raw.subtype === "task_notification") {
+      const taskId = typeof raw.task_id === "string" ? raw.task_id : null;
+      if (!taskId || !this.workflows.has(taskId)) return [];
+      const name = this.workflows.get(taskId) ?? null;
+      this.workflows.delete(taskId);
+      const status =
+        raw.status === "completed" ? "finished" : raw.status === "stopped" ? "stopped" : "failed";
+      const summary = typeof raw.summary === "string" ? clipNotice(raw.summary) : "";
+      return [
+        {
+          detail: summary || undefined,
+          level: status === "finished" ? "info" : "warning",
+          message: name ? `Workflow ${status} · ${name}` : `Workflow ${status}`,
+          t: "notice",
+        },
+      ];
     }
     return [];
   }

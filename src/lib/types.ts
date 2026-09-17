@@ -1,6 +1,6 @@
 export const MAX_THREAD_ITEMS = 600;
 
-export type PermissionMode = "default" | "acceptEdits" | "plan";
+export type PermissionMode = "default" | "acceptEdits" | "plan" | "auto";
 
 export type EffortLevel = "low" | "medium" | "high" | "xhigh" | "max";
 
@@ -189,7 +189,7 @@ export type StreamFrame =
   | { t: "thinking_tokens"; estimated: number }
   | { t: "compact"; trigger: "manual" | "auto"; preTokens: number }
   | { t: "result"; stats: ResultStats }
-  | { t: "notice"; level: "info" | "warning" | "danger"; message: string }
+  | { t: "notice"; level: "info" | "warning" | "danger"; message: string; detail?: string }
   | { t: "error"; message: string }
   | { t: "done" };
 

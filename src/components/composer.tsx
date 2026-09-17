@@ -22,6 +22,7 @@ const MODES: Array<{ label: string; value: PermissionMode }> = [
   { label: "Ask before changes", value: "default" },
   { label: "Auto-accept edits", value: "acceptEdits" },
   { label: "Plan only", value: "plan" },
+  { label: "Auto-approve safe actions", value: "auto" },
 ];
 
 const EFFORT_LABELS: Record<EffortLevel, string> = {
