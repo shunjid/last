@@ -17,7 +17,9 @@ SDK, so a reply you send here is waiting for you the next time you run `claude -
   along on its own. No refresh.
 - **Streaming replies** with token count, cost and duration for every turn.
 - **Permission prompts in the browser.** Allow once, allow for the session, or deny.
-- **Permission modes** in the composer: Ask before changes, Auto-accept edits, Plan only.
+- **Permission modes** in the composer: Ask before changes, Auto-accept edits, Plan only, or Auto
+  (Anthropic's own classifier approves or denies routine calls; anything it isn't sure about still
+  asks you).
 - **Model and effort pickers**, and a light / dark / system theme.
 - **Works on a phone.** The sidebar becomes a drawer and the whole app resizes down to a small
   screen.
@@ -60,10 +62,20 @@ whole Claude Code history and can run Bash on your machine as you.
 So: do not run LAST on a shared or multi-user machine, and do not port-forward or tunnel port 4123.
 Check whether your editor forwards ports for you.
 
-Every tool call asks you first. LAST loads no Claude Code settings files by default, so nothing on
-your CLI allow list runs unprompted. The trade-off is that `CLAUDE.md` and `AGENTS.md` are not
-loaded either. Set `LAST_SETTING_SOURCES=project` to opt back in, or `user,project,local` for full
-CLI parity.
+Every tool call asks you first in Ask before changes, Auto-accept edits, and Plan only. In Auto mode
+it doesn't: Anthropic's classifier silently approves calls it's confident about, and a call it's
+confident should be denied just shows up as a warning after the fact. Only the calls it isn't sure
+about still reach you. Stay on Ask before changes if you want to see everything before it runs.
+
+LAST loads no Claude Code settings files by default, so nothing on your CLI allow list runs
+unprompted. The trade-off is that `CLAUDE.md` and `AGENTS.md` are not loaded either. Set
+`LAST_SETTING_SOURCES=project` to opt back in, or `user,project,local` for full CLI parity.
+
+Typing "ultracode" in a message is a built-in Claude Code trigger, not a LAST feature. It opts that
+turn into the Workflow tool, which can spawn several subagents at once. It needs Workflows enabled
+on your Anthropic plan and a model that supports the deepest effort level; LAST can't check either
+of those for you. LAST shows a line when a workflow starts and when it finishes, but not its live
+progress in between.
 
 ## Contributing
 
