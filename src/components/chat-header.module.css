@@ -82,6 +82,36 @@
   color: var(--last-fg-success-strong);
 }
 
+.contextMeter {
+  flex: none;
+  gap: 6px;
+  font-family: var(--last-font-sans);
+}
+
+.contextTrack {
+  width: 32px;
+  height: 4px;
+  border-radius: 999px;
+  background: var(--last-surface-highest);
+  overflow: hidden;
+}
+
+.contextFill {
+  display: block;
+  height: 100%;
+  border-radius: 999px;
+  background: var(--last-fg-tertiary);
+  transition: width var(--last-duration-md) var(--last-ease-standard);
+}
+
+.contextWarn {
+  background: var(--last-fg-warning);
+}
+
+.contextDanger {
+  background: var(--last-fg-error);
+}
+
 .status {
   position: absolute;
   width: 1px;
@@ -197,7 +227,8 @@
 
 @media (max-width: 640px) {
   .pathChip,
-  .branchChip {
+  .branchChip,
+  .contextMeter {
     display: none;
   }
 }

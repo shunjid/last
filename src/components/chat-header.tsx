@@ -4,15 +4,41 @@ import IconButton from "@mui/material/IconButton";
 import Tooltip from "@mui/material/Tooltip";
 import { useEffect, useRef, useState } from "react";
 
-import { homeRelative, truncateMiddle } from "@/lib/format";
+import { homeRelative, tokens, truncateMiddle } from "@/lib/format";
+import type { ResultStats } from "@/lib/types";
 
 import styles from "./chat-header.module.css";
 import { IconCheck, IconCodeBranch, IconCopy, IconFolder, IconSearch, IconSidebar } from "./icons";
 import { ThemeToggle } from "./theme-toggle";
 
+const WARN_AT = 80;
+const DANGER_AT = 95;
+
+function ContextMeter({ stats }: { stats: ResultStats | null }) {
+  if (!stats?.contextWindow) return null;
+  const used = (stats.inputTokens ?? 0) + (stats.outputTokens ?? 0) + (stats.cacheReadTokens ?? 0);
+  const pct = Math.min(100, Math.round((used / stats.contextWindow) * 100));
+  const level = pct >= DANGER_AT ? styles.contextDanger : pct >= WARN_AT ? styles.contextWarn : "";
+
+  return (
+    <Tooltip title={`${tokens(used)} of ${tokens(stats.contextWindow)} tokens in context`}>
+      <span className={`${styles.chip} ${styles.contextMeter}`} tabIndex={0}>
+        <span className={styles.contextTrack}>
+          <span
+            className={`${styles.contextFill} ${level}`}
+            style={{ width: `${Math.max(pct, 3)}%` }}
+          />
+        </span>
+        {pct}%
+      </span>
+    </Tooltip>
+  );
+}
+
 export function ChatHeader({
   branch,
   busy,
+  contextStats,
   cwd,
   home,
   onOpenPalette,
@@ -23,6 +49,7 @@ export function ChatHeader({
 }: {
   branch: string | null;
   busy: boolean;
+  contextStats: ResultStats | null;
   cwd: string | null;
   home: string;
   onOpenPalette: () => void;
@@ -76,6 +103,7 @@ export function ChatHeader({
               {truncateMiddle(branch, 28)}
             </span>
           )}
+          <ContextMeter stats={contextStats} />
           {sessionId && (
             <Tooltip title="Copy the session id, then run claude --resume in your terminal">
               <button
