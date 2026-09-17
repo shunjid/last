@@ -50,6 +50,7 @@ export type ChatView = {
   activity: ChatActivity | null;
   asks: PermissionAsk[];
   canRetry: boolean;
+  contextStats: ResultStats | null;
   error: string | null;
   items: ThreadItem[];
   live: Turn | null;
@@ -68,6 +69,7 @@ export type Entry = {
   epoch: number;
   history: ThreadItem[];
   key: string;
+  lastStats: ResultStats | null;
   listeners: Set<() => void>;
   loadError: string | null;
   loadedKey: string | null;
@@ -95,6 +97,7 @@ const EMPTY_VIEW: ChatView = {
   activity: null,
   asks: [],
   canRetry: false,
+  contextStats: null,
   error: null,
   items: [],
   live: null,
@@ -158,6 +161,7 @@ function create(key: string, cwd: string, sessionId: string | null): Entry {
     epoch: 0,
     history: [],
     key,
+    lastStats: null,
     listeners: new Set(),
     loadError: null,
     loadedKey: null,
@@ -250,6 +254,7 @@ function snapshot(entry: Entry) {
     activity: pickActivity(entry),
     asks: run?.asks ?? [],
     canRetry: run?.phase === "error" && entry.retry !== null,
+    contextStats: entry.lastStats,
     error: run?.error ?? null,
     items: run ? [...base, ...run.produced] : base,
     live: run?.current ?? null,
@@ -438,6 +443,7 @@ export async function send(entry: Entry, prompt: string, options: SendOptions) {
     };
     for await (const frame of streamChat(body, controller.signal)) {
       applyFrame(run, frame);
+      if (frame.t === "result") entry.lastStats = frame.stats;
       if (frame.t === "init" && !entry.sessionId && frame.sessionId) {
         entry.sessionId = frame.sessionId;
         store.alias.set(frame.sessionId, entry.key);

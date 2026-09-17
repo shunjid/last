@@ -131,6 +131,7 @@ export function ChatPane({
       <ChatHeader
         branch={branch}
         busy={busy}
+        contextStats={view.contextStats}
         cwd={cwd}
         home={home}
         onOpenPalette={onOpenPalette}
