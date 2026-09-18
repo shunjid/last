@@ -3,6 +3,7 @@ import type {
   ModelChoice,
   PermissionDecisionBody,
   ProjectSummary,
+  QuestionDecisionBody,
   SessionDetail,
   SessionSummary,
   StreamFrame,
@@ -33,6 +34,15 @@ export async function getModels(signal?: AbortSignal) {
 
 export async function sendPermission(body: PermissionDecisionBody) {
   const response = await fetch("/api/permission", {
+    body: JSON.stringify(body),
+    headers: JSON_HEADERS,
+    method: "POST",
+  });
+  return unwrap<{ ok: true }>(response);
+}
+
+export async function sendQuestionAnswer(body: QuestionDecisionBody) {
+  const response = await fetch("/api/question", {
     body: JSON.stringify(body),
     headers: JSON_HEADERS,
     method: "POST",

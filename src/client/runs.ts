@@ -6,6 +6,7 @@ import type {
   LiveFrame,
   PermissionAsk,
   PermissionMode,
+  QuestionAsk,
   ResultStats,
   SessionDetail,
   SessionPulse,
@@ -15,7 +16,7 @@ import type {
 import { DEFAULT_MODEL } from "@/lib/types";
 
 import { setLocalRun } from "./activity";
-import { interruptSession, sendPermission, streamChat } from "./api";
+import { interruptSession, sendPermission, sendQuestionAnswer, streamChat } from "./api";
 import { applyOps } from "./live";
 import {
   applyFrame,
@@ -55,6 +56,7 @@ export type ChatView = {
   items: ThreadItem[];
   live: Turn | null;
   phase: RunPhase;
+  questionAsks: QuestionAsk[];
   stats: ResultStats | null;
   status: string | null;
   truncated: boolean;
@@ -102,6 +104,7 @@ const EMPTY_VIEW: ChatView = {
   items: [],
   live: null,
   phase: "idle",
+  questionAsks: [],
   stats: null,
   status: null,
   truncated: false,
@@ -259,6 +262,7 @@ function snapshot(entry: Entry) {
     items: run ? [...base, ...run.produced] : base,
     live: run?.current ?? null,
     phase: run?.phase ?? "idle",
+    questionAsks: run?.questionAsks ?? [],
     stats: run?.stats ?? null,
     status: run?.status ?? null,
     truncated: entry.truncated,
@@ -473,6 +477,7 @@ export async function send(entry: Entry, prompt: string, options: SendOptions) {
     setLocalRun(marked, false);
     entry.localRunEndedAt = Date.now();
     run.asks = [];
+    run.questionAsks = [];
     run.status = null;
     if (run.produced.length > 0) {
       entry.tail = [...entry.tail, ...run.produced];
@@ -540,6 +545,45 @@ export async function decide(
     asks.splice(Math.min(index, asks.length), 0, ask);
     run.asks = asks;
     run.error = error instanceof Error ? error.message : "That decision could not be sent.";
+    flushNow(entry);
+  }
+}
+
+export async function decideQuestion(
+  entry: Entry,
+  ask: QuestionAsk,
+  outcome: { answers: Record<string, string> } | { cancelled: true },
+) {
+  const run = entry.run;
+  if (!run) return;
+  if (!run.streamId) {
+    run.error = "That answer could not be sent. The run is no longer connected.";
+    flushNow(entry);
+    return;
+  }
+
+  const index = run.questionAsks.findIndex((item) => item.requestId === ask.requestId);
+  if (index === -1) return;
+  run.questionAsks = run.questionAsks.filter((item) => item.requestId !== ask.requestId);
+  flushNow(entry);
+
+  try {
+    await sendQuestionAnswer(
+      "cancelled" in outcome
+        ? { decision: "cancel", requestId: ask.requestId, streamId: run.streamId }
+        : {
+            answers: outcome.answers,
+            decision: "answer",
+            requestId: ask.requestId,
+            streamId: run.streamId,
+          },
+    );
+  } catch (error) {
+    if (entry.run !== run) return;
+    const asks = [...run.questionAsks];
+    asks.splice(Math.min(index, asks.length), 0, ask);
+    run.questionAsks = asks;
+    run.error = error instanceof Error ? error.message : "That answer could not be sent.";
     flushNow(entry);
   }
 }

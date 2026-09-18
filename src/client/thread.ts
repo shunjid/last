@@ -2,6 +2,7 @@ import type {
   Block,
   EffortLevel,
   PermissionAsk,
+  QuestionAsk,
   ResultStats,
   StreamFrame,
   ThreadItem,
@@ -29,6 +30,7 @@ export type RunState = {
   outputTokens: number;
   phase: RunPhase;
   produced: ThreadItem[];
+  questionAsks: QuestionAsk[];
   sessionId: string | null;
   startedAt: number;
   stats: ResultStats | null;
@@ -50,6 +52,7 @@ export function createRun(): RunState {
     outputTokens: 0,
     phase: "connecting",
     produced: [],
+    questionAsks: [],
     sessionId: null,
     startedAt: Date.now(),
     stats: null,
@@ -261,6 +264,12 @@ export function applyFrame(run: RunState, frame: StreamFrame): void {
       return;
     }
 
+    case "question": {
+      if (run.questionAsks.some((ask) => ask.requestId === frame.ask.requestId)) return;
+      run.questionAsks = [...run.questionAsks, frame.ask];
+      return;
+    }
+
     case "status": {
       run.status = frame.status;
       return;
@@ -309,6 +318,7 @@ export function applyFrame(run: RunState, frame: StreamFrame): void {
     case "done": {
       commitCurrent(run);
       run.asks = [];
+      run.questionAsks = [];
       run.status = null;
       if (run.phase !== "error") run.phase = "done";
       return;

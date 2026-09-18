@@ -2,13 +2,14 @@
 
 import { useCallback, useEffect, useMemo, useSyncExternalStore } from "react";
 
-import type { LiveFrame, PermissionAsk } from "@/lib/types";
+import type { LiveFrame, PermissionAsk, QuestionAsk } from "@/lib/types";
 
 import { getSessionDetail } from "./api";
 import {
   acquire,
   applyLive,
   decide as decideOn,
+  decideQuestion as decideQuestionOn,
   enqueue as enqueueOn,
   failedDetail,
   finishLoad,
@@ -177,9 +178,16 @@ export function useChat(target: ChatTarget, onSessionCreated: (sessionId: string
     [entry],
   );
 
+  const decideQuestion = useCallback(
+    (ask: QuestionAsk, outcome: { answers: Record<string, string> } | { cancelled: true }) =>
+      decideQuestionOn(entry, ask, outcome),
+    [entry],
+  );
+
   return {
     busy,
     decide,
+    decideQuestion,
     detail,
     enqueue,
     loadError,

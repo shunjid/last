@@ -10,7 +10,7 @@ import { readJson } from "@/lib/http";
 import { ChatBodySchema } from "@/lib/schemas";
 import { DEFAULT_MODEL, type StreamFrame } from "@/lib/types";
 import { effortAllowed } from "@/server/models";
-import { closeStream, openStream, requestPermission } from "@/server/permissions";
+import { closeStream, openStream, requestPermission, requestQuestion } from "@/server/permissions";
 import { registerQuery, unregisterQuery, withSessionLock } from "@/server/registries";
 import { releaseRun, tryAcquireRun } from "@/server/run-guard";
 import { FrameMapper } from "@/server/sdk-frames";
@@ -97,9 +97,11 @@ export async function POST(request: Request) {
         input: Record<string, unknown>,
         options: { signal: AbortSignal },
       ): Promise<PermissionResult> =>
-        requestPermission(state, toolName, input, options.signal, (ask) =>
-          send({ ask, t: "permission" }),
-        );
+        toolName === "AskUserQuestion"
+          ? requestQuestion(state, input, options.signal, (ask) => send({ ask, t: "question" }))
+          : requestPermission(state, toolName, input, options.signal, (ask) =>
+              send({ ask, t: "permission" }),
+            );
 
       const options: Options = {
         canUseTool,

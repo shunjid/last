@@ -6,7 +6,7 @@ import { basename, dirname, join, normalize, resolve, sep } from "node:path";
 
 import type { PermissionResult } from "@anthropic-ai/claude-agent-sdk";
 
-import type { PermissionAsk } from "@/lib/types";
+import type { PermissionAsk, Question, QuestionAsk, QuestionOption } from "@/lib/types";
 import { editDiff, isMutatingTool, toolDisplayName, toolLanguage, toolSummary } from "@/lib/tools";
 import { registries, type StreamState } from "./registries";
 
@@ -224,4 +224,89 @@ export function decide(
       : { behavior: "deny", message: "The user declined this tool call." },
   );
   return { ok: true, tool: entry.toolName };
+}
+
+function parseOptions(raw: unknown): QuestionOption[] {
+  if (!Array.isArray(raw)) return [];
+  return raw.map((entry) => {
+    const option = (entry ?? {}) as Record<string, unknown>;
+    return {
+      description: typeof option.description === "string" ? option.description : "",
+      label: typeof option.label === "string" ? option.label : "",
+      preview: typeof option.preview === "string" ? option.preview : null,
+    };
+  });
+}
+
+function parseQuestions(input: Record<string, unknown>): Question[] {
+  if (!Array.isArray(input.questions)) return [];
+  return input.questions.map((entry) => {
+    const question = (entry ?? {}) as Record<string, unknown>;
+    return {
+      header: typeof question.header === "string" ? question.header : "",
+      multiSelect: question.multiSelect === true,
+      options: parseOptions(question.options),
+      question: typeof question.question === "string" ? question.question : "",
+    };
+  });
+}
+
+export function requestQuestion(
+  state: StreamState,
+  input: Record<string, unknown>,
+  signal: AbortSignal,
+  emit: (ask: QuestionAsk) => void,
+): Promise<PermissionResult> {
+  if (state.pending.size >= MAX_PENDING_PER_STREAM) {
+    return Promise.resolve({ behavior: "deny", message: "Too many pending requests" });
+  }
+
+  const requestId = randomUUID();
+
+  return new Promise<PermissionResult>((resolve) => {
+    const settle = (result: PermissionResult) => {
+      const entry = state.pending.get(requestId);
+      if (!entry) return;
+      state.pending.delete(requestId);
+      clearTimeout(entry.timer);
+      resolve(result);
+    };
+
+    const timer = setTimeout(
+      () => settle({ behavior: "deny", message: "The question timed out with no answer." }),
+      TTL_MS,
+    );
+    timer.unref?.();
+
+    signal.addEventListener("abort", () => settle({ behavior: "deny", message: "Turn aborted" }), {
+      once: true,
+    });
+
+    state.pending.set(requestId, {
+      input,
+      requestId,
+      resolve: settle,
+      streamId: state.streamId,
+      timer,
+      toolName: "AskUserQuestion",
+    });
+    emit({ questions: parseQuestions(input), requestId });
+  });
+}
+
+export function decideQuestion(
+  streamId: string,
+  requestId: string,
+  outcome: { answers: Record<string, string> } | { cancelled: true },
+): { ok: boolean } {
+  const state = registries.streams.get(streamId);
+  const entry = state?.pending.get(requestId);
+  if (!state || !entry) return { ok: false };
+
+  entry.resolve(
+    "cancelled" in outcome
+      ? { behavior: "deny", message: "The user closed the question without answering." }
+      : { behavior: "allow", updatedInput: { ...entry.input, answers: outcome.answers } },
+  );
+  return { ok: true };
 }

@@ -141,6 +141,24 @@ export type PermissionAsk = {
   truncatedChars: number;
 };
 
+export type QuestionOption = {
+  label: string;
+  description: string;
+  preview: string | null;
+};
+
+export type Question = {
+  header: string;
+  question: string;
+  multiSelect: boolean;
+  options: QuestionOption[];
+};
+
+export type QuestionAsk = {
+  requestId: string;
+  questions: Question[];
+};
+
 export type ResultStats = {
   isError: boolean;
   errors: string[];
@@ -184,6 +202,7 @@ export type StreamFrame =
   | { t: "tool_result"; id: string; result: ToolResult; sub: boolean }
   | { t: "permission"; ask: PermissionAsk }
   | { t: "permission_resolved"; requestId: string; behavior: "allow" | "deny" }
+  | { t: "question"; ask: QuestionAsk }
   | { t: "status"; status: string | null }
   | { t: "usage"; outputTokens: number }
   | { t: "thinking_tokens"; estimated: number }
@@ -208,3 +227,7 @@ export type PermissionDecisionBody = {
   decision: "allow" | "deny";
   scope: "once" | "session";
 };
+
+export type QuestionDecisionBody =
+  | { streamId: string; requestId: string; decision: "answer"; answers: Record<string, string> }
+  | { streamId: string; requestId: string; decision: "cancel" };

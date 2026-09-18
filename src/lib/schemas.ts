@@ -34,6 +34,20 @@ export const PermissionDecisionSchema = z.strictObject({
   streamId: z.uuid(),
 });
 
+export const QuestionDecisionSchema = z.discriminatedUnion("decision", [
+  z.strictObject({
+    answers: z.record(z.string().min(1).max(200), z.string().min(1).max(4000)),
+    decision: z.literal("answer"),
+    requestId: z.uuid(),
+    streamId: z.uuid(),
+  }),
+  z.strictObject({
+    decision: z.literal("cancel"),
+    requestId: z.uuid(),
+    streamId: z.uuid(),
+  }),
+]);
+
 export const InterruptBodySchema = z.strictObject({
   sessionId: SessionIdSchema,
   streamId: z.uuid(),
