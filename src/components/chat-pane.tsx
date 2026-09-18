@@ -18,6 +18,7 @@ import { ChatHeader } from "./chat-header";
 import styles from "./chat-pane.module.css";
 import { Composer, PENDING_SCOPE_PREFIX } from "./composer";
 import { EmptyState } from "./empty-state";
+import { QuestionModal } from "./question-modal";
 import { ThreadView } from "./thread-view";
 
 type Pick = { against: string | null; value: string };
@@ -48,6 +49,7 @@ export function ChatPane({
   const {
     busy,
     decide,
+    decideQuestion,
     detail,
     enqueue,
     loadError,
@@ -125,6 +127,7 @@ export function ChatPane({
   const branch = detail?.gitBranch ?? summary?.gitBranch ?? null;
   const fresh = !target.sessionId && view.items.length === 0 && !view.live && !busy;
   const scope = target.sessionId ?? `${PENDING_SCOPE_PREFIX}${target.cwd}`;
+  const questionAsk = view.questionAsks[0];
 
   return (
     <main className={styles.main}>
@@ -140,6 +143,13 @@ export function ChatPane({
         sidebarHidden={sidebarHidden}
         title={title}
       />
+
+      {questionAsk && (
+        <QuestionModal
+          ask={questionAsk}
+          onSubmit={(outcome) => void decideQuestion(questionAsk, outcome)}
+        />
+      )}
 
       {fresh ? (
         <EmptyState cwd={cwd} home={home} onPick={(prompt) => void send(prompt, options)} />

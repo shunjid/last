@@ -8,6 +8,7 @@ export type PendingPermission = {
   toolName: string;
   resolve: (result: PermissionResult) => void;
   timer: ReturnType<typeof setTimeout>;
+  input?: Record<string, unknown>;
 };
 
 export type StreamState = {
