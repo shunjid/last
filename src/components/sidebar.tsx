@@ -207,19 +207,6 @@ export function Sidebar({
 
       {loadError && <p className={styles.alert}>{loadError}</p>}
 
-      {!searching && groups.length > 0 && (
-        <div className={styles.listBar}>
-          <button
-            className={styles.collapseAll}
-            disabled={!anyExpanded}
-            onClick={collapseAll}
-            type="button"
-          >
-            Collapse all
-          </button>
-        </div>
-      )}
-
       <div className={styles.list}>
         {recentVisible && (
           <div className={styles.recent}>
@@ -236,6 +223,17 @@ export function Sidebar({
             </button>
 
             {recentOpen && recent.map(renderItem)}
+          </div>
+        )}
+
+        {!searching && groups.length > 0 && (
+          <div className={styles.projectsHead}>
+            <span className={styles.projectsLabel}>Projects</span>
+            {anyExpanded && (
+              <button className={styles.collapseAll} onClick={collapseAll} type="button">
+                Collapse all
+              </button>
+            )}
           </div>
         )}
 

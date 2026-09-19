@@ -61,14 +61,23 @@
   margin-left: auto;
 }
 
-.listBar {
-  flex: none;
+.projectsHead {
   display: flex;
-  justify-content: flex-end;
-  padding: 0 12px;
+  align-items: center;
+  gap: 6px;
+  padding: 10px 8px 6px 10px;
+}
+
+.projectsLabel {
+  font-size: 11px;
+  font-weight: 500;
+  letter-spacing: 0.045em;
+  text-transform: uppercase;
+  color: var(--last-fg-secondary);
 }
 
 .collapseAll {
+  margin-left: auto;
   padding: 4px 8px;
   border: 0;
   border-radius: var(--last-radius-full);
@@ -87,15 +96,6 @@
 .collapseAll:focus-visible {
   outline: 2px solid var(--last-border-focus);
   outline-offset: -2px;
-}
-
-.collapseAll:disabled {
-  color: var(--last-fg-disabled);
-  cursor: default;
-}
-
-.collapseAll:disabled:hover {
-  background: none;
 }
 
 .list {
