@@ -171,7 +171,9 @@ has to ship in the same change, per the SDK's docs on that field.
 ## Where your data lives
 
 LAST reads `~/.claude/projects/**/*.jsonl`, or `$CLAUDE_CONFIG_DIR/projects` when that variable is
-set. New turns are appended by Claude Code to the same transcript file your terminal uses.
+set. New turns are appended by Claude Code to the same transcript file your terminal uses. Sessions
+whose working directory sits under `~/.claude` or a `~/.claude-*` folder (the claude-mem plugin, for
+example) are hidden from the list as plugin scratch sessions.
 
 Outside of that it writes nothing but your browser's `localStorage`:
 
