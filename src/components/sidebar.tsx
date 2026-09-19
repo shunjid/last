@@ -110,7 +110,7 @@ export function Sidebar({
   }, []);
 
   const recent = useMemo(
-    () => [...sessions].sort((a, b) => b.lastModified - a.lastModified).slice(0, 10),
+    () => [...sessions].sort((a, b) => b.lastModified - a.lastModified).slice(0, 5),
     [sessions],
   );
 
