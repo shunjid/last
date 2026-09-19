@@ -122,11 +122,19 @@
   z-index: 1;
   display: flex;
   align-items: center;
-  gap: 6px;
-  width: 100%;
-  padding: 10px 16px 6px 10px;
-  border: 0;
+  padding-right: 8px;
   background: var(--last-surface);
+}
+
+.groupToggle {
+  flex: 1;
+  min-width: 0;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  padding: 10px 8px 6px 10px;
+  border: 0;
+  background: none;
   font: inherit;
   font-size: 11px;
   font-weight: 500;
@@ -137,14 +145,47 @@
   cursor: pointer;
 }
 
-.groupHead:hover {
+.groupToggle:hover {
   color: var(--last-fg-default);
 }
 
-.groupHead:focus-visible {
+.groupToggle:focus-visible {
   outline: 2px solid var(--last-border-focus);
   outline-offset: -2px;
   border-radius: var(--last-radius-sm);
+}
+
+.groupBrowse {
+  flex: none;
+  display: grid;
+  place-items: center;
+  width: 24px;
+  height: 24px;
+  border: 0;
+  border-radius: var(--last-radius-sm);
+  background: none;
+  color: var(--last-fg-tertiary);
+  font-size: 16px;
+  cursor: pointer;
+  opacity: 0;
+  transition:
+    opacity var(--last-duration-sm) var(--last-ease-standard),
+    background var(--last-duration-sm) var(--last-ease-standard);
+}
+
+.groupHead:hover .groupBrowse,
+.groupBrowse:focus-visible {
+  opacity: 1;
+}
+
+.groupBrowse:hover {
+  background: var(--last-state-hover);
+  color: var(--last-fg-default);
+}
+
+.groupBrowse:focus-visible {
+  outline: 2px solid var(--last-border-focus);
+  outline-offset: -2px;
 }
 
 .groupChevron {

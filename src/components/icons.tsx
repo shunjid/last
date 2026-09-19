@@ -21,6 +21,7 @@ export { default as IconLayerGroup } from "@mui/icons-material/Layers";
 export { default as IconLight } from "@mui/icons-material/LightMode";
 export { default as IconListCheck } from "@mui/icons-material/Checklist";
 export { default as IconMessages } from "@mui/icons-material/Forum";
+export { default as IconOpenInFull } from "@mui/icons-material/OpenInFull";
 export { default as IconPen } from "@mui/icons-material/Edit";
 export { default as IconPlus } from "@mui/icons-material/Add";
 export { default as IconPuzzlePiece } from "@mui/icons-material/Extension";
