@@ -8,7 +8,9 @@ SDK, so a reply you send here is waiting for you the next time you run `claude -
 
 ## What you get
 
-- **Every session in one list.** Grouped by project, newest first, with git branch and relative time.
+- **Every session in one list.** Grouped by project with git branch and relative time. Groups are
+  collapsible (collapsed by default), a Recent shortcut keeps the latest few on top, and a project
+  header opens that group's full session list in a modal.
 - **The whole conversation.** Markdown, syntax-highlighted code, tool calls and thinking blocks,
   replayed the way the terminal showed them.
 - **Reply from the browser.** Same folder, same session, same Claude. The turn is appended to the
