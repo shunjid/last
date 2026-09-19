@@ -13,6 +13,7 @@ import { homeRelative, relativeStamp, truncateMiddle } from "@/lib/format";
 import type { SessionSummary } from "@/lib/types";
 
 import {
+  IconChevronRight,
   IconCodeBranch,
   IconPlus,
   IconSearch,
@@ -68,6 +69,7 @@ export function Sidebar({
   sessions: SessionSummary[];
 }) {
   const [query, setQuery] = useState("");
+  const [expanded, setExpanded] = useState<Set<string>>(new Set());
   const localRuns = useLocalRuns();
 
   const isRunning = useCallback(
@@ -91,6 +93,22 @@ export function Sidebar({
       : sessions;
     return groupSessions(matched);
   }, [query, sessions]);
+
+  const searching = query.trim().length > 0;
+
+  const toggleGroup = useCallback((cwd: string) => {
+    setExpanded((current) => {
+      const next = new Set(current);
+      if (next.has(cwd)) {
+        next.delete(cwd);
+      } else {
+        next.add(cwd);
+      }
+      return next;
+    });
+  }, []);
+
+  const collapseAll = useCallback(() => setExpanded(new Set()), []);
 
   return (
     <aside className={styles.root}>
@@ -145,6 +163,14 @@ export function Sidebar({
 
       {loadError && <p className={styles.alert}>{loadError}</p>}
 
+      {groups.length > 0 && (
+        <div className={styles.listBar}>
+          <button className={styles.collapseAll} onClick={collapseAll} type="button">
+            Collapse all
+          </button>
+        </div>
+      )}
+
       <div className={styles.list}>
         {groups.length === 0 ? (
           <p className={styles.empty}>
@@ -153,48 +179,60 @@ export function Sidebar({
               : "Nothing matches that search."}
           </p>
         ) : (
-          groups.map((group) => (
-            <div className={styles.group} key={group.cwd}>
-              <div className={styles.groupHead}>
-                <span className={styles.groupName} title={homeRelative(group.cwd, home)}>
-                  {group.label}
-                </span>
-                <span className={styles.groupCount}>{group.sessions.length}</span>
-              </div>
-
-              {group.sessions.map((session) => (
+          groups.map((group) => {
+            const open = searching || expanded.has(group.cwd);
+            return (
+              <div className={styles.group} key={group.cwd}>
                 <button
-                  className={`${styles.item} ${
-                    session.sessionId === activeSessionId ? styles.active : ""
-                  }`}
-                  key={session.sessionId}
-                  onClick={() => onSelect(session)}
+                  aria-expanded={open}
+                  className={`${styles.groupHead} ${open ? styles.open : ""}`}
+                  onClick={() => toggleGroup(group.cwd)}
                   type="button"
                 >
-                  <span className={styles.itemTitle}>
-                    {isRunning(session) && (
-                      <>
-                        <span aria-hidden className={styles.dot} />
-                        <span className={styles.quiet}>Running. </span>
-                      </>
-                    )}
-                    {session.title}
+                  <span aria-hidden className={styles.groupChevron}>
+                    <IconChevronRight />
                   </span>
-                  <span className={styles.itemMeta}>
-                    <span className={isRunning(session) ? styles.runNow : undefined}>
-                      {isRunning(session) ? "working now" : relativeStamp(session.lastModified)}
-                    </span>
-                    {session.gitBranch && (
-                      <span className={styles.branch}>
-                        <IconCodeBranch />
-                        {truncateMiddle(session.gitBranch, 22)}
-                      </span>
-                    )}
+                  <span className={styles.groupName} title={homeRelative(group.cwd, home)}>
+                    {group.label}
                   </span>
+                  <span className={styles.groupCount}>{group.sessions.length}</span>
                 </button>
-              ))}
-            </div>
-          ))
+
+                {open &&
+                  group.sessions.map((session) => (
+                    <button
+                      className={`${styles.item} ${
+                        session.sessionId === activeSessionId ? styles.active : ""
+                      }`}
+                      key={session.sessionId}
+                      onClick={() => onSelect(session)}
+                      type="button"
+                    >
+                      <span className={styles.itemTitle}>
+                        {isRunning(session) && (
+                          <>
+                            <span aria-hidden className={styles.dot} />
+                            <span className={styles.quiet}>Running. </span>
+                          </>
+                        )}
+                        {session.title}
+                      </span>
+                      <span className={styles.itemMeta}>
+                        <span className={isRunning(session) ? styles.runNow : undefined}>
+                          {isRunning(session) ? "working now" : relativeStamp(session.lastModified)}
+                        </span>
+                        {session.gitBranch && (
+                          <span className={styles.branch}>
+                            <IconCodeBranch />
+                            {truncateMiddle(session.gitBranch, 22)}
+                          </span>
+                        )}
+                      </span>
+                    </button>
+                  ))}
+              </div>
+            );
+          })
         )}
       </div>
 
