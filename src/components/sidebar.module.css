@@ -61,6 +61,34 @@
   margin-left: auto;
 }
 
+.listBar {
+  flex: none;
+  display: flex;
+  justify-content: flex-end;
+  padding: 0 12px;
+}
+
+.collapseAll {
+  padding: 4px 8px;
+  border: 0;
+  border-radius: var(--last-radius-full);
+  background: none;
+  color: var(--last-fg-secondary);
+  font: inherit;
+  font-size: 11.5px;
+  cursor: pointer;
+  transition: background var(--last-duration-sm) var(--last-ease-standard);
+}
+
+.collapseAll:hover {
+  background: var(--last-state-hover);
+}
+
+.collapseAll:focus-visible {
+  outline: 2px solid var(--last-border-focus);
+  outline-offset: -2px;
+}
+
 .list {
   flex: 1;
   min-height: 0;
@@ -79,16 +107,45 @@
   display: flex;
   align-items: center;
   gap: 6px;
-  padding: 10px 16px 6px;
+  width: 100%;
+  padding: 10px 16px 6px 10px;
+  border: 0;
   background: var(--last-surface);
+  font: inherit;
   font-size: 11px;
   font-weight: 500;
   letter-spacing: 0.045em;
   text-transform: uppercase;
   color: var(--last-fg-secondary);
+  text-align: left;
+  cursor: pointer;
+}
+
+.groupHead:hover {
+  color: var(--last-fg-default);
+}
+
+.groupHead:focus-visible {
+  outline: 2px solid var(--last-border-focus);
+  outline-offset: -2px;
+  border-radius: var(--last-radius-sm);
+}
+
+.groupChevron {
+  flex: none;
+  display: grid;
+  place-items: center;
+  font-size: 18px;
+  color: var(--last-fg-tertiary);
+  transition: transform var(--last-duration-sm) var(--last-ease-standard);
+}
+
+.open .groupChevron {
+  transform: rotate(90deg);
 }
 
 .groupName {
+  min-width: 0;
   overflow: hidden;
   text-overflow: ellipsis;
   white-space: nowrap;
