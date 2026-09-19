@@ -29,6 +29,7 @@ export function CommandPalette({
   onNewChatIn,
   onSelect,
   projects,
+  scope,
   sessions,
 }: {
   onClose: () => void;
@@ -36,6 +37,7 @@ export function CommandPalette({
   onNewChatIn: (project: ProjectSummary) => void;
   onSelect: (session: SessionSummary) => void;
   projects: ProjectSummary[];
+  scope?: ProjectSummary;
   sessions: SessionSummary[];
 }) {
   const [query, setQuery] = useState("");
@@ -46,6 +48,28 @@ export function CommandPalette({
 
   const entries = useMemo<Entry[]>(() => {
     const needle = query.trim().toLowerCase();
+
+    const matches = sessions
+      .filter(
+        (session) =>
+          !needle ||
+          session.title.toLowerCase().includes(needle) ||
+          session.project.toLowerCase().includes(needle),
+      )
+      .slice(0, MAX_SESSIONS)
+      .map<Entry>((session) => ({
+        kind: "session",
+        label: session.title,
+        session,
+        sub: session.project,
+      }));
+
+    if (scope) {
+      return [
+        { kind: "project", label: `New chat in ${scope.label}`, project: scope, sub: scope.cwd },
+        ...matches,
+      ];
+    }
 
     const folders = needle
       ? projects
@@ -63,27 +87,12 @@ export function CommandPalette({
           }))
       : [];
 
-    const matches = sessions
-      .filter(
-        (session) =>
-          !needle ||
-          session.title.toLowerCase().includes(needle) ||
-          session.project.toLowerCase().includes(needle),
-      )
-      .slice(0, MAX_SESSIONS)
-      .map<Entry>((session) => ({
-        kind: "session",
-        label: session.title,
-        session,
-        sub: session.project,
-      }));
-
     return [
       { kind: "new", label: "Start a new chat", sub: "In the project you are viewing" },
       ...folders,
       ...matches,
     ];
-  }, [projects, query, sessions]);
+  }, [projects, query, scope, sessions]);
 
   const index = Math.min(cursor, entries.length - 1);
 
@@ -130,7 +139,7 @@ export function CommandPalette({
       }}
     >
       <div
-        aria-label="Jump to a session"
+        aria-label={scope ? `${scope.label} sessions` : "Jump to a session"}
         aria-modal="true"
         className={styles.panel}
         onKeyDown={(event) => {
@@ -157,13 +166,17 @@ export function CommandPalette({
         <div className={styles.search}>
           <IconSearch />
           <input
-            aria-label="Search sessions and folders"
+            aria-label={scope ? `Search ${scope.label} sessions` : "Search sessions and folders"}
             className={styles.input}
             onChange={(event) => {
               setQuery(event.target.value);
               setCursor(0);
             }}
-            placeholder="Search sessions, or a folder to start in…"
+            placeholder={
+              scope
+                ? `Search ${scope.label} sessions…`
+                : "Search sessions, or a folder to start in…"
+            }
             ref={inputRef}
             value={query}
           />
@@ -171,7 +184,11 @@ export function CommandPalette({
 
         <div className={styles.results} ref={listRef}>
           {entries.length === 1 && query.trim() && (
-            <p className={styles.empty}>No session or folder matches “{query.trim()}”.</p>
+            <p className={styles.empty}>
+              {scope
+                ? `No session matches “${query.trim()}”.`
+                : `No session or folder matches “${query.trim()}”.`}
+            </p>
           )}
 
           {entries.map((entry, position) => (

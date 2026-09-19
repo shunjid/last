@@ -15,6 +15,7 @@ import type { SessionSummary } from "@/lib/types";
 import {
   IconChevronRight,
   IconCodeBranch,
+  IconOpenInFull,
   IconPlus,
   IconSearch,
   IconSidebar,
@@ -55,6 +56,7 @@ export function Sidebar({
   activeSessionId,
   home,
   loadError,
+  onBrowseGroup,
   onNewChat,
   onSelect,
   onToggle,
@@ -63,6 +65,7 @@ export function Sidebar({
   activeSessionId: string | null;
   home: string;
   loadError: string | null;
+  onBrowseGroup: (group: { cwd: string; label: string }) => void;
   onNewChat: () => void;
   onSelect: (session: SessionSummary) => void;
   onToggle: () => void;
@@ -236,20 +239,30 @@ export function Sidebar({
             const open = searching || expanded.has(group.cwd);
             return (
               <div className={styles.group} key={group.cwd}>
-                <button
-                  aria-expanded={open}
-                  className={`${styles.groupHead} ${open ? styles.open : ""}`}
-                  onClick={() => toggleGroup(group.cwd)}
-                  type="button"
-                >
-                  <span aria-hidden className={styles.groupChevron}>
-                    <IconChevronRight />
-                  </span>
-                  <span className={styles.groupName} title={homeRelative(group.cwd, home)}>
-                    {group.label}
-                  </span>
-                  <span className={styles.groupCount}>{group.sessions.length}</span>
-                </button>
+                <div className={`${styles.groupHead} ${open ? styles.open : ""}`}>
+                  <button
+                    aria-expanded={open}
+                    className={styles.groupToggle}
+                    onClick={() => toggleGroup(group.cwd)}
+                    type="button"
+                  >
+                    <span aria-hidden className={styles.groupChevron}>
+                      <IconChevronRight />
+                    </span>
+                    <span className={styles.groupName} title={homeRelative(group.cwd, home)}>
+                      {group.label}
+                    </span>
+                    <span className={styles.groupCount}>{group.sessions.length}</span>
+                  </button>
+                  <button
+                    aria-label={`Browse ${group.label} sessions`}
+                    className={styles.groupBrowse}
+                    onClick={() => onBrowseGroup({ cwd: group.cwd, label: group.label })}
+                    type="button"
+                  >
+                    <IconOpenInFull />
+                  </button>
+                </div>
 
                 {open && group.sessions.map(renderItem)}
               </div>

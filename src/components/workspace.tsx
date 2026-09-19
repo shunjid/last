@@ -63,6 +63,7 @@ export function Workspace({
   const [drawerOpen, setDrawerOpen] = useState(false);
   const [paletteOpen, setPaletteOpen] = useState(false);
   const [pickerOpen, setPickerOpen] = useState(false);
+  const [groupScope, setGroupScope] = useState<{ cwd: string; label: string } | null>(null);
   const [mode, setMode] = useState<PermissionMode>("default");
   const models = useModels();
   const compact = useMediaQuery(COMPACT_QUERY);
@@ -124,7 +125,7 @@ export function Workspace({
   useEffect(() => {
     function onKeyDown(event: KeyboardEvent) {
       if (event.key === "Escape") {
-        if (!compact || !drawerOpen || paletteOpen || pickerOpen) return;
+        if (!compact || !drawerOpen || paletteOpen || pickerOpen || groupScope) return;
         event.preventDefault();
         event.stopPropagation();
         setDrawerOpen(false);
@@ -134,6 +135,7 @@ export function Workspace({
       if (!event.metaKey && !event.ctrlKey) return;
       const key = event.key.toLowerCase();
       if (key === "k") {
+        if (groupScope) return;
         event.preventDefault();
         setPaletteOpen((value) => !value);
       } else if (key === "b") {
@@ -145,7 +147,7 @@ export function Workspace({
 
     window.addEventListener("keydown", onKeyDown, true);
     return () => window.removeEventListener("keydown", onKeyDown, true);
-  }, [compact, drawerOpen, paletteOpen, pickerOpen]);
+  }, [compact, drawerOpen, groupScope, paletteOpen, pickerOpen]);
 
   return (
     <div className={`${styles.shell} ${railOpen ? "" : styles.collapsed}`}>
@@ -163,6 +165,7 @@ export function Workspace({
           activeSessionId={activeSessionId}
           home={home}
           loadError={loadError}
+          onBrowseGroup={setGroupScope}
           onNewChat={newChat}
           onSelect={openSession}
           onToggle={() => setRailOpen(false)}
@@ -192,6 +195,20 @@ export function Workspace({
           onSelect={openSession}
           projects={liveProjects}
           sessions={liveSessions}
+        />
+      )}
+
+      {groupScope && (
+        <CommandPalette
+          onClose={() => setGroupScope(null)}
+          onNewChat={newChat}
+          onNewChatIn={(project) => newChatIn(project.cwd)}
+          onSelect={openSession}
+          projects={liveProjects}
+          scope={{ cwd: groupScope.cwd, label: groupScope.label, lastModified: 0, sessionCount: 0 }}
+          sessions={liveSessions.filter(
+            (session) => (session.cwd ?? session.project) === groupScope.cwd,
+          )}
         />
       )}
 
