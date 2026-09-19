@@ -46,6 +46,7 @@
   --last-border-error: var(--mui-palette-outline-error);
   --last-border-warning: var(--mui-palette-outline-warning);
   --last-border-success: var(--mui-palette-outline-success);
+  --last-border-header: #dadada;
 
   --last-state-hover: color-mix(in srgb, var(--last-fg-default) 8%, transparent);
   --last-state-press: color-mix(in srgb, var(--last-fg-default) 12%, transparent);
@@ -85,6 +86,10 @@
   --shiki-token-string-expression: var(--mui-palette-code-string);
   --shiki-token-punctuation: var(--mui-palette-code-punctuation);
   --shiki-token-link: var(--mui-palette-code-link);
+}
+
+[data-theme="dark"] {
+  --last-border-header: #515151;
 }
 
 ::-webkit-scrollbar {

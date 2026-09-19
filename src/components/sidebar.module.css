@@ -89,11 +89,26 @@
   outline-offset: -2px;
 }
 
+.collapseAll:disabled {
+  color: var(--last-fg-disabled);
+  cursor: default;
+}
+
+.collapseAll:disabled:hover {
+  background: none;
+}
+
 .list {
   flex: 1;
   min-height: 0;
   overflow-y: auto;
   padding: 4px 12px 12px;
+}
+
+.recent {
+  padding-bottom: 6px;
+  margin-bottom: 6px;
+  border-bottom: 1px solid var(--last-border-secondary);
 }
 
 .group {

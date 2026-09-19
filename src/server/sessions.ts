@@ -1,6 +1,8 @@
 import "server-only";
 
 import { realpath, stat } from "node:fs/promises";
+import { homedir } from "node:os";
+import { sep } from "node:path";
 
 import { getSessionInfo, listSessions, type SDKSessionInfo } from "@anthropic-ai/claude-agent-sdk";
 
@@ -11,6 +13,8 @@ import { invalidateTrustMap, isTrustedCwd, knownCwds } from "./folders";
 import { findTranscriptFile } from "./transcript";
 
 const ALLOWLIST_TTL_MS = 30_000;
+
+const PLUGIN_ROOT_PATTERN = /^\.claude(-|$)/;
 
 let allowlistCache: { at: number; dirs: Set<string> } | null = null;
 
@@ -29,9 +33,20 @@ function toSummary(info: SDKSessionInfo): SessionSummary {
   };
 }
 
+function isPluginCwd(cwd: string | null): boolean {
+  if (!cwd) return false;
+  const prefix = `${homedir()}${sep}`;
+  if (!cwd.startsWith(prefix)) return false;
+  const top = cwd.slice(prefix.length).split(sep)[0];
+  return PLUGIN_ROOT_PATTERN.test(top);
+}
+
 export async function fetchSessions(limit = 300): Promise<SessionSummary[]> {
   const sessions = await listSessions({ limit });
-  const summaries = sessions.map(toSummary).sort((a, b) => b.lastModified - a.lastModified);
+  const summaries = sessions
+    .map(toSummary)
+    .filter((session) => !isPluginCwd(session.cwd))
+    .sort((a, b) => b.lastModified - a.lastModified);
   await markRunning(summaries);
   return summaries;
 }
