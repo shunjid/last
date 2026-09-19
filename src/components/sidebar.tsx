@@ -116,12 +116,10 @@ export function Sidebar({
 
   const recentVisible = recent.length > 0 && !searching;
 
-  const anyExpanded =
-    (recentVisible && recentOpen) || groups.some((group) => expanded.has(group.cwd));
+  const anyExpanded = groups.some((group) => expanded.has(group.cwd));
 
   const collapseAll = useCallback(() => {
     setExpanded(new Set());
-    setRecentOpen(false);
   }, []);
 
   const renderItem = (session: SessionSummary) => (
