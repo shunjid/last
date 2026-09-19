@@ -51,6 +51,7 @@ declare module "@mui/material/styles" {
       error: string;
       warning: string;
       success: string;
+      header: string;
     };
     link: {
       main: string;
@@ -172,6 +173,7 @@ export const theme = createTheme({
           error: "#c96f66",
           warning: "#ac7b12",
           success: "#61a03a",
+          header: "#dadada",
         },
         link: { main: "#1b56cf", hover: "#123f9e" },
         shadow: { key: "rgba(11, 26, 21, 0.2)", ambient: "rgba(11, 26, 21, 0.1)" },
@@ -256,6 +258,7 @@ export const theme = createTheme({
           error: "#a5544a",
           warning: "#8c6d2a",
           success: "#578a35",
+          header: "#515151",
         },
         link: { main: "#82abf8", hover: "#a8c8fa" },
         shadow: { key: "rgba(0, 0, 0, 0.5)", ambient: "rgba(0, 0, 0, 0.32)" },
