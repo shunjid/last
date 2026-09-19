@@ -66,6 +66,7 @@
   align-items: center;
   gap: 6px;
   padding: 10px 8px 6px 10px;
+  height: 50px;
 }
 
 .projectsLabel {

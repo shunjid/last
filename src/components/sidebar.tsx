@@ -70,7 +70,6 @@ export function Sidebar({
 }) {
   const [query, setQuery] = useState("");
   const [expanded, setExpanded] = useState<Set<string>>(new Set());
-  const [recentOpen, setRecentOpen] = useState(true);
   const localRuns = useLocalRuns();
 
   const isRunning = useCallback(
@@ -208,19 +207,10 @@ export function Sidebar({
       <div className={styles.list}>
         {recentVisible && (
           <div className={styles.recent}>
-            <button
-              aria-expanded={recentOpen}
-              className={`${styles.groupHead} ${recentOpen ? styles.open : ""}`}
-              onClick={() => setRecentOpen((value) => !value)}
-              type="button"
-            >
-              <span aria-hidden className={styles.groupChevron}>
-                <IconChevronRight />
-              </span>
-              <span className={styles.groupName}>Recent</span>
-            </button>
-
-            {recentOpen && recent.map(renderItem)}
+            <div className={styles.projectsHead}>
+              <span className={styles.projectsLabel}>Recent</span>
+            </div>
+            {recent.map(renderItem)}
           </div>
         )}
 
