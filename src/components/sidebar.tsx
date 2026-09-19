@@ -70,6 +70,7 @@ export function Sidebar({
 }) {
   const [query, setQuery] = useState("");
   const [expanded, setExpanded] = useState<Set<string>>(new Set());
+  const [recentOpen, setRecentOpen] = useState(true);
   const localRuns = useLocalRuns();
 
   const isRunning = useCallback(
@@ -108,7 +109,50 @@ export function Sidebar({
     });
   }, []);
 
-  const collapseAll = useCallback(() => setExpanded(new Set()), []);
+  const recent = useMemo(
+    () => [...sessions].sort((a, b) => b.lastModified - a.lastModified).slice(0, 10),
+    [sessions],
+  );
+
+  const recentVisible = recent.length > 0 && !searching;
+
+  const anyExpanded =
+    (recentVisible && recentOpen) || groups.some((group) => expanded.has(group.cwd));
+
+  const collapseAll = useCallback(() => {
+    setExpanded(new Set());
+    setRecentOpen(false);
+  }, []);
+
+  const renderItem = (session: SessionSummary) => (
+    <button
+      className={`${styles.item} ${session.sessionId === activeSessionId ? styles.active : ""}`}
+      key={session.sessionId}
+      onClick={() => onSelect(session)}
+      type="button"
+    >
+      <span className={styles.itemTitle}>
+        {isRunning(session) && (
+          <>
+            <span aria-hidden className={styles.dot} />
+            <span className={styles.quiet}>Running. </span>
+          </>
+        )}
+        {session.title}
+      </span>
+      <span className={styles.itemMeta}>
+        <span className={isRunning(session) ? styles.runNow : undefined}>
+          {isRunning(session) ? "working now" : relativeStamp(session.lastModified)}
+        </span>
+        {session.gitBranch && (
+          <span className={styles.branch}>
+            <IconCodeBranch />
+            {truncateMiddle(session.gitBranch, 22)}
+          </span>
+        )}
+      </span>
+    </button>
+  );
 
   return (
     <aside className={styles.root}>
@@ -163,15 +207,38 @@ export function Sidebar({
 
       {loadError && <p className={styles.alert}>{loadError}</p>}
 
-      {groups.length > 0 && (
+      {!searching && groups.length > 0 && (
         <div className={styles.listBar}>
-          <button className={styles.collapseAll} onClick={collapseAll} type="button">
+          <button
+            className={styles.collapseAll}
+            disabled={!anyExpanded}
+            onClick={collapseAll}
+            type="button"
+          >
             Collapse all
           </button>
         </div>
       )}
 
       <div className={styles.list}>
+        {recentVisible && (
+          <div className={styles.recent}>
+            <button
+              aria-expanded={recentOpen}
+              className={`${styles.groupHead} ${recentOpen ? styles.open : ""}`}
+              onClick={() => setRecentOpen((value) => !value)}
+              type="button"
+            >
+              <span aria-hidden className={styles.groupChevron}>
+                <IconChevronRight />
+              </span>
+              <span className={styles.groupName}>Recent</span>
+            </button>
+
+            {recentOpen && recent.map(renderItem)}
+          </div>
+        )}
+
         {groups.length === 0 ? (
           <p className={styles.empty}>
             {sessions.length === 0
@@ -198,38 +265,7 @@ export function Sidebar({
                   <span className={styles.groupCount}>{group.sessions.length}</span>
                 </button>
 
-                {open &&
-                  group.sessions.map((session) => (
-                    <button
-                      className={`${styles.item} ${
-                        session.sessionId === activeSessionId ? styles.active : ""
-                      }`}
-                      key={session.sessionId}
-                      onClick={() => onSelect(session)}
-                      type="button"
-                    >
-                      <span className={styles.itemTitle}>
-                        {isRunning(session) && (
-                          <>
-                            <span aria-hidden className={styles.dot} />
-                            <span className={styles.quiet}>Running. </span>
-                          </>
-                        )}
-                        {session.title}
-                      </span>
-                      <span className={styles.itemMeta}>
-                        <span className={isRunning(session) ? styles.runNow : undefined}>
-                          {isRunning(session) ? "working now" : relativeStamp(session.lastModified)}
-                        </span>
-                        {session.gitBranch && (
-                          <span className={styles.branch}>
-                            <IconCodeBranch />
-                            {truncateMiddle(session.gitBranch, 22)}
-                          </span>
-                        )}
-                      </span>
-                    </button>
-                  ))}
+                {open && group.sessions.map(renderItem)}
               </div>
             );
           })
