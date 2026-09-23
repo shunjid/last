@@ -34,7 +34,8 @@
     "format:check": "prettier --check .",
     "typecheck": "next typegen && tsc --noEmit",
     "check-bind": "lsof -nP -iTCP:4123 -sTCP:LISTEN || echo 'nothing listening on 4123'",
-    "typegen": "next typegen"
+    "typegen": "next typegen",
+    "pr:check": "npm run typecheck && npm run lint && npm run format:check && npm run build"
   },
   "dependencies": {
     "@anthropic-ai/claude-agent-sdk": "0.3.263",

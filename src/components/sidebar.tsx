@@ -12,6 +12,7 @@ import { useLocalRuns } from "@/client/activity";
 import { homeRelative, relativeStamp, truncateMiddle } from "@/lib/format";
 import type { SessionSummary } from "@/lib/types";
 
+import { CopyResume } from "./copy-resume";
 import {
   IconChevronRight,
   IconCodeBranch,
@@ -125,33 +126,35 @@ export function Sidebar({
   }, []);
 
   const renderItem = (session: SessionSummary) => (
-    <button
-      className={`${styles.item} ${session.sessionId === activeSessionId ? styles.active : ""}`}
-      key={session.sessionId}
-      onClick={() => onSelect(session)}
-      type="button"
-    >
-      <span className={styles.itemTitle}>
-        {isRunning(session) && (
-          <>
-            <span aria-hidden className={styles.dot} />
-            <span className={styles.quiet}>Running. </span>
-          </>
-        )}
-        {session.title}
-      </span>
-      <span className={styles.itemMeta}>
-        <span className={isRunning(session) ? styles.runNow : undefined}>
-          {isRunning(session) ? "working now" : relativeStamp(session.lastModified)}
+    <div className={styles.itemRow} key={session.sessionId}>
+      <button
+        className={`${styles.item} ${session.sessionId === activeSessionId ? styles.active : ""}`}
+        onClick={() => onSelect(session)}
+        type="button"
+      >
+        <span className={styles.itemTitle}>
+          {isRunning(session) && (
+            <>
+              <span aria-hidden className={styles.dot} />
+              <span className={styles.quiet}>Running. </span>
+            </>
+          )}
+          {session.title}
         </span>
-        {session.gitBranch && (
-          <span className={styles.branch}>
-            <IconCodeBranch />
-            {truncateMiddle(session.gitBranch, 22)}
+        <span className={styles.itemMeta}>
+          <span className={isRunning(session) ? styles.runNow : undefined}>
+            {isRunning(session) ? "working now" : relativeStamp(session.lastModified)}
           </span>
-        )}
-      </span>
-    </button>
+          {session.gitBranch && (
+            <span className={styles.branch}>
+              <IconCodeBranch />
+              {truncateMiddle(session.gitBranch, 22)}
+            </span>
+          )}
+        </span>
+      </button>
+      <CopyResume className={styles.copyBtn} cwd={session.cwd} sessionId={session.sessionId} />
+    </div>
   );
 
   return (
