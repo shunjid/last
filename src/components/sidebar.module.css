@@ -215,6 +215,46 @@
   letter-spacing: 0;
 }
 
+.itemRow {
+  position: relative;
+}
+
+.copyBtn {
+  position: absolute;
+  top: 7px;
+  right: 8px;
+  display: grid;
+  place-items: center;
+  width: 24px;
+  height: 24px;
+  border: 0;
+  border-radius: var(--last-radius-sm);
+  background: none;
+  color: var(--last-fg-tertiary);
+  font-size: 15px;
+  cursor: pointer;
+  opacity: 0;
+  transition:
+    opacity var(--last-duration-sm) var(--last-ease-standard),
+    background var(--last-duration-sm) var(--last-ease-standard),
+    color var(--last-duration-sm) var(--last-ease-standard);
+}
+
+.itemRow:hover .copyBtn,
+.copyBtn:focus-visible {
+  opacity: 1;
+}
+
+.copyBtn:hover {
+  background: var(--last-state-hover);
+  color: var(--last-fg-default);
+}
+
+.copyBtn:focus-visible {
+  outline: 2px solid var(--last-border-focus);
+  outline-offset: -2px;
+}
+
 .item {
   position: relative;
   display: block;
@@ -261,6 +301,7 @@
 
 .itemTitle {
   display: block;
+  padding-right: 22px;
   font-size: 13.5px;
   line-height: 1.4;
   overflow: hidden;

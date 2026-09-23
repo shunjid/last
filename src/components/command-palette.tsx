@@ -3,6 +3,7 @@
 import { type KeyboardEvent, useEffect, useMemo, useRef, useState } from "react";
 import { createPortal } from "react-dom";
 
+import { CopyResume } from "@/components/copy-resume";
 import { IconFolderOpen, IconMessages, IconPlus, IconSearch } from "@/components/icons";
 import { relativeStamp } from "@/lib/format";
 import type { ProjectSummary, SessionSummary } from "@/lib/types";
@@ -192,31 +193,39 @@ export function CommandPalette({
           )}
 
           {entries.map((entry, position) => (
-            <button
-              className={`${styles.option} ${position === index ? styles.selected : ""}`}
-              data-index={position}
-              key={entryKey(entry)}
-              onClick={() => choose(entry)}
-              onMouseMove={() => setCursor(position)}
-              type="button"
-            >
-              <span className={styles.glyph}>
-                {entry.kind === "new" ? (
-                  <IconPlus />
-                ) : entry.kind === "project" ? (
-                  <IconFolderOpen />
-                ) : (
-                  <IconMessages />
+            <div className={styles.optionRow} key={entryKey(entry)}>
+              <button
+                className={`${styles.option} ${position === index ? styles.selected : ""}`}
+                data-index={position}
+                onClick={() => choose(entry)}
+                onMouseMove={() => setCursor(position)}
+                type="button"
+              >
+                <span className={styles.glyph}>
+                  {entry.kind === "new" ? (
+                    <IconPlus />
+                  ) : entry.kind === "project" ? (
+                    <IconFolderOpen />
+                  ) : (
+                    <IconMessages />
+                  )}
+                </span>
+                <span className={styles.text}>
+                  <span className={styles.label}>{entry.label}</span>
+                  <span className={styles.sub}>{entry.sub}</span>
+                </span>
+                {entry.kind === "session" && (
+                  <span className={styles.stamp}>{relativeStamp(entry.session.lastModified)}</span>
                 )}
-              </span>
-              <span className={styles.text}>
-                <span className={styles.label}>{entry.label}</span>
-                <span className={styles.sub}>{entry.sub}</span>
-              </span>
+              </button>
               {entry.kind === "session" && (
-                <span className={styles.stamp}>{relativeStamp(entry.session.lastModified)}</span>
+                <CopyResume
+                  className={styles.copyBtn}
+                  cwd={entry.session.cwd}
+                  sessionId={entry.session.sessionId}
+                />
               )}
-            </button>
+            </div>
           ))}
         </div>
 

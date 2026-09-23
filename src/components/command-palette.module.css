@@ -76,6 +76,10 @@
   padding: 8px;
 }
 
+.optionRow {
+  position: relative;
+}
+
 .option {
   display: flex;
   align-items: center;
@@ -91,6 +95,43 @@
   text-align: left;
   cursor: pointer;
   transition: background var(--last-duration-sm) var(--last-ease-standard);
+}
+
+.copyBtn {
+  position: absolute;
+  top: 50%;
+  right: 12px;
+  transform: translateY(-50%);
+  display: grid;
+  place-items: center;
+  width: 28px;
+  height: 28px;
+  border: 0;
+  border-radius: var(--last-radius-sm);
+  background: none;
+  color: var(--last-fg-secondary);
+  font-size: 16px;
+  cursor: pointer;
+  opacity: 0;
+  transition:
+    opacity var(--last-duration-sm) var(--last-ease-standard),
+    background var(--last-duration-sm) var(--last-ease-standard),
+    color var(--last-duration-sm) var(--last-ease-standard);
+}
+
+.optionRow:hover .copyBtn,
+.copyBtn:focus-visible {
+  opacity: 1;
+}
+
+.copyBtn:hover {
+  background: var(--last-state-hover);
+  color: var(--last-fg-default);
+}
+
+.copyBtn:focus-visible {
+  outline: 2px solid var(--last-border-focus);
+  outline-offset: -2px;
 }
 
 .option:hover {
@@ -149,6 +190,11 @@
   flex: none;
   font-size: 11.5px;
   color: var(--last-fg-tertiary);
+  transition: opacity var(--last-duration-sm) var(--last-ease-standard);
+}
+
+.optionRow:hover .stamp {
+  opacity: 0;
 }
 
 .empty {

@@ -77,3 +77,12 @@ export function truncateMiddle(value: string, max: number): string {
   const tail = Math.floor((max - 1) / 2);
   return `${value.slice(0, head)}…${value.slice(value.length - tail)}`;
 }
+
+function shellQuote(value: string): string {
+  return `'${value.replace(/'/g, "'\\''")}'`;
+}
+
+export function resumeCommand(cwd: string | null, sessionId: string): string {
+  const base = `claude --resume ${sessionId}`;
+  return cwd ? `cd ${shellQuote(cwd)} && ${base}` : base;
+}
