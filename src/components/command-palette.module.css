@@ -106,17 +106,21 @@
   place-items: center;
   width: 28px;
   height: 28px;
+  padding: 0;
   border: 0;
   border-radius: var(--last-radius-sm);
   background: none;
   color: var(--last-fg-secondary);
-  font-size: 16px;
   cursor: pointer;
   opacity: 0;
   transition:
     opacity var(--last-duration-sm) var(--last-ease-standard),
     background var(--last-duration-sm) var(--last-ease-standard),
     color var(--last-duration-sm) var(--last-ease-standard);
+}
+
+.copyBtn svg {
+  font-size: 16px;
 }
 
 .optionRow:hover .copyBtn,

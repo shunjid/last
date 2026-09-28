@@ -177,13 +177,14 @@ example) are hidden from the list as plugin scratch sessions.
 
 Outside of that it writes nothing but your browser's `localStorage`:
 
-| Key                 | What it holds                    |
-| ------------------- | -------------------------------- |
-| `last:model`        | Selected model                   |
-| `last:effort`       | Selected effort                  |
-| `last:drafts`       | Unsent composer text per session |
-| `last-mode`         | Theme mode (MUI)                 |
-| `last-color-scheme` | Resolved colour scheme (MUI)     |
+| Key                 | What it holds                     |
+| ------------------- | --------------------------------- |
+| `last:model`        | Selected model                    |
+| `last:effort`       | Selected effort                   |
+| `last:drafts`       | Unsent composer text per session  |
+| `last:pins`         | Session ids pinned to the sidebar |
+| `last-mode`         | Theme mode (MUI)                  |
+| `last-color-scheme` | Resolved colour scheme (MUI)      |
 
 No telemetry. No analytics. No server-side database. No account. No network calls except the Claude
 API reached through your CLI credentials.

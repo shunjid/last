@@ -23,6 +23,8 @@ export { default as IconListCheck } from "@mui/icons-material/Checklist";
 export { default as IconMessages } from "@mui/icons-material/Forum";
 export { default as IconOpenInFull } from "@mui/icons-material/OpenInFull";
 export { default as IconPen } from "@mui/icons-material/Edit";
+export { default as IconPin } from "@mui/icons-material/PushPin";
+export { default as IconPinOutlined } from "@mui/icons-material/PushPinOutlined";
 export { default as IconPlus } from "@mui/icons-material/Add";
 export { default as IconPuzzlePiece } from "@mui/icons-material/Extension";
 export { default as IconRefresh } from "@mui/icons-material/Refresh";
