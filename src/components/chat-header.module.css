@@ -83,6 +83,22 @@
   color: var(--last-fg-success-strong);
 }
 
+.pinChip {
+  justify-content: center;
+  width: 24px;
+  padding: 0;
+}
+
+.pinChip svg {
+  font-size: 14px;
+}
+
+.pinned,
+.pinned:hover {
+  border-color: var(--last-border-default);
+  color: var(--last-fg-default);
+}
+
 .contextMeter {
   flex: none;
   gap: 6px;

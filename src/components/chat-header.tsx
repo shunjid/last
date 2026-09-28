@@ -4,11 +4,21 @@ import IconButton from "@mui/material/IconButton";
 import Tooltip from "@mui/material/Tooltip";
 import { useEffect, useRef, useState } from "react";
 
+import { usePins } from "@/client/pins";
 import { homeRelative, tokens, truncateMiddle } from "@/lib/format";
 import type { ResultStats } from "@/lib/types";
 
 import styles from "./chat-header.module.css";
-import { IconCheck, IconCodeBranch, IconCopy, IconFolder, IconSearch, IconSidebar } from "./icons";
+import {
+  IconCheck,
+  IconCodeBranch,
+  IconCopy,
+  IconFolder,
+  IconPin,
+  IconPinOutlined,
+  IconSearch,
+  IconSidebar,
+} from "./icons";
 import { ThemeToggle } from "./theme-toggle";
 
 const WARN_AT = 80;
@@ -60,6 +70,8 @@ export function ChatHeader({
 }) {
   const [copied, setCopied] = useState(false);
   const timer = useRef<ReturnType<typeof setTimeout> | null>(null);
+  const { pins, toggle: togglePin } = usePins();
+  const pinned = sessionId !== null && pins.includes(sessionId);
 
   useEffect(
     () => () => {
@@ -114,6 +126,19 @@ export function ChatHeader({
               >
                 {copied ? <IconCheck /> : <IconCopy />}
                 {sessionId.slice(0, 8)}
+              </button>
+            </Tooltip>
+          )}
+          {sessionId && (
+            <Tooltip title={pinned ? "Unpin this session" : "Pin this session to the sidebar"}>
+              <button
+                aria-label={pinned ? "Unpin this session" : "Pin this session"}
+                aria-pressed={pinned}
+                className={`${styles.chip} ${styles.idChip} ${styles.pinChip} ${pinned ? styles.pinned : ""}`}
+                onClick={() => togglePin(sessionId)}
+                type="button"
+              >
+                {pinned ? <IconPin /> : <IconPinOutlined />}
               </button>
             </Tooltip>
           )}

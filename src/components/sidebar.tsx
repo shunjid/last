@@ -9,10 +9,10 @@ import Link from "next/link";
 import { useCallback, useMemo, useState } from "react";
 
 import { useLocalRuns } from "@/client/activity";
+import { usePins } from "@/client/pins";
 import { homeRelative, relativeStamp, truncateMiddle } from "@/lib/format";
 import type { SessionSummary } from "@/lib/types";
 
-import { CopyResume } from "./copy-resume";
 import {
   IconChevronRight,
   IconCodeBranch,
@@ -75,6 +75,7 @@ export function Sidebar({
   const [query, setQuery] = useState("");
   const [expanded, setExpanded] = useState<Set<string>>(new Set());
   const localRuns = useLocalRuns();
+  const { pins } = usePins();
 
   const isRunning = useCallback(
     (session: SessionSummary) => session.running || localRuns.has(session.sessionId),
@@ -112,11 +113,21 @@ export function Sidebar({
     });
   }, []);
 
+  const pinned = useMemo(() => {
+    const byId = new Map(sessions.map((session) => [session.sessionId, session]));
+    return pins.flatMap((id) => byId.get(id) ?? []);
+  }, [pins, sessions]);
+
   const recent = useMemo(
-    () => [...sessions].sort((a, b) => b.lastModified - a.lastModified).slice(0, 5),
-    [sessions],
+    () =>
+      sessions
+        .filter((session) => !pins.includes(session.sessionId))
+        .sort((a, b) => b.lastModified - a.lastModified)
+        .slice(0, 5),
+    [pins, sessions],
   );
 
+  const pinnedVisible = pinned.length > 0 && !searching;
   const recentVisible = recent.length > 0 && !searching;
 
   const anyExpanded = groups.some((group) => expanded.has(group.cwd));
@@ -126,35 +137,33 @@ export function Sidebar({
   }, []);
 
   const renderItem = (session: SessionSummary) => (
-    <div className={styles.itemRow} key={session.sessionId}>
-      <button
-        className={`${styles.item} ${session.sessionId === activeSessionId ? styles.active : ""}`}
-        onClick={() => onSelect(session)}
-        type="button"
-      >
-        <span className={styles.itemTitle}>
-          {isRunning(session) && (
-            <>
-              <span aria-hidden className={styles.dot} />
-              <span className={styles.quiet}>Running. </span>
-            </>
-          )}
-          {session.title}
+    <button
+      className={`${styles.item} ${session.sessionId === activeSessionId ? styles.active : ""}`}
+      key={session.sessionId}
+      onClick={() => onSelect(session)}
+      type="button"
+    >
+      <span className={styles.itemTitle}>
+        {isRunning(session) && (
+          <>
+            <span aria-hidden className={styles.dot} />
+            <span className={styles.quiet}>Running. </span>
+          </>
+        )}
+        {session.title}
+      </span>
+      <span className={styles.itemMeta}>
+        <span className={isRunning(session) ? styles.runNow : undefined}>
+          {isRunning(session) ? "working now" : relativeStamp(session.lastModified)}
         </span>
-        <span className={styles.itemMeta}>
-          <span className={isRunning(session) ? styles.runNow : undefined}>
-            {isRunning(session) ? "working now" : relativeStamp(session.lastModified)}
+        {session.gitBranch && (
+          <span className={styles.branch}>
+            <IconCodeBranch />
+            {truncateMiddle(session.gitBranch, 22)}
           </span>
-          {session.gitBranch && (
-            <span className={styles.branch}>
-              <IconCodeBranch />
-              {truncateMiddle(session.gitBranch, 22)}
-            </span>
-          )}
-        </span>
-      </button>
-      <CopyResume className={styles.copyBtn} cwd={session.cwd} sessionId={session.sessionId} />
-    </div>
+        )}
+      </span>
+    </button>
   );
 
   return (
@@ -211,8 +220,17 @@ export function Sidebar({
       {loadError && <p className={styles.alert}>{loadError}</p>}
 
       <div className={styles.list}>
+        {pinnedVisible && (
+          <div className={styles.section}>
+            <div className={styles.projectsHead}>
+              <span className={styles.projectsLabel}>Pinned</span>
+            </div>
+            {pinned.map(renderItem)}
+          </div>
+        )}
+
         {recentVisible && (
-          <div className={styles.recent}>
+          <div className={styles.section}>
             <div className={styles.projectsHead}>
               <span className={styles.projectsLabel}>Recent</span>
             </div>
