@@ -1,6 +1,6 @@
 .shell {
   display: grid;
-  grid-template-columns: var(--last-sidebar) minmax(0, 1fr);
+  grid-template-columns: calc(var(--last-sidebar) + env(safe-area-inset-left, 0px)) minmax(0, 1fr);
   height: 100%;
   background: var(--last-bg-page);
   transition: grid-template-columns var(--last-duration-md) ease;
@@ -35,6 +35,7 @@
     border: 0;
     background: var(--last-bg-overlay);
     cursor: pointer;
+    touch-action: none;
     animation: fade var(--last-duration-sm) var(--last-ease-standard);
   }
 
@@ -42,16 +43,18 @@
     position: fixed;
     inset: 0 auto 0 0;
     z-index: var(--last-z-popover);
-    width: min(var(--last-sidebar), 86vw);
+    width: calc(min(var(--last-sidebar), 86vw) + env(safe-area-inset-left, 0px));
     box-shadow: var(--last-elev-3);
+    transform: translateX(-100%);
+    visibility: hidden;
     transition:
       transform var(--last-duration-md) var(--last-ease-emphasized),
       visibility var(--last-duration-md);
   }
 
-  .collapsed .rail {
-    transform: translateX(-100%);
-    visibility: hidden;
+  .drawerOpen .rail {
+    transform: none;
+    visibility: visible;
   }
 }
 

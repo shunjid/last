@@ -10,7 +10,8 @@ import InputAdornment from "@mui/material/InputAdornment";
 import TextField from "@mui/material/TextField";
 import { useMemo, useState } from "react";
 
-import { PHONE_QUERY, useMediaQuery } from "@/client/use-media-query";
+import { useKeyboardInset } from "@/client/use-keyboard-inset";
+import { COARSE_QUERY, SHEET_QUERY, useMediaQuery } from "@/client/use-media-query";
 import { basename, homeRelative, relativeStamp } from "@/lib/format";
 import type { FolderChoice } from "@/lib/types";
 
@@ -44,7 +45,10 @@ export function FolderPicker({
   open: boolean;
 }) {
   const [query, setQuery] = useState("");
-  const phone = useMediaQuery(PHONE_QUERY);
+  const sheet = useMediaQuery(SHEET_QUERY);
+  const coarse = useMediaQuery(COARSE_QUERY);
+  const keyboardInset = useKeyboardInset();
+  const keyboard = keyboardInset > 0 ? { paddingBottom: keyboardInset } : undefined;
 
   const matches = useMemo(() => {
     const needle = query.trim().toLowerCase();
@@ -68,17 +72,33 @@ export function FolderPicker({
   }
 
   return (
-    <Dialog fullScreen={phone} fullWidth maxWidth="sm" onClose={close} open={open}>
+    <Dialog
+      fullScreen={sheet}
+      fullWidth
+      maxWidth="sm"
+      onClose={close}
+      open={open}
+      slotProps={{
+        container: { style: sheet ? undefined : keyboard },
+        paper: { className: styles.paper, style: sheet ? keyboard : undefined },
+      }}
+    >
       <DialogTitle className={styles.title}>
         Where should this chat run?
         <span className={styles.subtitle}>
           Claude Code works inside one folder. Pick the folder you want it to read and change.
         </span>
+        {sheet && (
+          <IconButton aria-label="Close" className={styles.close} onClick={close}>
+            <IconXmark />
+          </IconButton>
+        )}
       </DialogTitle>
 
       <DialogContent className={styles.content} dividers>
         <TextField
-          autoFocus
+          autoFocus={!coarse}
+          className={styles.search}
           fullWidth
           id="folder-search"
           name="folder-search"
@@ -95,7 +115,11 @@ export function FolderPicker({
               ),
               endAdornment: query ? (
                 <InputAdornment position="end">
-                  <IconButton aria-label="Clear search" onClick={() => setQuery("")}>
+                  <IconButton
+                    aria-label="Clear search"
+                    className={styles.clear}
+                    onClick={() => setQuery("")}
+                  >
                     <IconXmark />
                   </IconButton>
                 </InputAdornment>
@@ -163,11 +187,13 @@ export function FolderPicker({
         </div>
       </DialogContent>
 
-      <DialogActions>
-        <Button color="inherit" onClick={close} variant="text">
-          Cancel
-        </Button>
-      </DialogActions>
+      {!sheet && (
+        <DialogActions className={styles.actions}>
+          <Button className={styles.cancel} color="inherit" onClick={close} variant="text">
+            Cancel
+          </Button>
+        </DialogActions>
+      )}
     </Dialog>
   );
 }

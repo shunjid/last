@@ -6,11 +6,15 @@
   background: var(--last-surface);
 }
 
+.root {
+  padding-left: env(safe-area-inset-left, 0px);
+}
+
 .top {
   display: flex;
   flex-direction: column;
   gap: 12px;
-  padding: 16px 12px 12px;
+  padding: calc(16px + env(safe-area-inset-top, 0px)) 12px 12px;
 }
 
 .brand {
@@ -103,6 +107,7 @@
   flex: 1;
   min-height: 0;
   overflow-y: auto;
+  overscroll-behavior: contain;
   padding: 4px 12px 12px;
 }
 
@@ -362,7 +367,7 @@
   display: flex;
   align-items: center;
   gap: 8px;
-  padding: 10px 16px 14px;
+  padding: 10px 16px calc(14px + env(safe-area-inset-bottom, 0px));
   font-size: 11.5px;
   color: var(--last-fg-tertiary);
 }
@@ -371,4 +376,79 @@
   margin-left: auto;
   font-weight: 500;
   color: var(--last-fg-success-strong);
+}
+
+@media (hover: none) {
+  .groupBrowse {
+    opacity: 1;
+  }
+}
+
+@media (max-width: 640px), (pointer: coarse) {
+  .search :global(.MuiInputBase-input) {
+    font-size: 16px;
+  }
+}
+
+@media (pointer: coarse) {
+  .home {
+    min-height: var(--last-tap);
+  }
+
+  .top .tap {
+    width: var(--last-tap);
+    height: var(--last-tap);
+  }
+
+  .search :global(.MuiInputBase-root) {
+    min-height: var(--last-tap);
+  }
+
+  .search .clear {
+    width: var(--last-tap);
+    height: var(--last-tap);
+    margin-right: -10px;
+  }
+
+  .projectsHead {
+    height: auto;
+    min-height: 50px;
+    padding-top: 4px;
+    padding-bottom: 2px;
+  }
+
+  .collapseAll {
+    min-height: var(--last-tap);
+    padding: 0 12px;
+  }
+
+  .groupHead {
+    padding-right: 0;
+  }
+
+  .groupToggle {
+    min-height: var(--last-tap);
+  }
+
+  .groupBrowse {
+    width: var(--last-tap);
+    height: var(--last-tap);
+  }
+}
+
+@media (max-height: 500px) {
+  .root {
+    overflow-y: auto;
+    overscroll-behavior: contain;
+  }
+
+  .top {
+    gap: 8px;
+    padding-bottom: 8px;
+  }
+
+  .list {
+    flex: none;
+    overflow: visible;
+  }
 }

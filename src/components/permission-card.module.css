@@ -31,6 +31,10 @@
   gap: 10px;
 }
 
+.headText {
+  min-width: 0;
+}
+
 .glyph {
   display: grid;
   place-items: center;
@@ -50,6 +54,7 @@
   font-size: 15px;
   font-weight: 500;
   letter-spacing: 0.00937em;
+  overflow-wrap: anywhere;
 }
 
 .subtitle {
@@ -93,6 +98,21 @@
 @media (max-width: 640px) {
   .root {
     padding: 14px;
+  }
+
+  .actions {
+    flex-direction: column;
+    align-items: stretch;
+  }
+
+  .hint {
+    display: none;
+  }
+}
+
+@media (pointer: coarse) {
+  .actions .button {
+    min-height: var(--last-tap);
   }
 
   .hint {
