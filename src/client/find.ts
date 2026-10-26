@@ -3,7 +3,7 @@
 import { createContext, useContext, useState } from "react";
 
 import { hidesResultOnSuccess, todosOf, toolSections } from "@/lib/tools";
-import type { Block, ThreadItem, Turn } from "@/lib/types";
+import type { Block, TaskNotice, ThreadItem, Turn } from "@/lib/types";
 
 export type FindHit = { key: string; nth: number };
 
@@ -56,6 +56,11 @@ function readSources(turn: Turn): Source[] {
   });
 }
 
+function taskSources(task: TaskNotice): Source[] {
+  const text = [task.summary, task.result ?? ""].join("\n").toLowerCase();
+  return [{ key: task.id, text }];
+}
+
 function sourcesOf(turn: Turn): Source[] {
   const cached = sourceCache.get(turn);
   if (cached) return cached;
@@ -83,6 +88,7 @@ export function findHits(items: ThreadItem[], live: Turn | null, query: string):
 
   for (const item of items) {
     if (item.type === "turn") collect(sourcesOf(item.turn));
+    else if (item.type === "task") collect(taskSources(item.task));
   }
   if (live) collect(readSources(live));
   return hits;

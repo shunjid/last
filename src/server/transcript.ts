@@ -5,7 +5,16 @@ import os from "node:os";
 import path from "node:path";
 
 import { EFFORT_LEVELS, MAX_THREAD_ITEMS } from "@/lib/types";
-import type { Block, EffortLevel, ThreadItem, ThreadOp, ToolResult, Turn } from "@/lib/types";
+import type {
+  Block,
+  EffortLevel,
+  TaskNotice,
+  TaskUsage,
+  ThreadItem,
+  ThreadOp,
+  ToolResult,
+  Turn,
+} from "@/lib/types";
 
 import { PulseTracker } from "./pulse";
 
@@ -26,7 +35,6 @@ const META_PREFIXES = [
   "<ide_selection>",
   "<ide_diagnostics>",
   "<user-memory-input>",
-  "<task-notification>",
   "Caveat: The messages below",
 ];
 
@@ -112,16 +120,71 @@ function flattenResult(content: unknown): ToolResult {
   return { images, isError: false, text: clip(parts.join("\n"), MAX_RESULT_CHARS) };
 }
 
+type TaskFields = Omit<TaskNotice, "id" | "timestamp">;
+
+const TASK_KINDS: Array<[RegExp, TaskNotice["kind"]]> = [
+  [/^Agent\b/, "agent"],
+  [/^Background (?:command|shell)\b/, "command"],
+  [/^(?:Dynamic )?workflow\b/i, "workflow"],
+];
+
+function tagText(text: string, name: string) {
+  const match = new RegExp(`<${name}>([\\s\\S]*?)</${name}>`).exec(text);
+  return match?.[1].trim() || null;
+}
+
+function usageCount(usage: string, ...names: string[]) {
+  for (const name of names) {
+    const match = new RegExp(`(?:<${name}>|\\b${name}:\\s*)(\\d+)`).exec(usage);
+    if (match) return Number(match[1]);
+  }
+  return undefined;
+}
+
+function readUsage(text: string): TaskUsage | null {
+  const usage = tagText(text, "usage");
+  if (!usage) return null;
+  const parsed: TaskUsage = {
+    agents: usageCount(usage, "agent_count"),
+    durationMs: usageCount(usage, "duration_ms"),
+    tokens: usageCount(usage, "subagent_tokens", "total_tokens"),
+    toolUses: usageCount(usage, "tool_uses"),
+  };
+  return Object.values(parsed).some((value) => value !== undefined) ? parsed : null;
+}
+
+function readTask(text: string): TaskFields {
+  const summary = tagText(text, "summary") ?? "Background task finished";
+  const status = tagText(text, "status");
+  const quoted = /^[^"]*"([\s\S]+)"\s+(?:finished|completed|failed|was stopped)/.exec(summary);
+  const result = tagText(text, "result");
+  return {
+    kind: TASK_KINDS.find(([pattern]) => pattern.test(summary))?.[1] ?? "task",
+    result: result ? clip(result, MAX_TEXT_CHARS) : null,
+    status:
+      status === "failed"
+        ? "failed"
+        : status === "killed" || status === "stopped"
+          ? "stopped"
+          : "completed",
+    summary,
+    title: quoted?.[1] ?? summary,
+    usage: readUsage(text),
+  };
+}
+
 export type UserTextClass =
   | { kind: "content" }
   | { kind: "meta" }
   | { kind: "interrupt" }
-  | { kind: "slash"; name: string; args?: string };
+  | { kind: "slash"; name: string; args?: string }
+  | { kind: "task"; task: TaskFields };
 
 export function classifyUserText(text: string): UserTextClass {
   const trimmed = text.trim();
   if (!trimmed) return { kind: "meta" };
   if (INTERRUPT_TEXTS.has(trimmed)) return { kind: "interrupt" };
+  if (trimmed.startsWith("<task-notification>")) return { kind: "task", task: readTask(trimmed) };
 
   const command = /<command-name>\s*([^<]+?)\s*<\/command-name>/.exec(trimmed);
   if (command) {
@@ -220,7 +283,7 @@ function copyBlock(block: Block): Block {
 }
 
 function copyItem(item: ThreadItem): ThreadItem {
-  if (item.type === "divider") return item;
+  if (item.type !== "turn") return item;
   return { turn: { ...item.turn, blocks: item.turn.blocks.map(copyBlock) }, type: "turn" };
 }
 
@@ -302,6 +365,11 @@ export class ThreadBuilder {
   addDivider(id: string, label: string, tone: "neutral" | "warning", detail?: string) {
     this.flush();
     this.record({ divider: { detail, id, label, tone }, type: "divider" });
+  }
+
+  addTask(task: TaskNotice) {
+    this.flush();
+    this.record({ task, type: "task" });
   }
 
   addAssistantBlocks(
@@ -438,6 +506,12 @@ export function feedLine(builder: ThreadBuilder, line: string) {
     entry.isSidechain !== true &&
     entry.isCompactSummary !== true;
   if (prompted && !Number.isNaN(at)) builder.pulse.begin(at);
+
+  const task = parsed.classes.find((item) => item.kind === "task");
+  if (task && task.kind === "task") {
+    builder.addTask({ ...task.task, id: `task-${entry.uuid ?? builder.items.length}`, timestamp });
+    return;
+  }
 
   if (!parsed.hasRealText && parsed.blocks.length === 0) return;
 

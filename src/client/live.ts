@@ -1,7 +1,8 @@
 import { MAX_THREAD_ITEMS, type Block, type ThreadItem, type ThreadOp } from "@/lib/types";
 
 function itemId(item: ThreadItem) {
-  return item.type === "turn" ? item.turn.id : item.divider.id;
+  if (item.type === "turn") return item.turn.id;
+  return item.type === "task" ? item.task.id : item.divider.id;
 }
 
 function findFromEnd(items: ThreadItem[], id: string) {

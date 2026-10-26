@@ -82,7 +82,28 @@ export type Divider = {
   tone: "neutral" | "warning";
 };
 
-export type ThreadItem = { type: "turn"; turn: Turn } | { type: "divider"; divider: Divider };
+export type TaskUsage = {
+  agents?: number;
+  durationMs?: number;
+  tokens?: number;
+  toolUses?: number;
+};
+
+export type TaskNotice = {
+  id: string;
+  kind: "agent" | "command" | "workflow" | "task";
+  status: "completed" | "failed" | "stopped";
+  title: string;
+  summary: string;
+  result: string | null;
+  usage: TaskUsage | null;
+  timestamp: string | null;
+};
+
+export type ThreadItem =
+  | { type: "turn"; turn: Turn }
+  | { type: "divider"; divider: Divider }
+  | { type: "task"; task: TaskNotice };
 
 export type SessionPulse = {
   effort: EffortLevel | null;
