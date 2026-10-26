@@ -13,6 +13,7 @@ import {
   IconCheck,
   IconCodeBranch,
   IconCopy,
+  IconFindInPage,
   IconFolder,
   IconPin,
   IconPinOutlined,
@@ -51,6 +52,7 @@ export function ChatHeader({
   contextStats,
   cwd,
   home,
+  onOpenFind,
   onOpenPalette,
   onToggleSidebar,
   sessionId,
@@ -62,6 +64,7 @@ export function ChatHeader({
   contextStats: ResultStats | null;
   cwd: string | null;
   home: string;
+  onOpenFind?: () => void;
   onOpenPalette: () => void;
   onToggleSidebar: () => void;
   sessionId: string | null;
@@ -155,6 +158,13 @@ export function ChatHeader({
       </div>
 
       <div className={styles.actions}>
+        {onOpenFind && (
+          <Tooltip title="Search this chat (⌘F)">
+            <IconButton aria-label="Search this chat" onClick={onOpenFind}>
+              <IconFindInPage />
+            </IconButton>
+          </Tooltip>
+        )}
         <button className={styles.palette} onClick={onOpenPalette} type="button">
           <IconSearch />
           <span className={styles.paletteLabel}>Jump to a session</span>

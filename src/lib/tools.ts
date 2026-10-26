@@ -185,3 +185,32 @@ export function editDiff(rawInput: unknown): { oldText: string; newText: string 
   if (oldText === null || newText === null) return null;
   return { newText, oldText };
 }
+
+export type ToolSection = { code: string; label: string; language: string; numbered?: boolean };
+
+export function toolSections(name: string, rawInput: unknown): ToolSection[] {
+  const diff = editDiff(rawInput);
+  if (diff) {
+    const before = diff.oldText.split("\n").map((line) => `- ${line}`);
+    const after = diff.newText.split("\n").map((line) => `+ ${line}`);
+    return [{ code: [...before, ...after].join("\n"), label: "change", language: "diff" }];
+  }
+
+  const primary = primaryToolText(name, rawInput);
+  if (primary) {
+    return [
+      {
+        code: primary,
+        label: name === "Bash" ? "command" : "content",
+        language: toolLanguage(name, rawInput),
+        numbered: name !== "Bash",
+      },
+    ];
+  }
+
+  if (rawInput !== undefined && rawInput !== null) {
+    const json = JSON.stringify(rawInput, null, 2);
+    if (json && json !== "{}") return [{ code: json, label: "input", language: "json" }];
+  }
+  return [];
+}

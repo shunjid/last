@@ -1,7 +1,8 @@
 "use client";
 
-import { memo, useState } from "react";
+import { memo } from "react";
 
+import { useRevealOpen } from "@/client/find";
 import { toolDisplayName } from "@/lib/tools";
 import type { Block } from "@/lib/types";
 
@@ -19,7 +20,7 @@ function preview(blocks: ToolBlock[]): string {
 
 export const ToolRunGroup = memo(function ToolRunGroup({ blocks }: { blocks: ToolBlock[] }) {
   const failed = blocks.some((block) => block.result?.isError === true);
-  const [open, setOpen] = useState(failed);
+  const [open, setOpen] = useRevealOpen(failed, ...blocks.map((block) => block.id));
 
   return (
     <div className={`${styles.root} ${failed ? styles.failed : ""} ${open ? styles.open : ""}`}>

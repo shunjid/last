@@ -4,6 +4,7 @@ import IconButton from "@mui/material/IconButton";
 import Tooltip from "@mui/material/Tooltip";
 import { memo } from "react";
 
+import { userText } from "@/client/find";
 import { useCopy } from "@/client/use-copy";
 import type { Block, Turn } from "@/lib/types";
 
@@ -53,18 +54,20 @@ function segmentBlocks(blocks: Block[], liveIndex: number | null): Segment[] {
   return segments;
 }
 
-function BlockView({ block, live }: { block: Block; live: boolean }) {
+function BlockView({ block, findKey, live }: { block: Block; findKey: string; live: boolean }) {
   switch (block.kind) {
     case "text":
       return (
-        <div>
+        <div data-find={findKey}>
           <Markdown text={block.text} />
           {live && <span className={styles.caret} />}
         </div>
       );
     case "thinking":
       if (!live && !block.redacted && !block.text.trim()) return null;
-      return <ThinkingCard live={live} redacted={block.redacted} text={block.text} />;
+      return (
+        <ThinkingCard findKey={findKey} live={live} redacted={block.redacted} text={block.text} />
+      );
     case "tool":
       return <ToolCard block={block} />;
     case "image":
@@ -85,21 +88,16 @@ function BlockView({ block, live }: { block: Block; live: boolean }) {
 }
 
 function UserTurn({ turn }: { turn: Turn }) {
-  const text = turn.blocks
-    .map((block) => (block.kind === "text" ? block.text : ""))
-    .join("")
-    .trim();
-
   return (
     <div className={`${styles.row} ${styles.user}`}>
-      <div className={`${styles.bubble} ${turn.pending ? styles.pending : ""}`}>
+      <div className={`${styles.bubble} ${turn.pending ? styles.pending : ""}`} data-find={turn.id}>
         {turn.meta?.kind === "slash" ? (
           <span className={styles.slash}>
             <span className={styles.slashName}>/{turn.meta.name}</span>
             {turn.meta.args && <span>{turn.meta.args}</span>}
           </span>
         ) : (
-          text
+          userText(turn)
         )}
       </div>
 
@@ -108,7 +106,7 @@ function UserTurn({ turn }: { turn: Turn }) {
           {turn.blocks
             .filter((block) => block.kind === "image" || block.kind === "document")
             .map((block, index) => (
-              <BlockView block={block} key={index} live={false} />
+              <BlockView block={block} findKey={`${turn.id}:${index}`} key={index} live={false} />
             ))}
         </div>
       )}
@@ -157,6 +155,7 @@ export const TurnBubble = memo(function TurnBubble({
           ) : (
             <BlockView
               block={segment.block}
+              findKey={`${turn.id}:${segment.index}`}
               key={segment.index}
               live={live && segment.index === lastIndex}
             />

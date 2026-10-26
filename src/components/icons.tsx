@@ -12,6 +12,7 @@ export { default as IconCodeBranch } from "@mui/icons-material/AltRoute";
 export { default as IconCopy } from "@mui/icons-material/ContentCopy";
 export { default as IconDark } from "@mui/icons-material/DarkMode";
 export { default as IconFileLines } from "@mui/icons-material/Description";
+export { default as IconFindInPage } from "@mui/icons-material/FindInPage";
 export { default as IconFolder } from "@mui/icons-material/Folder";
 export { default as IconFolderOpen } from "@mui/icons-material/FolderOpen";
 export { default as IconGlobe } from "@mui/icons-material/Public";
