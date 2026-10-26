@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useMemo, useState } from "react";
+import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 
 import { AUTO_EFFORT, useEffortPref, useModelPref } from "@/client/prefs";
 import { useChat, type ChatTarget } from "@/client/use-chat";
@@ -67,6 +67,8 @@ export function ChatPane({
   const [effortPref, setEffortPref] = useEffortPref();
   const [modelPick, setModelPick] = useState<Pick | null>(null);
   const [effortPick, setEffortPick] = useState<Pick | null>(null);
+  const [findOpen, setFindOpen] = useState(false);
+  const findInputRef = useRef<HTMLInputElement>(null);
 
   const catalogReady = models.some((item) => item.value !== DEFAULT_MODEL);
   const sessionModel = catalogReady ? (detail?.model ?? null) : null;
@@ -113,7 +115,7 @@ export function ChatPane({
     function onKeyDown(event: KeyboardEvent) {
       if (event.key !== "Escape") return;
       const target = event.target as HTMLElement | null;
-      if (target?.closest("[role='dialog']")) return;
+      if (target?.closest("[role='dialog'], [role='search']")) return;
       event.preventDefault();
       void stop();
     }
@@ -126,6 +128,28 @@ export function ChatPane({
   const cwd = detail?.cwd ?? summary?.cwd ?? target.cwd;
   const branch = detail?.gitBranch ?? summary?.gitBranch ?? null;
   const fresh = !target.sessionId && view.items.length === 0 && !view.live && !busy;
+
+  const openFind = useCallback(() => {
+    setFindOpen(true);
+    findInputRef.current?.focus();
+    findInputRef.current?.select();
+  }, []);
+
+  useEffect(() => {
+    if (fresh) return;
+
+    function onKeyDown(event: KeyboardEvent) {
+      if (!event.metaKey && !event.ctrlKey) return;
+      if (event.altKey || event.shiftKey || event.key.toLowerCase() !== "f") return;
+      const target = event.target as HTMLElement | null;
+      if (target?.closest("[role='dialog'], [role='search']")) return;
+      event.preventDefault();
+      openFind();
+    }
+
+    window.addEventListener("keydown", onKeyDown);
+    return () => window.removeEventListener("keydown", onKeyDown);
+  }, [fresh, openFind]);
   const scope = target.sessionId ?? `${PENDING_SCOPE_PREFIX}${target.cwd}`;
   const questionAsk = view.questionAsks[0];
 
@@ -137,6 +161,7 @@ export function ChatPane({
         contextStats={view.contextStats}
         cwd={cwd}
         home={home}
+        onOpenFind={fresh ? undefined : openFind}
         onOpenPalette={onOpenPalette}
         onToggleSidebar={onToggleSidebar}
         sessionId={target.sessionId ?? detail?.sessionId ?? null}
@@ -155,7 +180,10 @@ export function ChatPane({
         <EmptyState cwd={cwd} home={home} onPick={(prompt) => void send(prompt, options)} />
       ) : (
         <ThreadView
+          findInputRef={findInputRef}
+          findOpen={findOpen}
           loading={loading}
+          onCloseFind={() => setFindOpen(false)}
           onDecide={(ask, decision, scope) => void decide(ask, decision, scope)}
           onRetry={view.canRetry ? retry : undefined}
           onStop={() => void stop()}

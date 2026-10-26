@@ -1,13 +1,31 @@
 "use client";
 
 import Button from "@mui/material/Button";
-import { useCallback, useEffect, useLayoutEffect, useRef, useState } from "react";
+import {
+  type RefObject,
+  useCallback,
+  useDeferredValue,
+  useEffect,
+  useLayoutEffect,
+  useMemo,
+  useRef,
+  useState,
+} from "react";
 
+import {
+  clearFindHighlights,
+  type FindHit,
+  findHits,
+  FindTarget,
+  paintFind,
+  revealFind,
+} from "@/client/find";
 import type { ChatView } from "@/client/use-chat";
 import { cost, duration, tokens } from "@/lib/format";
 import type { PermissionAsk, ResultStats } from "@/lib/types";
 
 import { ActivityLine } from "./activity-line";
+import { FindBar } from "./find-bar";
 import { IconArrowDown, IconCircleExclamation, IconLayerGroup, IconRefresh } from "./icons";
 import { PermissionCard } from "./permission-card";
 import styles from "./thread-view.module.css";
@@ -48,13 +66,19 @@ function Skeleton() {
 }
 
 export function ThreadView({
+  findInputRef,
+  findOpen,
   loading,
+  onCloseFind,
   onDecide,
   onRetry,
   onStop,
   view,
 }: {
+  findInputRef: RefObject<HTMLInputElement | null>;
+  findOpen: boolean;
   loading: boolean;
+  onCloseFind: () => void;
   onDecide: (ask: PermissionAsk, decision: "allow" | "deny", scope: "once" | "session") => void;
   onRetry?: () => void;
   onStop: () => void;
@@ -129,11 +153,79 @@ export function ThreadView({
     return () => observer.disconnect();
   }, [scrollToBottom]);
 
+  const [query, setQuery] = useState("");
+  const needle = useDeferredValue(findOpen ? query : "");
+  const hits = useMemo(
+    () => findHits(view.items, view.live, needle),
+    [needle, view.items, view.live],
+  );
+  const [target, setTarget] = useState<FindHit | null>(null);
+  const [targetNeedle, setTargetNeedle] = useState(needle);
+
+  if (needle !== targetNeedle) {
+    setTargetNeedle(needle);
+    setTarget(hits.at(-1) ?? null);
+  }
+
+  const position = target
+    ? hits.findIndex((hit) => hit.key === target.key && hit.nth === target.nth)
+    : -1;
+
+  const step = (direction: 1 | -1) => {
+    if (hits.length === 0) return;
+    const next =
+      position === -1 ? hits.length - 1 : (position + direction + hits.length) % hits.length;
+    setTarget({ ...hits[next] });
+  };
+
+  useLayoutEffect(() => {
+    const inner = innerRef.current;
+    const viewport = viewportRef.current;
+    if (!target || !inner || !viewport) return;
+    takeControl();
+    revealFind(viewport, inner, target, paintFind(inner, needle, target));
+  }, [needle, takeControl, target]);
+
+  useEffect(() => {
+    const inner = innerRef.current;
+    if (!inner || !needle.trim()) return;
+    let frame = 0;
+    const paint = () => {
+      frame = 0;
+      paintFind(inner, needle, target);
+    };
+    paint();
+    const observer = new MutationObserver(() => {
+      if (!frame) frame = requestAnimationFrame(paint);
+    });
+    observer.observe(inner, { characterData: true, childList: true, subtree: true });
+    return () => {
+      observer.disconnect();
+      cancelAnimationFrame(frame);
+      clearFindHighlights();
+    };
+  }, [needle, target]);
+
   const running = view.phase === "connecting" || view.phase === "running";
   const activity = view.asks.length === 0 ? view.activity : null;
 
   return (
     <div className={styles.shell}>
+      {findOpen && (
+        <FindBar
+          count={hits.length}
+          inputRef={findInputRef}
+          onClose={onCloseFind}
+          onNewer={() => step(1)}
+          onOlder={() => step(-1)}
+          onQueryChange={setQuery}
+          query={query}
+          rank={position === -1 ? 0 : hits.length - position}
+          searched={needle.trim() !== ""}
+          truncated={view.truncated}
+        />
+      )}
+
       <div
         className={styles.viewport}
         onScroll={onScroll}
@@ -141,80 +233,82 @@ export function ThreadView({
         onWheel={onWheel}
         ref={viewportRef}
       >
-        <div className={styles.inner} ref={innerRef}>
-          {loading ? (
-            <Skeleton />
-          ) : (
-            <>
-              {view.truncated && (
-                <p className={styles.truncated}>
-                  Older messages are not shown. This session is long, so only the recent part
-                  loaded.
-                </p>
-              )}
+        <FindTarget.Provider value={target}>
+          <div className={styles.inner} ref={innerRef}>
+            {loading ? (
+              <Skeleton />
+            ) : (
+              <>
+                {view.truncated && (
+                  <p className={styles.truncated}>
+                    Older messages are not shown. This session is long, so only the recent part
+                    loaded.
+                  </p>
+                )}
 
-              {view.items.map((item) =>
-                item.type === "turn" ? (
-                  <TurnBubble key={item.turn.id} turn={item.turn} />
-                ) : (
-                  <div className={styles.divider} key={item.divider.id}>
-                    <span
-                      className={`${styles.chip} ${
-                        item.divider.tone === "warning" ? styles.warning : ""
-                      }`}
-                    >
-                      <IconLayerGroup />
-                      {item.divider.label}
-                      {item.divider.detail && (
-                        <span className={styles.detail}>{item.divider.detail}</span>
-                      )}
-                    </span>
+                {view.items.map((item) =>
+                  item.type === "turn" ? (
+                    <TurnBubble key={item.turn.id} turn={item.turn} />
+                  ) : (
+                    <div className={styles.divider} key={item.divider.id}>
+                      <span
+                        className={`${styles.chip} ${
+                          item.divider.tone === "warning" ? styles.warning : ""
+                        }`}
+                      >
+                        <IconLayerGroup />
+                        {item.divider.label}
+                        {item.divider.detail && (
+                          <span className={styles.detail}>{item.divider.detail}</span>
+                        )}
+                      </span>
+                    </div>
+                  ),
+                )}
+
+                {view.live && <TurnBubble live={running} turn={view.live} />}
+
+                {activity && (
+                  <ActivityLine
+                    activity={activity}
+                    connecting={view.phase === "connecting"}
+                    key={activity.startedAt}
+                    onStop={activity.source === "local" ? onStop : undefined}
+                    status={view.status}
+                  />
+                )}
+
+                {view.asks.map((ask, index) => (
+                  <PermissionCard
+                    ask={ask}
+                    key={ask.requestId}
+                    onDecide={onDecide}
+                    primary={index === 0}
+                  />
+                ))}
+
+                {view.error && (
+                  <div className={styles.error}>
+                    <IconCircleExclamation />
+                    <span className={styles.errorText}>{view.error}</span>
+                    {onRetry && !running && (
+                      <Button
+                        color="inherit"
+                        onClick={onRetry}
+                        startIcon={<IconRefresh />}
+                        variant="text"
+                      >
+                        Send again
+                      </Button>
+                    )}
                   </div>
-                ),
-              )}
+                )}
 
-              {view.live && <TurnBubble live={running} turn={view.live} />}
-
-              {activity && (
-                <ActivityLine
-                  activity={activity}
-                  connecting={view.phase === "connecting"}
-                  key={activity.startedAt}
-                  onStop={activity.source === "local" ? onStop : undefined}
-                  status={view.status}
-                />
-              )}
-
-              {view.asks.map((ask, index) => (
-                <PermissionCard
-                  ask={ask}
-                  key={ask.requestId}
-                  onDecide={onDecide}
-                  primary={index === 0}
-                />
-              ))}
-
-              {view.error && (
-                <div className={styles.error}>
-                  <IconCircleExclamation />
-                  <span className={styles.errorText}>{view.error}</span>
-                  {onRetry && !running && (
-                    <Button
-                      color="inherit"
-                      onClick={onRetry}
-                      startIcon={<IconRefresh />}
-                      variant="text"
-                    >
-                      Send again
-                    </Button>
-                  )}
-                </div>
-              )}
-
-              {view.stats && !running && <StatsRow stats={view.stats} />}
-            </>
-          )}
-        </div>
+                {view.stats && !running && <StatsRow stats={view.stats} />}
+              </>
+            )}
+          </div>
+        </FindTarget.Provider>
       </div>
 
       {!pinned && (

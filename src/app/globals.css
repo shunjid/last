@@ -88,6 +88,16 @@
   --shiki-token-link: var(--mui-palette-code-link);
 }
 
+::highlight(last-find) {
+  background-color: var(--last-bg-warning-container);
+  color: var(--last-fg-warning-container);
+}
+
+::highlight(last-find-current) {
+  background-color: var(--last-fg-warning);
+  color: var(--last-bg-page);
+}
+
 ::-webkit-scrollbar {
   height: 10px;
   width: 10px;

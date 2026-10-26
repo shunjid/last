@@ -1,20 +1,24 @@
 "use client";
 
-import { memo, useState } from "react";
+import { memo } from "react";
+
+import { useRevealOpen } from "@/client/find";
 
 import { IconBrain, IconChevronRight } from "./icons";
 import styles from "./thinking-card.module.css";
 
 export const ThinkingCard = memo(function ThinkingCard({
+  findKey,
   live,
   redacted,
   text,
 }: {
+  findKey: string;
   live: boolean;
   redacted?: boolean;
   text: string;
 }) {
-  const [open, setOpen] = useState(false);
+  const [open, setOpen] = useRevealOpen(false, findKey);
   const words = text.trim() ? text.trim().split(/\s+/).length : 0;
 
   return (
@@ -40,7 +44,9 @@ export const ThinkingCard = memo(function ThinkingCard({
             This reasoning was encrypted by the model and cannot be shown.
           </p>
         ) : (
-          <div className={styles.body}>{text}</div>
+          <div className={styles.body} data-find={findKey}>
+            {text}
+          </div>
         ))}
     </div>
   );

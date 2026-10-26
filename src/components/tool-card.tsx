@@ -1,17 +1,16 @@
 "use client";
 
 import CircularProgress from "@mui/material/CircularProgress";
-import { memo, useState, type ReactNode } from "react";
+import { memo, type ReactNode } from "react";
 
+import { useRevealOpen } from "@/client/find";
 import {
-  editDiff,
   errorHeadline,
   hidesResultOnSuccess,
   opensByDefault,
-  primaryToolText,
   todosOf,
   toolDisplayName,
-  toolLanguage,
+  toolSections,
   toolSummary,
 } from "@/lib/tools";
 import type { Block } from "@/lib/types";
@@ -59,48 +58,15 @@ function glyphFor(name: string) {
   return <IconToolbox />;
 }
 
-function detailsOf(block: ToolBlock) {
-  const sections: Array<{ code: string; label: string; language: string; numbered?: boolean }> = [];
-
-  const diff = editDiff(block.input);
-  if (diff) {
-    const before = diff.oldText.split("\n").map((line) => `- ${line}`);
-    const after = diff.newText.split("\n").map((line) => `+ ${line}`);
-    sections.push({
-      code: [...before, ...after].join("\n"),
-      label: "change",
-      language: "diff",
-    });
-    return sections;
-  }
-
-  const primary = primaryToolText(block.name, block.input);
-  if (primary) {
-    sections.push({
-      code: primary,
-      label: block.name === "Bash" ? "command" : "content",
-      language: toolLanguage(block.name, block.input),
-      numbered: block.name !== "Bash",
-    });
-    return sections;
-  }
-
-  if (block.input !== undefined && block.input !== null) {
-    const json = JSON.stringify(block.input, null, 2);
-    if (json && json !== "{}") sections.push({ code: json, label: "input", language: "json" });
-  }
-  return sections;
-}
-
 export const ToolCard = memo(function ToolCard({ block }: { block: ToolBlock }) {
   const running = !block.streaming && block.result === null;
   const failed = block.result?.isError === true;
-  const [open, setOpen] = useState(() => opensByDefault(block.name));
+  const [open, setOpen] = useRevealOpen(opensByDefault(block.name), block.id);
 
   const todos = block.name === "TodoWrite" ? todosOf(block.input) : null;
   const summary = toolSummary(block.name, block.input);
   const headline = failed && block.result?.text ? errorHeadline(block.result.text) : null;
-  const sections = open && !todos ? detailsOf(block) : [];
+  const sections = open && !todos ? toolSections(block.name, block.input) : [];
   const quiet = !failed && hidesResultOnSuccess(block.name);
 
   return (
@@ -136,7 +102,7 @@ export const ToolCard = memo(function ToolCard({ block }: { block: ToolBlock }) 
       </button>
 
       {open && (
-        <div className={styles.body}>
+        <div className={styles.body} data-find={block.id}>
           {todos && <TodoList todos={todos} />}
 
           {sections.map((section) => (
@@ -151,7 +117,9 @@ export const ToolCard = memo(function ToolCard({ block }: { block: ToolBlock }) 
 
           {block.subText && (
             <div className={styles.section}>
-              <span className={styles.sectionLabel}>subagent</span>
+              <span className={styles.sectionLabel} data-find-skip>
+                subagent
+              </span>
               <div className={styles.sub}>{block.subText}</div>
             </div>
           )}
@@ -165,14 +133,16 @@ export const ToolCard = memo(function ToolCard({ block }: { block: ToolBlock }) 
                 tone={block.result.isError ? "error" : "default"}
               />
             ) : (
-              <p className={styles.empty}>
+              <p className={styles.empty} data-find-skip>
                 {block.result.images > 0
                   ? `Returned ${block.result.images} image${block.result.images > 1 ? "s" : ""}.`
                   : "No output."}
               </p>
             )
           ) : (
-            <p className={styles.empty}>Still running…</p>
+            <p className={styles.empty} data-find-skip>
+              Still running…
+            </p>
           )}
         </div>
       )}
