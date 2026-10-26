@@ -159,11 +159,16 @@ export function ChatHeader({
 
       <div className={styles.actions}>
         {onOpenFind && (
-          <Tooltip title="Search this chat (⌘F)">
-            <IconButton aria-label="Search this chat" onClick={onOpenFind}>
-              <IconFindInPage />
-            </IconButton>
-          </Tooltip>
+          <button
+            aria-label="Search this session"
+            className={styles.palette}
+            onClick={onOpenFind}
+            type="button"
+          >
+            <IconFindInPage />
+            <span className={styles.paletteLabel}>Search this session</span>
+            <kbd className={styles.key}>⌘F</kbd>
+          </button>
         )}
         <button className={styles.palette} onClick={onOpenPalette} type="button">
           <IconSearch />

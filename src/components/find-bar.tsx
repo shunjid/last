@@ -52,7 +52,7 @@ export function FindBar({
       <div className={styles.row}>
         <IconSearch className={styles.glyph} />
         <input
-          aria-label="Search this chat"
+          aria-label="Search this session"
           className={styles.input}
           onChange={(event) => onQueryChange(event.target.value)}
           onKeyDown={(event) => {
@@ -66,7 +66,7 @@ export function FindBar({
               else onOlder();
             }
           }}
-          placeholder="Search this chat…"
+          placeholder="Search this session…"
           ref={inputRef}
           spellCheck={false}
           value={query}
