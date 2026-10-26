@@ -28,6 +28,7 @@ import { ActivityLine } from "./activity-line";
 import { FindBar } from "./find-bar";
 import { IconArrowDown, IconCircleExclamation, IconLayerGroup, IconRefresh } from "./icons";
 import { PermissionCard } from "./permission-card";
+import { TaskCard } from "./task-card";
 import styles from "./thread-view.module.css";
 import { TurnBubble } from "./turn-bubble";
 
@@ -294,6 +295,8 @@ export function ThreadView({
                 {view.items.map((item) =>
                   item.type === "turn" ? (
                     <TurnBubble key={item.turn.id} turn={item.turn} />
+                  ) : item.type === "task" ? (
+                    <TaskCard key={item.task.id} task={item.task} />
                   ) : (
                     <div className={styles.divider} key={item.divider.id}>
                       <span
