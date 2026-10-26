@@ -8,6 +8,7 @@
   background: color-mix(in srgb, var(--last-bg-page) 88%, transparent);
   backdrop-filter: blur(8px);
   border-bottom: 1px solid var(--last-border-header);
+  container-type: inline-size;
 }
 
 .identity {
@@ -181,6 +182,7 @@
 }
 
 .palette {
+  flex: none;
   display: inline-flex;
   align-items: center;
   gap: 8px;
@@ -192,6 +194,7 @@
   color: var(--last-fg-secondary);
   font: inherit;
   font-size: 12.5px;
+  white-space: nowrap;
   cursor: pointer;
   transition: background var(--last-duration-sm) var(--last-ease-standard);
 }
@@ -212,6 +215,21 @@
   padding: 1px 6px;
   border-radius: var(--last-radius-xs);
   background: color-mix(in srgb, var(--last-fg-default) 8%, transparent);
+}
+
+@container (max-width: 880px) {
+  .find {
+    justify-content: center;
+    width: 40px;
+    height: 40px;
+    padding: 0;
+    background: none;
+  }
+
+  .find .paletteLabel,
+  .find .key {
+    display: none;
+  }
 }
 
 @media (max-width: 900px) {
