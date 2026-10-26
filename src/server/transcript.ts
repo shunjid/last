@@ -26,6 +26,7 @@ const META_PREFIXES = [
   "<ide_selection>",
   "<ide_diagnostics>",
   "<user-memory-input>",
+  "<task-notification>",
   "Caveat: The messages below",
 ];
 
@@ -431,16 +432,16 @@ export function feedLine(builder: ThreadBuilder, line: string) {
     return;
   }
 
-  if (!parsed.hasRealText && parsed.blocks.length === 0) return;
-
-  const turn = builder.makeUserTurn(entry.uuid, parsed.blocks, timestamp);
-  if (entry.isCompactSummary === true) turn.meta = { kind: "compact-summary" };
-  builder.addUserTurn(turn);
-
   const prompted =
     entry.promptSource != null &&
     entry.toolUseResult === undefined &&
     entry.isSidechain !== true &&
     entry.isCompactSummary !== true;
   if (prompted && !Number.isNaN(at)) builder.pulse.begin(at);
+
+  if (!parsed.hasRealText && parsed.blocks.length === 0) return;
+
+  const turn = builder.makeUserTurn(entry.uuid, parsed.blocks, timestamp);
+  if (entry.isCompactSummary === true) turn.meta = { kind: "compact-summary" };
+  builder.addUserTurn(turn);
 }
