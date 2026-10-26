@@ -79,6 +79,17 @@
   }
 }
 
+@media (pointer: coarse) {
+  .tools {
+    margin: -6px 0 -6px -6px;
+  }
+
+  .tools .copy {
+    width: var(--last-tap);
+    height: var(--last-tap);
+  }
+}
+
 .blocks {
   display: flex;
   flex-direction: column;

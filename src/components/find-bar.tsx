@@ -75,17 +75,32 @@ export function FindBar({
           {label}
         </span>
         <Tooltip title="Older match (↵)">
-          <IconButton aria-label="Older match" onClick={onOlder} size="small">
+          <IconButton
+            aria-label="Older match"
+            className={styles.button}
+            onClick={onOlder}
+            size="small"
+          >
             <IconArrowUp />
           </IconButton>
         </Tooltip>
         <Tooltip title="Newer match (⇧↵)">
-          <IconButton aria-label="Newer match" onClick={onNewer} size="small">
+          <IconButton
+            aria-label="Newer match"
+            className={styles.button}
+            onClick={onNewer}
+            size="small"
+          >
             <IconArrowDown />
           </IconButton>
         </Tooltip>
         <Tooltip title="Close (Esc)">
-          <IconButton aria-label="Close search" onClick={onClose} size="small">
+          <IconButton
+            aria-label="Close search"
+            className={styles.button}
+            onClick={onClose}
+            size="small"
+          >
             <IconXmark />
           </IconButton>
         </Tooltip>

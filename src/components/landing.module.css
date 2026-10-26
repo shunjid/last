@@ -3,21 +3,23 @@
   display: flex;
   flex-direction: column;
   align-items: center;
-  justify-content: center;
   gap: 18px;
   height: 100%;
-  padding: 32px 20px;
+  padding: calc(32px + env(safe-area-inset-top, 0px)) calc(20px + env(safe-area-inset-right, 0px))
+    calc(32px + env(safe-area-inset-bottom, 0px)) calc(20px + env(safe-area-inset-left, 0px));
   overflow-y: auto;
+  overscroll-behavior: contain;
   background: var(--last-bg-page);
 }
 
 .corner {
   position: absolute;
-  top: 16px;
-  right: 16px;
+  top: calc(16px + env(safe-area-inset-top, 0px));
+  right: calc(16px + env(safe-area-inset-right, 0px));
 }
 
 .card {
+  margin-top: auto;
   display: flex;
   flex-direction: column;
   align-items: center;
@@ -115,27 +117,39 @@
 
 .footer {
   max-width: 560px;
-  margin: 0;
+  margin: 0 0 auto;
   font-size: 0.75rem;
   line-height: 1.5;
   text-align: center;
   color: var(--last-fg-tertiary);
 }
 
-@media (max-width: 640px) {
+@media (max-width: 640px), (max-height: 500px) {
   .root {
-    justify-content: flex-start;
-    gap: 14px;
-    padding: 68px 14px 28px;
+    padding-top: calc(68px + env(safe-area-inset-top, 0px));
   }
 
   .corner {
-    top: 10px;
-    right: 10px;
+    top: calc(10px + env(safe-area-inset-top, 0px));
+    right: calc(10px + env(safe-area-inset-right, 0px));
+  }
+}
+
+@media (max-width: 640px) {
+  .root {
+    gap: 14px;
+    padding-right: calc(14px + env(safe-area-inset-right, 0px));
+    padding-bottom: calc(28px + env(safe-area-inset-bottom, 0px));
+    padding-left: calc(14px + env(safe-area-inset-left, 0px));
   }
 
   .card {
+    margin-top: 0;
     padding: 28px 20px 24px;
+  }
+
+  .footer {
+    margin-bottom: 0;
   }
 
   .wordmark {
@@ -144,5 +158,34 @@
 
   .actions {
     margin-top: 20px;
+  }
+}
+
+@media (max-height: 500px) {
+  .card {
+    padding: 24px 28px 20px;
+  }
+
+  .mark {
+    display: none;
+  }
+
+  .wordmark {
+    margin-top: 0;
+    font-size: 1.875rem;
+  }
+
+  .points {
+    margin-top: 14px;
+  }
+
+  .actions {
+    margin-top: 18px;
+  }
+}
+
+@media (pointer: coarse) {
+  .actions :global(.MuiButton-root) {
+    min-height: var(--last-tap);
   }
 }

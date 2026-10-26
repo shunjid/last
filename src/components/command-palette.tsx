@@ -3,8 +3,9 @@
 import { type KeyboardEvent, useEffect, useMemo, useRef, useState } from "react";
 import { createPortal } from "react-dom";
 
+import { useKeyboardInset } from "@/client/use-keyboard-inset";
 import { CopyResume } from "@/components/copy-resume";
-import { IconFolderOpen, IconMessages, IconPlus, IconSearch } from "@/components/icons";
+import { IconFolderOpen, IconMessages, IconPlus, IconSearch, IconXmark } from "@/components/icons";
 import { relativeStamp } from "@/lib/format";
 import type { ProjectSummary, SessionSummary } from "@/lib/types";
 
@@ -46,6 +47,7 @@ export function CommandPalette({
   const listRef = useRef<HTMLDivElement>(null);
   const panelRef = useRef<HTMLDivElement>(null);
   const inputRef = useRef<HTMLInputElement>(null);
+  const keyboardInset = useKeyboardInset();
 
   const entries = useMemo<Entry[]>(() => {
     const needle = query.trim().toLowerCase();
@@ -138,6 +140,7 @@ export function CommandPalette({
       onMouseDown={(event) => {
         if (event.target === event.currentTarget) onClose();
       }}
+      style={keyboardInset > 0 ? { paddingBottom: keyboardInset } : undefined}
     >
       <div
         aria-label={scope ? `${scope.label} sessions` : "Jump to a session"}
@@ -181,6 +184,9 @@ export function CommandPalette({
             ref={inputRef}
             value={query}
           />
+          <button aria-label="Close" className={styles.close} onClick={onClose} type="button">
+            <IconXmark />
+          </button>
         </div>
 
         <div className={styles.results} ref={listRef}>

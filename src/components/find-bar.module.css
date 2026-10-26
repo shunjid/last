@@ -79,3 +79,35 @@
     width: calc(100% - 16px);
   }
 }
+
+@media (max-width: 640px), (pointer: coarse) {
+  .input {
+    font-size: 16px;
+  }
+}
+
+@media (pointer: coarse) {
+  .root {
+    padding: 2px 4px 2px 14px;
+  }
+
+  .row {
+    gap: 0;
+    min-height: var(--last-tap);
+  }
+
+  .input {
+    align-self: stretch;
+  }
+
+  .row > .button {
+    width: var(--last-tap);
+    height: var(--last-tap);
+  }
+}
+
+@media (max-width: 640px), (max-height: 500px) {
+  .root {
+    top: calc(var(--chat-top, 0px) + 8px);
+  }
+}

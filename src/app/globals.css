@@ -74,6 +74,7 @@
   --last-z-popover: 1500;
 
   --last-sidebar: 312px;
+  --last-tap: 44px;
 
   --shiki-foreground: var(--last-fg-default);
   --shiki-background: transparent;

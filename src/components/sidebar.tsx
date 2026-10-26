@@ -30,6 +30,9 @@ const NEW_CHAT_SX = {
   color: "secondary.onContainer",
   minHeight: 40,
   px: 2.5,
+  "@media (pointer: coarse)": {
+    minHeight: 44,
+  },
   "&:hover": {
     bgcolor: "secondary.container",
     backgroundImage:
@@ -180,7 +183,7 @@ export function Sidebar({
           </Tooltip>
           <span className={styles.spacer} />
           <Tooltip title="Hide the sidebar (⌘B)">
-            <IconButton aria-label="Hide the sidebar" onClick={onToggle}>
+            <IconButton aria-label="Hide the sidebar" className={styles.tap} onClick={onToggle}>
               <IconSidebar />
             </IconButton>
           </Tooltip>
@@ -191,6 +194,7 @@ export function Sidebar({
         </Button>
 
         <TextField
+          className={styles.search}
           id="sidebar-search"
           name="search"
           onChange={(event) => setQuery(event.target.value)}
@@ -206,7 +210,11 @@ export function Sidebar({
               ),
               endAdornment: query ? (
                 <InputAdornment position="end">
-                  <IconButton aria-label="Clear search" onClick={() => setQuery("")}>
+                  <IconButton
+                    aria-label="Clear search"
+                    className={styles.clear}
+                    onClick={() => setQuery("")}
+                  >
                     <IconXmark />
                   </IconButton>
                 </InputAdornment>

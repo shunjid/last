@@ -16,8 +16,10 @@
   font-size: 13px;
 }
 
-.head:hover {
-  color: var(--last-fg-secondary);
+@media (hover: hover) {
+  .head:hover {
+    color: var(--last-fg-secondary);
+  }
 }
 
 .head:focus-visible {
@@ -71,4 +73,11 @@
 .redacted {
   font-style: italic;
   color: var(--last-fg-tertiary);
+}
+
+@media (pointer: coarse) {
+  .head {
+    min-height: var(--last-tap);
+    padding-right: 12px;
+  }
 }

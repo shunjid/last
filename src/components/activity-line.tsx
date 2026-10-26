@@ -109,7 +109,7 @@ export function ActivityLine({
       <span className={styles.meta}>({parts.join(" · ")})</span>
       {onStop ? (
         <button className={styles.stop} onClick={onStop} type="button">
-          esc to stop
+          <span className={styles.hint}>esc to </span>stop
         </button>
       ) : (
         <span className={styles.owner}>running in your terminal</span>

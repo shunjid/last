@@ -22,7 +22,7 @@
   display: flex;
   flex-direction: column;
   width: min(620px, 100%);
-  max-height: 60vh;
+  max-height: min(60vh, 100%);
   overflow: hidden;
   border-radius: var(--last-radius-xl);
   background: var(--last-surface-high);
@@ -63,6 +63,32 @@
 
 .input:focus {
   outline: none;
+}
+
+.close {
+  display: none;
+  flex: none;
+  place-items: center;
+  width: var(--last-tap);
+  height: var(--last-tap);
+  margin-right: -10px;
+  padding: 0;
+  border: 0;
+  border-radius: var(--last-radius-full);
+  background: none;
+  color: var(--last-fg-secondary);
+  cursor: pointer;
+  transition: background var(--last-duration-sm) var(--last-ease-standard);
+}
+
+.close:hover {
+  background: var(--last-state-hover);
+  color: var(--last-fg-default);
+}
+
+.close:focus-visible {
+  outline: 2px solid var(--last-border-focus);
+  outline-offset: -2px;
 }
 
 .input::placeholder {
@@ -225,27 +251,71 @@
   background: color-mix(in srgb, var(--last-fg-default) 8%, transparent);
 }
 
-@media (max-width: 640px) {
+@media (max-width: 640px), (max-height: 500px) {
   .backdrop {
-    padding: 6dvh 10px 10px;
+    padding: env(safe-area-inset-top) env(safe-area-inset-right) env(safe-area-inset-bottom)
+      env(safe-area-inset-left);
+    background: var(--last-surface-high);
   }
 
   .panel {
-    max-height: 82dvh;
+    width: 100%;
+    max-height: none;
+    border-radius: 0;
+    box-shadow: none;
   }
 
   .search {
     min-height: 52px;
-    padding: 6px 16px;
+    padding: 4px 16px;
   }
 
   .input {
     font-size: 16px;
   }
 
+  .close {
+    display: grid;
+  }
+
   .foot {
     flex-wrap: wrap;
     gap: 6px 14px;
     padding: 10px 16px;
+  }
+}
+
+@media (hover: none) {
+  .close {
+    display: grid;
+  }
+
+  .foot {
+    display: none;
+  }
+
+  .copyBtn {
+    opacity: 1;
+  }
+
+  .option {
+    padding-right: 52px;
+  }
+
+  .optionRow:hover .stamp {
+    opacity: 1;
+  }
+}
+
+@media (pointer: coarse) {
+  .input {
+    align-self: stretch;
+    font-size: 16px;
+  }
+
+  .copyBtn {
+    right: 4px;
+    width: var(--last-tap);
+    height: var(--last-tap);
   }
 }

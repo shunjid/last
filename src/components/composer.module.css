@@ -156,6 +156,22 @@
   font-variant-numeric: tabular-nums;
 }
 
+.bar .options {
+  display: none;
+  position: relative;
+}
+
+.flag {
+  position: absolute;
+  top: 8px;
+  right: 8px;
+  width: 8px;
+  height: 8px;
+  border-radius: var(--last-radius-full);
+  background: var(--last-fg-warning);
+  box-shadow: 0 0 0 2px var(--last-surface-high);
+}
+
 @media (max-width: 900px) {
   .dock {
     padding: 0 12px 12px;
@@ -179,11 +195,124 @@
 }
 
 @media (max-width: 640px) {
+  .dock {
+    padding: 0;
+  }
+
+  .queue {
+    width: auto;
+    margin: 0 12px 8px;
+  }
+
+  .shell {
+    border-width: 1px 0 0;
+    border-radius: var(--last-radius-xl) var(--last-radius-xl) 0 0;
+    margin-bottom: calc(-1 * env(safe-area-inset-bottom, 0px));
+    padding-bottom: env(safe-area-inset-bottom, 0px);
+  }
+
+  .bar {
+    padding-left: 16px;
+  }
+
   .hint {
     display: none;
   }
 
   .bar > :last-child {
     margin-left: auto;
+  }
+}
+
+@media (max-width: 640px), (max-height: 500px) {
+  .field {
+    max-height: 30dvh;
+  }
+}
+
+@media (pointer: coarse) {
+  .field {
+    font-size: 16px;
+  }
+
+  .hint {
+    display: none;
+  }
+
+  .bar > :last-child {
+    margin-left: auto;
+  }
+
+  .bar .send {
+    width: var(--last-tap);
+    min-width: var(--last-tap);
+    height: var(--last-tap);
+  }
+
+  .bar .stop {
+    min-height: var(--last-tap);
+  }
+
+  .bar .select {
+    padding-top: 12px;
+    padding-bottom: 12px;
+  }
+
+  .queuedRemove {
+    position: relative;
+  }
+
+  .queuedRemove::after {
+    content: "";
+    position: absolute;
+    inset: -10px;
+  }
+}
+
+@media (max-width: 640px), (max-height: 500px) {
+  .shell {
+    display: flex;
+    align-items: flex-end;
+  }
+
+  .field {
+    flex: 1;
+    min-width: 0;
+    min-height: 52px;
+    padding: 13px 4px 13px 18px;
+  }
+
+  .field::placeholder {
+    overflow: hidden;
+    white-space: nowrap;
+    text-overflow: ellipsis;
+  }
+
+  .bar {
+    flex: none;
+    flex-wrap: nowrap;
+    gap: 2px;
+    padding: 4px 4px 4px 0;
+  }
+
+  .bar .picker,
+  .stopLabel {
+    display: none;
+  }
+
+  .bar .options {
+    display: inline-flex;
+    width: var(--last-tap);
+    height: var(--last-tap);
+  }
+
+  .bar .stop {
+    min-width: var(--last-tap);
+    min-height: var(--last-tap);
+    padding: 0;
+  }
+
+  .bar .stop :global(.MuiButton-startIcon) {
+    margin: 0;
   }
 }

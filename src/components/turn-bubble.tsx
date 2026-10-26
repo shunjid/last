@@ -120,7 +120,7 @@ function CopyAnswer({ text }: { text: string }) {
   return (
     <div className={styles.tools}>
       <Tooltip title={copied ? "Copied" : "Copy answer"}>
-        <IconButton aria-label="Copy answer" onClick={copy}>
+        <IconButton aria-label="Copy answer" className={styles.copy} onClick={copy}>
           {copied ? <IconCheck /> : <IconCopy />}
         </IconButton>
       </Tooltip>

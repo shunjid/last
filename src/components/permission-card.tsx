@@ -67,7 +67,7 @@ export const PermissionCard = memo(function PermissionCard({
         <span className={styles.glyph}>
           {ask.mutating ? <IconTriangleExclamation /> : <IconCheck />}
         </span>
-        <div>
+        <div className={styles.headText}>
           <p className={styles.title}>
             Allow {toolDisplayName(ask.tool)}
             {ask.mutating ? " to change your files?" : "?"}
@@ -90,6 +90,7 @@ export const PermissionCard = memo(function PermissionCard({
 
       <div className={styles.actions}>
         <Button
+          className={styles.button}
           color="primary"
           onClick={() => onDecide(ask, "allow", "once")}
           startIcon={<IconCheck />}
@@ -100,6 +101,7 @@ export const PermissionCard = memo(function PermissionCard({
 
         {ask.allowAlways && (
           <Button
+            className={styles.button}
             color="inherit"
             onClick={() => onDecide(ask, "allow", "session")}
             variant="outlined"
@@ -109,6 +111,7 @@ export const PermissionCard = memo(function PermissionCard({
         )}
 
         <Button
+          className={styles.button}
           color="error"
           onClick={() => onDecide(ask, "deny", "once")}
           startIcon={<IconBan />}

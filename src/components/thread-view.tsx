@@ -34,6 +34,8 @@ import { TurnBubble } from "./turn-bubble";
 const BOTTOM_SLACK = 96;
 const REPIN_SLACK = 24;
 const AUTO_GRACE_MS = 1_200;
+const DRAG_SLACK = 12;
+const TAP_IGNORE = "a, button, input, label, pre, select, summary, textarea, [role='button']";
 
 function StatsRow({ stats }: { stats: ResultStats }) {
   const parts: string[] = [];
@@ -71,7 +73,9 @@ export function ThreadView({
   loading,
   onCloseFind,
   onDecide,
+  onHideBars,
   onRetry,
+  onShowBars,
   onStop,
   view,
 }: {
@@ -80,7 +84,9 @@ export function ThreadView({
   loading: boolean;
   onCloseFind: () => void;
   onDecide: (ask: PermissionAsk, decision: "allow" | "deny", scope: "once" | "session") => void;
+  onHideBars?: () => void;
   onRetry?: () => void;
+  onShowBars?: () => void;
   onStop: () => void;
   view: ChatView;
 }) {
@@ -88,6 +94,8 @@ export function ThreadView({
   const innerRef = useRef<HTMLDivElement>(null);
   const pinnedRef = useRef(true);
   const steeringRef = useRef(false);
+  const touchingRef = useRef(false);
+  const gestureTopRef = useRef(0);
   const autoUntilRef = useRef(0);
   const [pinned, setPinned] = useState(true);
 
@@ -109,22 +117,55 @@ export function ThreadView({
     const distance = node.scrollHeight - node.scrollTop - node.clientHeight;
 
     if (distance < REPIN_SLACK) {
+      if (touchingRef.current) return;
       steeringRef.current = false;
       setPin(true);
+      onShowBars?.();
       return;
+    }
+    if (touchingRef.current && Math.abs(node.scrollTop - gestureTopRef.current) > DRAG_SLACK) {
+      onHideBars?.();
     }
     if (steeringRef.current) {
       setPin(false);
       return;
     }
     if (distance > BOTTOM_SLACK && Date.now() > autoUntilRef.current) setPin(false);
-  }, [setPin]);
+  }, [onHideBars, onShowBars, setPin]);
 
   const takeControl = useCallback(() => {
     steeringRef.current = true;
     autoUntilRef.current = 0;
     setPin(false);
   }, [setPin]);
+
+  const onTouchStart = useCallback(() => {
+    gestureTopRef.current = viewportRef.current?.scrollTop ?? 0;
+    touchingRef.current = true;
+    steeringRef.current = true;
+    autoUntilRef.current = 0;
+  }, []);
+
+  const onTouchEnd = useCallback(() => {
+    touchingRef.current = false;
+    const node = viewportRef.current;
+    if (!node) return;
+    if (node.scrollHeight - node.scrollTop - node.clientHeight < REPIN_SLACK) {
+      steeringRef.current = false;
+      setPin(true);
+      onShowBars?.();
+    }
+    if (pinnedRef.current) scrollToBottom("auto");
+  }, [onShowBars, scrollToBottom, setPin]);
+
+  const onClick = useCallback(
+    (event: React.MouseEvent) => {
+      if (!onShowBars || (event.target as Element).closest(TAP_IGNORE)) return;
+      if (window.getSelection()?.isCollapsed === false) return;
+      onShowBars();
+    },
+    [onShowBars],
+  );
 
   const onWheel = useCallback(
     (event: React.WheelEvent) => {
@@ -136,18 +177,19 @@ export function ThreadView({
   const jump = useCallback(() => {
     steeringRef.current = false;
     setPin(true);
+    onShowBars?.();
     scrollToBottom("smooth");
-  }, [scrollToBottom, setPin]);
+  }, [onShowBars, scrollToBottom, setPin]);
 
   useLayoutEffect(() => {
-    if (pinnedRef.current) scrollToBottom("auto");
+    if (pinnedRef.current && !touchingRef.current) scrollToBottom("auto");
   }, [scrollToBottom, view.asks, view.items, view.live, view.status]);
 
   useEffect(() => {
     const node = innerRef.current;
     if (!node) return;
     const observer = new ResizeObserver(() => {
-      if (pinnedRef.current) scrollToBottom("auto");
+      if (pinnedRef.current && !touchingRef.current) scrollToBottom("auto");
     });
     observer.observe(node);
     return () => observer.disconnect();
@@ -228,8 +270,11 @@ export function ThreadView({
 
       <div
         className={styles.viewport}
+        onClick={onClick}
         onScroll={onScroll}
-        onTouchStart={takeControl}
+        onTouchCancel={onTouchEnd}
+        onTouchEnd={onTouchEnd}
+        onTouchStart={onTouchStart}
         onWheel={onWheel}
         ref={viewportRef}
       >
@@ -293,6 +338,7 @@ export function ThreadView({
                     <span className={styles.errorText}>{view.error}</span>
                     {onRetry && !running && (
                       <Button
+                        className={styles.retry}
                         color="inherit"
                         onClick={onRetry}
                         startIcon={<IconRefresh />}
@@ -313,7 +359,13 @@ export function ThreadView({
 
       {!pinned && (
         <div className={styles.jump}>
-          <Button color="inherit" onClick={jump} startIcon={<IconArrowDown />} variant="outlined">
+          <Button
+            className={styles.jumpButton}
+            color="inherit"
+            onClick={jump}
+            startIcon={<IconArrowDown />}
+            variant="outlined"
+          >
             Jump to latest
           </Button>
         </div>

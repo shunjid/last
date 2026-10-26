@@ -1,0 +1,123 @@
+.sheet .paper {
+  max-width: 560px;
+  max-height: 85dvh;
+  margin: 0 auto;
+  padding: 6px 16px calc(16px + env(safe-area-inset-bottom, 0px));
+  border-radius: var(--last-radius-xl) var(--last-radius-xl) 0 0;
+  background: var(--last-surface-high);
+  box-shadow: var(--last-elev-3);
+}
+
+.grab {
+  flex: none;
+  width: 36px;
+  height: 4px;
+  margin: 4px auto 6px;
+  border-radius: var(--last-radius-full);
+  background: var(--last-border-default);
+}
+
+.group {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  padding-top: 10px;
+}
+
+.head {
+  margin: 0;
+  padding: 0 4px;
+  font-size: 11px;
+  font-weight: 500;
+  letter-spacing: 0.045em;
+  line-height: 24px;
+  text-transform: uppercase;
+  color: var(--last-fg-secondary);
+}
+
+.list {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+
+.option {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  width: 100%;
+  min-height: 48px;
+  padding: 0 14px;
+  border: 0;
+  border-radius: var(--last-radius-md);
+  background: none;
+  color: inherit;
+  font: inherit;
+  font-size: 15px;
+  text-align: left;
+  cursor: pointer;
+}
+
+.mark {
+  display: grid;
+  place-items: center;
+  flex: none;
+  width: 20px;
+  height: 20px;
+  border-radius: var(--last-radius-full);
+  border: 1.5px solid var(--last-border-default);
+}
+
+.mark svg {
+  font-size: 14px;
+}
+
+.chips {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+
+.chip {
+  min-height: var(--last-tap);
+  padding: 0 16px;
+  border: 1px solid var(--last-border-secondary);
+  border-radius: var(--last-radius-full);
+  background: none;
+  color: inherit;
+  font: inherit;
+  font-size: 14px;
+  cursor: pointer;
+}
+
+.option.selected,
+.chip.selected {
+  background: var(--last-bg-primary-container);
+  color: var(--last-fg-primary-container);
+}
+
+.chip.selected {
+  border-color: var(--last-border-accent);
+}
+
+.selected .mark {
+  border-color: currentColor;
+  background: currentColor;
+}
+
+.selected .mark svg {
+  color: var(--last-bg-primary-container);
+}
+
+.option:focus-visible,
+.chip:focus-visible {
+  outline: 2px solid var(--last-border-focus);
+  outline-offset: 2px;
+}
+
+@media (hover: hover) {
+  .option:not(.selected):hover,
+  .chip:not(.selected):hover {
+    background: var(--last-state-hover);
+  }
+}

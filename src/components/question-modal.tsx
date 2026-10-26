@@ -8,7 +8,8 @@ import IconButton from "@mui/material/IconButton";
 import TextField from "@mui/material/TextField";
 import { useState } from "react";
 
-import { PHONE_QUERY, useMediaQuery } from "@/client/use-media-query";
+import { useKeyboardInset } from "@/client/use-keyboard-inset";
+import { SHEET_QUERY, useMediaQuery } from "@/client/use-media-query";
 import type { QuestionAsk } from "@/lib/types";
 
 import { CodeBlock } from "./code-block";
@@ -34,7 +35,9 @@ export function QuestionModal({
   ask: QuestionAsk;
   onSubmit: (outcome: { answers: Record<string, string> } | { cancelled: true }) => void;
 }) {
-  const phone = useMediaQuery(PHONE_QUERY);
+  const sheet = useMediaQuery(SHEET_QUERY);
+  const keyboardInset = useKeyboardInset();
+  const keyboard = keyboardInset > 0 ? { paddingBottom: keyboardInset } : undefined;
   const [activeIndex, setActiveIndex] = useState(0);
   const [drafts, setDrafts] = useState<Record<number, Draft>>({});
   const [otherOpen, setOtherOpen] = useState<Record<number, boolean>>({});
@@ -92,7 +95,17 @@ export function QuestionModal({
     null;
 
   return (
-    <Dialog fullScreen={phone} fullWidth maxWidth={hasPreviews ? "md" : "sm"} onClose={cancel} open>
+    <Dialog
+      fullScreen={sheet}
+      fullWidth
+      maxWidth={hasPreviews ? "md" : "sm"}
+      onClose={cancel}
+      open
+      slotProps={{
+        container: { style: sheet ? undefined : keyboard },
+        paper: { className: styles.paper, style: sheet ? keyboard : undefined },
+      }}
+    >
       <div className={styles.header}>
         <span className={styles.glyph}>
           <IconHelp />
@@ -119,7 +132,7 @@ export function QuestionModal({
             </div>
           )}
         </div>
-        <IconButton aria-label="Close without answering" onClick={cancel}>
+        <IconButton aria-label="Close without answering" className={styles.close} onClick={cancel}>
           <IconXmark />
         </IconButton>
       </div>
@@ -172,6 +185,7 @@ export function QuestionModal({
                     {otherOpen[activeIndex] && (
                       <TextField
                         autoFocus
+                        className={styles.answer}
                         minRows={2}
                         multiline
                         onChange={(event) =>
@@ -226,11 +240,12 @@ export function QuestionModal({
         })}
       </DialogContent>
 
-      <DialogActions>
-        <Button color="inherit" onClick={cancel} variant="text">
+      <DialogActions className={styles.actions}>
+        <Button className={styles.action} color="inherit" onClick={cancel} variant="text">
           Cancel
         </Button>
         <Button
+          className={styles.action}
           color="primary"
           disabled={!ready}
           onClick={advance}

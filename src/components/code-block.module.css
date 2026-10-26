@@ -36,6 +36,7 @@
 .scroll {
   overflow-x: auto;
   overflow-y: hidden;
+  overscroll-behavior-x: contain;
 }
 
 .pre {
@@ -109,5 +110,34 @@
 
   .line::before {
     margin-right: 10px;
+  }
+}
+
+@media (pointer: coarse) {
+  .bar {
+    min-height: var(--last-tap);
+    padding-top: 0;
+    padding-bottom: 0;
+    padding-right: 0;
+  }
+
+  .bar .copy {
+    width: var(--last-tap);
+    height: var(--last-tap);
+  }
+
+  .clipped {
+    overflow-x: auto;
+    mask-image: linear-gradient(to bottom, #000 calc(100% - 72px), transparent);
+  }
+
+  .clipped::after {
+    content: none;
+  }
+
+  .expand .more {
+    width: 100%;
+    min-height: var(--last-tap);
+    border-radius: 0;
   }
 }

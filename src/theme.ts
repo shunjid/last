@@ -89,6 +89,8 @@ const emerald = {
   950: "#002c22",
 };
 
+export const PAGE_BACKGROUND = { dark: "#121714", light: "#f6fbf9" } as const;
+
 export const theme = createTheme({
   cssVariables: {
     colorSchemeSelector: "data-theme",
@@ -141,7 +143,7 @@ export const theme = createTheme({
           disabled: "#859490",
         },
         background: {
-          default: "#f6fbf9",
+          default: PAGE_BACKGROUND.light,
           paper: "#ffffff",
           secondary: "#ebf2ef",
           tertiary: "#dfeae5",
@@ -226,7 +228,7 @@ export const theme = createTheme({
           disabled: "#5e6c66",
         },
         background: {
-          default: "#121714",
+          default: PAGE_BACKGROUND.dark,
           paper: "#19211d",
           secondary: "#1f2823",
           tertiary: "#2a352f",
@@ -290,12 +292,12 @@ export const theme = createTheme({
       styleOverrides: {
         "html, body": {
           height: "100dvh",
+          overscrollBehavior: "none",
         },
         body: {
           fontSize: "0.875rem",
           lineHeight: 1.55,
           letterSpacing: "0.0125em",
-          overscrollBehavior: "none",
           WebkitFontSmoothing: "antialiased",
           textRendering: "optimizeLegibility",
         },
@@ -395,6 +397,9 @@ export const theme = createTheme({
           minHeight: 40,
           fontSize: "0.875rem",
           letterSpacing: "0.00714em",
+          "@media (pointer: coarse)": {
+            minHeight: 48,
+          },
         },
       },
     },
@@ -472,6 +477,10 @@ export const theme = createTheme({
           border: "none",
           padding: "5px 9px",
           borderRadius: 999,
+          "@media (pointer: coarse)": {
+            minWidth: 44,
+            minHeight: 44,
+          },
           "&.Mui-selected": {
             backgroundColor: "var(--mui-palette-secondary-container)",
             color: "var(--mui-palette-secondary-onContainer)",

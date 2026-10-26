@@ -141,14 +141,74 @@
   color: var(--last-fg-secondary);
 }
 
-@media (max-width: 640px) {
-  .title {
-    font-size: 1.25rem;
+@media (max-width: 640px), (pointer: coarse) {
+  .search input {
+    font-size: 16px;
+  }
+}
+
+@media (pointer: coarse) {
+  .search .clear {
+    width: var(--last-tap);
+    height: var(--last-tap);
+    margin-right: -8px;
+  }
+
+  .actions .cancel {
+    min-height: var(--last-tap);
+  }
+}
+
+@media (max-width: 640px), (max-height: 500px) {
+  .paper {
+    padding: env(safe-area-inset-top) env(safe-area-inset-right) env(safe-area-inset-bottom)
+      env(safe-area-inset-left);
+  }
+
+  .paper .title {
+    position: relative;
+    padding: 20px 64px 16px 16px;
+  }
+
+  .paper .close {
+    position: absolute;
+    top: 11px;
+    right: 8px;
+    width: var(--last-tap);
+    height: var(--last-tap);
+  }
+
+  .paper .content {
+    overflow: hidden;
+    padding: 12px 16px 0;
   }
 
   .list {
+    flex: 1;
     min-height: 0;
     max-height: none;
+    padding-bottom: 12px;
+  }
+}
+
+@media (max-height: 500px) {
+  .paper .title {
+    padding-top: 12px;
+    padding-bottom: 8px;
+  }
+
+  .paper .close {
+    top: 3px;
+  }
+
+  .subtitle {
+    display: none;
+  }
+}
+
+@media (max-width: 640px) {
+  .title {
+    font-size: 1.25rem;
   }
 
   .item {

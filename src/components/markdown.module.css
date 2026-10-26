@@ -100,6 +100,7 @@
 .tableWrap {
   margin: 0 0 14px;
   overflow-x: auto;
+  overscroll-behavior-x: contain;
   border: 1px solid var(--last-border-secondary);
   border-radius: var(--last-radius-md);
 }
@@ -135,4 +136,51 @@
 .root img {
   max-width: 100%;
   border-radius: var(--last-radius-sm);
+}
+
+@media (max-width: 900px) {
+  .root th,
+  .root td {
+    overflow-wrap: break-word;
+  }
+}
+
+@media (max-width: 640px) {
+  .root h1,
+  .root h2,
+  .root h3,
+  .root h4 {
+    margin: 22px 0 8px;
+  }
+
+  .root h1 {
+    font-size: 19px;
+  }
+
+  .root h2 {
+    font-size: 17px;
+  }
+
+  .root ul,
+  .root ol {
+    padding-left: 20px;
+  }
+
+  .root blockquote {
+    padding-left: 12px;
+  }
+
+  .root table {
+    font-size: 13px;
+  }
+
+  .root th,
+  .root td {
+    min-width: 7.5em;
+    padding: 6px 10px;
+  }
+
+  .root th {
+    white-space: normal;
+  }
 }

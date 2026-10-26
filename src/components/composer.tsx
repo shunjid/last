@@ -1,20 +1,28 @@
 "use client";
 
 import Button from "@mui/material/Button";
+import IconButton from "@mui/material/IconButton";
 import MenuItem from "@mui/material/MenuItem";
 import TextField from "@mui/material/TextField";
 import Tooltip from "@mui/material/Tooltip";
-import { useEffect, useLayoutEffect, useMemo, useRef, useState } from "react";
+import { type RefObject, useEffect, useLayoutEffect, useMemo, useRef, useState } from "react";
 
 import { readDraft, writeDraft } from "@/client/drafts";
 import { AUTO_EFFORT } from "@/client/prefs";
 import type { QueuedMessage } from "@/client/use-chat";
+import { COARSE_QUERY, useMediaQuery } from "@/client/use-media-query";
 import type { EffortLevel, ModelChoice, PermissionMode } from "@/lib/types";
 
 import styles from "./composer.module.css";
-import { IconArrowUp, IconCircleStop, IconXmark } from "./icons";
+import { ComposerSheet } from "./composer-sheet";
+import { IconArrowUp, IconCircleStop, IconMoreHoriz, IconXmark } from "./icons";
 
 const SEND_SX = { minWidth: 40, width: 40, height: 40, padding: 0, borderRadius: "50%" };
+
+const SELECT_SLOT_PROPS = {
+  input: { disableUnderline: true },
+  select: { SelectDisplayProps: { className: styles.select } },
+};
 
 export const PENDING_SCOPE_PREFIX = "new:";
 
@@ -26,11 +34,11 @@ const MODES: Array<{ label: string; value: PermissionMode }> = [
 ];
 
 const EFFORT_LABELS: Record<EffortLevel, string> = {
-  high: "High effort",
-  low: "Low effort",
-  max: "Max effort",
-  medium: "Medium effort",
-  xhigh: "Extra-high effort",
+  high: "High",
+  low: "Low",
+  max: "Max",
+  medium: "Medium",
+  xhigh: "Extra-high",
 };
 
 export function Composer({
@@ -38,6 +46,7 @@ export function Composer({
   disabled,
   effort,
   effortLevels,
+  inputRef: fieldRef,
   mode,
   model,
   models,
@@ -57,6 +66,7 @@ export function Composer({
   disabled: boolean;
   effort: string;
   effortLevels: EffortLevel[];
+  inputRef: RefObject<HTMLTextAreaElement | null>;
   mode: PermissionMode;
   model: string;
   models: ModelChoice[];
@@ -73,10 +83,11 @@ export function Composer({
   scope: string;
 }) {
   const [value, setValue] = useState(() => readDraft(scope));
-  const fieldRef = useRef<HTMLTextAreaElement>(null);
+  const [sheetOpen, setSheetOpen] = useState(false);
   const lastScope = useRef(scope);
   const wasBusy = useRef(busy);
   const terminal = busy && owner === "terminal";
+  const coarse = useMediaQuery(COARSE_QUERY);
 
   const modelOptions = useMemo(
     () => models.map((choice) => ({ label: choice.displayName, value: choice.value })),
@@ -85,7 +96,7 @@ export function Composer({
 
   const effortOptions = useMemo(
     () => [
-      { label: "Auto effort", value: AUTO_EFFORT },
+      { label: "Auto", value: AUTO_EFFORT },
       ...effortLevels.map((level) => ({ label: EFFORT_LABELS[level], value: level })),
     ],
     [effortLevels],
@@ -96,7 +107,7 @@ export function Composer({
     if (!node) return;
     node.style.height = "auto";
     node.style.height = `${Math.min(node.scrollHeight, 280)}px`;
-  }, [value]);
+  }, [fieldRef, value]);
 
   useEffect(() => {
     const previous = lastScope.current;
@@ -117,9 +128,18 @@ export function Composer({
   }, [scope, value]);
 
   useEffect(() => {
-    if (wasBusy.current && !busy && !disabled) fieldRef.current?.focus();
+    if (!window.matchMedia(COARSE_QUERY).matches) fieldRef.current?.focus();
+  }, [fieldRef]);
+
+  useEffect(() => {
+    const active = document.activeElement;
+    const typing =
+      active instanceof HTMLElement &&
+      active !== fieldRef.current &&
+      active.matches("input, textarea, [contenteditable='true']");
+    if (wasBusy.current && !busy && !disabled && !coarse && !typing) fieldRef.current?.focus();
     wasBusy.current = busy;
-  }, [busy, disabled]);
+  }, [busy, coarse, disabled, fieldRef]);
 
   function submit() {
     const text = value.trim();
@@ -162,14 +182,18 @@ export function Composer({
       <div className={`${styles.shell} ${disabled ? styles.disabled : ""}`}>
         <textarea
           aria-label="Message"
-          autoFocus
           className={styles.field}
           id="composer-message"
           name="message"
           disabled={disabled}
           onChange={(event) => setValue(event.target.value)}
           onKeyDown={(event) => {
-            if (event.key === "Enter" && !event.shiftKey && !event.nativeEvent.isComposing) {
+            if (
+              event.key === "Enter" &&
+              !event.shiftKey &&
+              !event.nativeEvent.isComposing &&
+              (!coarse || event.metaKey || event.ctrlKey)
+            ) {
               event.preventDefault();
               submit();
             }
@@ -188,11 +212,12 @@ export function Composer({
 
         <div className={styles.bar}>
           <TextField
+            className={styles.picker}
             disabled={disabled}
             onChange={(event) => onModeChange(event.target.value as PermissionMode)}
             select
             size="small"
-            slotProps={{ input: { disableUnderline: true } }}
+            slotProps={SELECT_SLOT_PROPS}
             value={mode}
             variant="standard"
           >
@@ -204,11 +229,12 @@ export function Composer({
           </TextField>
 
           <TextField
+            className={styles.picker}
             disabled={disabled}
             onChange={(event) => onModelChange(event.target.value)}
             select
             size="small"
-            slotProps={{ input: { disableUnderline: true } }}
+            slotProps={SELECT_SLOT_PROPS}
             value={model}
             variant="standard"
           >
@@ -221,21 +247,37 @@ export function Composer({
 
           {effortLevels.length > 0 && (
             <TextField
+              className={styles.picker}
               disabled={disabled}
               onChange={(event) => onEffortChange(event.target.value)}
               select
               size="small"
-              slotProps={{ input: { disableUnderline: true } }}
+              slotProps={SELECT_SLOT_PROPS}
               value={effort}
               variant="standard"
             >
               {effortOptions.map((option) => (
                 <MenuItem key={option.value} value={option.value}>
-                  {option.label}
+                  {option.label} effort
                 </MenuItem>
               ))}
             </TextField>
           )}
+
+          <IconButton
+            aria-haspopup="dialog"
+            aria-label={
+              mode === "default"
+                ? "Mode, model and effort"
+                : `Mode, model and effort · ${MODES.find((option) => option.value === mode)?.label}`
+            }
+            className={styles.options}
+            disabled={disabled}
+            onClick={() => setSheetOpen(true)}
+          >
+            <IconMoreHoriz />
+            {mode !== "default" && <span className={styles.flag} />}
+          </IconButton>
 
           <span className={styles.hint}>
             {value.startsWith("/") ? (
@@ -260,6 +302,7 @@ export function Composer({
                 <span>
                   <Button
                     aria-label="Queue message"
+                    className={styles.send}
                     color="primary"
                     disabled={disabled || !value.trim()}
                     onClick={submit}
@@ -272,19 +315,22 @@ export function Composer({
               </Tooltip>
               {!terminal && (
                 <Button
+                  aria-label="Stop"
+                  className={styles.stop}
                   color="error"
                   onClick={onStop}
                   size="medium"
                   startIcon={<IconCircleStop />}
                   variant="outlined"
                 >
-                  Stop
+                  <span className={styles.stopLabel}>Stop</span>
                 </Button>
               )}
             </div>
           ) : (
             <Button
               aria-label="Send"
+              className={styles.send}
               color="primary"
               disabled={disabled || !value.trim()}
               onClick={submit}
@@ -296,6 +342,20 @@ export function Composer({
           )}
         </div>
       </div>
+
+      <ComposerSheet
+        effort={effort}
+        effortOptions={effortOptions}
+        mode={mode}
+        model={model}
+        modelOptions={modelOptions}
+        modes={MODES}
+        onClose={() => setSheetOpen(false)}
+        onEffortChange={onEffortChange}
+        onModeChange={onModeChange}
+        onModelChange={onModelChange}
+        open={sheetOpen}
+      />
     </div>
   );
 }

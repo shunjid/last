@@ -31,8 +31,10 @@
   cursor: pointer;
 }
 
-.head:hover {
-  background: var(--last-state-hover);
+@media (hover: hover) {
+  .head:hover {
+    background: var(--last-state-hover);
+  }
 }
 
 .head:focus-visible {
@@ -140,6 +142,7 @@
   font-size: 13px;
   line-height: 1.6;
   white-space: pre-wrap;
+  overflow-wrap: anywhere;
   color: var(--last-fg-secondary);
 }
 
@@ -170,8 +173,33 @@
     height: 28px;
   }
 
+  .name {
+    flex: 0 1 auto;
+    min-width: 0;
+    max-width: 45%;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+  }
+
+  .summary,
+  .errorLine {
+    display: -webkit-box;
+    -webkit-box-orient: vertical;
+    -webkit-line-clamp: 2;
+    line-clamp: 2;
+    white-space: normal;
+    overflow-wrap: anywhere;
+    line-height: 1.4;
+  }
+
+  .summary {
+    word-break: break-all;
+  }
+
   .body {
-    padding: 10px 10px 12px;
+    gap: 8px;
+    padding: 8px 8px 10px;
   }
 
   .sub {

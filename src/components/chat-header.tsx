@@ -1,10 +1,16 @@
 "use client";
 
+import Divider from "@mui/material/Divider";
 import IconButton from "@mui/material/IconButton";
+import ListSubheader from "@mui/material/ListSubheader";
+import Menu from "@mui/material/Menu";
+import MenuItem from "@mui/material/MenuItem";
 import Tooltip from "@mui/material/Tooltip";
+import { useColorScheme } from "@mui/material/styles";
 import { useEffect, useRef, useState } from "react";
 
 import { usePins } from "@/client/pins";
+import { PHONE_QUERY, useMediaQuery } from "@/client/use-media-query";
 import { homeRelative, tokens, truncateMiddle } from "@/lib/format";
 import type { ResultStats } from "@/lib/types";
 
@@ -15,12 +21,13 @@ import {
   IconCopy,
   IconFolder,
   IconMessages,
+  IconMore,
   IconPin,
   IconPinOutlined,
   IconSearch,
   IconSidebar,
 } from "./icons";
-import { ThemeToggle } from "./theme-toggle";
+import { THEME_OPTIONS, ThemeToggle } from "./theme-toggle";
 
 const WARN_AT = 80;
 const DANGER_AT = 95;
@@ -75,6 +82,11 @@ export function ChatHeader({
   const timer = useRef<ReturnType<typeof setTimeout> | null>(null);
   const { pins, toggle: togglePin } = usePins();
   const pinned = sessionId !== null && pins.includes(sessionId);
+  const [menuAnchor, setMenuAnchor] = useState<HTMLElement | null>(null);
+  const menuOpen = menuAnchor !== null;
+  const phone = useMediaQuery(PHONE_QUERY);
+  const { mode, setMode } = useColorScheme();
+  const currentMode = mode ?? "system";
 
   useEffect(
     () => () => {
@@ -96,21 +108,23 @@ export function ChatHeader({
   }
 
   return (
-    <header className={styles.root}>
-      {sidebarHidden && (
-        <Tooltip title="Show the sidebar (⌘B)">
-          <IconButton aria-label="Show the sidebar" onClick={onToggleSidebar}>
-            <IconSidebar />
-          </IconButton>
-        </Tooltip>
-      )}
+    <header className={`${styles.root} ${sidebarHidden ? styles.edge : ""}`}>
+      <Tooltip title="Show the sidebar (⌘B)">
+        <IconButton
+          aria-label="Show the sidebar"
+          className={`${styles.tap} ${sidebarHidden ? "" : styles.drawerOnly}`}
+          onClick={onToggleSidebar}
+        >
+          <IconSidebar />
+        </IconButton>
+      </Tooltip>
 
       <div className={styles.identity}>
         <span className={styles.title}>{title}</span>
         <span className={styles.chips}>
           <span className={`${styles.chip} ${styles.pathChip}`} title={cwd ?? undefined}>
             <IconFolder />
-            {truncateMiddle(homeRelative(cwd, home), 46)}
+            <span className={styles.chipText}>{truncateMiddle(homeRelative(cwd, home), 46)}</span>
           </span>
           {branch && (
             <span className={`${styles.chip} ${styles.branchChip}`}>
@@ -123,7 +137,7 @@ export function ChatHeader({
             <Tooltip title="Copy the session id, then run claude --resume in your terminal">
               <button
                 aria-label={copied ? "Session id copied" : "Copy the session id"}
-                className={`${styles.chip} ${styles.idChip} ${copied ? styles.copied : ""}`}
+                className={`${styles.chip} ${styles.idChip} ${styles.fineOnly} ${copied ? styles.copied : ""}`}
                 onClick={() => void copyId()}
                 type="button"
               >
@@ -137,7 +151,7 @@ export function ChatHeader({
               <button
                 aria-label={pinned ? "Unpin this session" : "Pin this session"}
                 aria-pressed={pinned}
-                className={`${styles.chip} ${styles.idChip} ${styles.pinChip} ${pinned ? styles.pinned : ""}`}
+                className={`${styles.chip} ${styles.idChip} ${styles.pinChip} ${styles.fineOnly} ${pinned ? styles.pinned : ""}`}
                 onClick={() => togglePin(sessionId)}
                 type="button"
               >
@@ -170,13 +184,96 @@ export function ChatHeader({
             <kbd className={styles.key}>⌘F</kbd>
           </button>
         )}
-        <button className={styles.palette} onClick={onOpenPalette} type="button">
+        <button
+          aria-label="Jump to a session"
+          className={`${styles.palette} ${styles.wideOnly}`}
+          onClick={onOpenPalette}
+          type="button"
+        >
           <IconMessages />
           <span className={styles.paletteLabel}>Jump to a session</span>
           <kbd className={styles.key}>⌘K</kbd>
         </button>
-        <ThemeToggle />
+        <ThemeToggle className={styles.fineOnly} />
+        <Tooltip title="More actions">
+          <IconButton
+            aria-controls={menuOpen ? "chat-header-menu" : undefined}
+            aria-expanded={menuOpen}
+            aria-haspopup="menu"
+            aria-label="More actions"
+            className={`${styles.tap} ${styles.more}`}
+            onClick={(event) => setMenuAnchor(event.currentTarget)}
+          >
+            <IconMore />
+          </IconButton>
+        </Tooltip>
       </div>
+
+      <Menu
+        anchorEl={menuAnchor}
+        anchorOrigin={{ horizontal: "right", vertical: "bottom" }}
+        className={styles.menu}
+        id="chat-header-menu"
+        onClose={() => setMenuAnchor(null)}
+        open={menuOpen}
+        transformOrigin={{ horizontal: "right", vertical: "top" }}
+        variant="menu"
+      >
+        {phone && (
+          <MenuItem
+            className={styles.menuItem}
+            onClick={() => {
+              setMenuAnchor(null);
+              onOpenPalette();
+            }}
+          >
+            <IconMessages />
+            Jump to a session
+          </MenuItem>
+        )}
+        {sessionId && (
+          <MenuItem
+            className={`${styles.menuItem} ${copied ? styles.menuCopied : ""}`}
+            onClick={() => void copyId()}
+          >
+            {copied ? <IconCheck /> : <IconCopy />}
+            {copied ? "Session id copied" : "Copy the session id"}
+            <span className={styles.menuMeta}>{sessionId.slice(0, 8)}</span>
+          </MenuItem>
+        )}
+        {sessionId && (
+          <MenuItem
+            className={styles.menuItem}
+            onClick={() => {
+              setMenuAnchor(null);
+              togglePin(sessionId);
+            }}
+          >
+            {pinned ? <IconPin /> : <IconPinOutlined />}
+            {pinned ? "Unpin this session" : "Pin this session"}
+          </MenuItem>
+        )}
+        {(phone || sessionId) && <Divider />}
+        <ListSubheader aria-hidden className={styles.menuHead}>
+          Theme
+        </ListSubheader>
+        {THEME_OPTIONS.map((option) => (
+          <MenuItem
+            className={styles.menuItem}
+            key={option.value}
+            onClick={() => {
+              setMode(option.value);
+              setMenuAnchor(null);
+            }}
+            role="menuitemradio"
+            selected={currentMode === option.value}
+          >
+            {option.icon}
+            {option.label}
+            {currentMode === option.value && <IconCheck className={styles.menuCheck} />}
+          </MenuItem>
+        ))}
+      </Menu>
     </header>
   );
 }

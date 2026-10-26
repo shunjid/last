@@ -67,7 +67,6 @@ export function Workspace({
   const [mode, setMode] = useState<PermissionMode>("default");
   const models = useModels();
   const compact = useMediaQuery(COMPACT_QUERY);
-  const railOpen = compact ? drawerOpen : !railHidden;
 
   const onSessionCreated = useCallback((sessionId: string) => setCreatedId(sessionId), []);
 
@@ -150,8 +149,10 @@ export function Workspace({
   }, [compact, drawerOpen, groupScope, paletteOpen, pickerOpen]);
 
   return (
-    <div className={`${styles.shell} ${railOpen ? "" : styles.collapsed}`}>
-      {compact && railOpen && (
+    <div
+      className={`${styles.shell} ${railHidden ? styles.collapsed : ""} ${drawerOpen ? styles.drawerOpen : ""}`}
+    >
+      {drawerOpen && (
         <button
           aria-label="Close the sidebar"
           className={styles.scrim}
@@ -182,7 +183,7 @@ export function Workspace({
         onOpenPalette={() => setPaletteOpen(true)}
         onSessionCreated={onSessionCreated}
         onToggleSidebar={() => setRailOpen(true)}
-        sidebarHidden={!railOpen}
+        sidebarHidden={railHidden}
         summary={summary}
         target={target}
       />
