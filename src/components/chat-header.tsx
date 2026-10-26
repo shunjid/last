@@ -13,8 +13,8 @@ import {
   IconCheck,
   IconCodeBranch,
   IconCopy,
-  IconFindInPage,
   IconFolder,
+  IconMessages,
   IconPin,
   IconPinOutlined,
   IconSearch,
@@ -161,17 +161,17 @@ export function ChatHeader({
         {onOpenFind && (
           <button
             aria-label="Search this session"
-            className={styles.palette}
+            className={`${styles.palette} ${styles.find}`}
             onClick={onOpenFind}
             type="button"
           >
-            <IconFindInPage />
+            <IconSearch />
             <span className={styles.paletteLabel}>Search this session</span>
             <kbd className={styles.key}>⌘F</kbd>
           </button>
         )}
         <button className={styles.palette} onClick={onOpenPalette} type="button">
-          <IconSearch />
+          <IconMessages />
           <span className={styles.paletteLabel}>Jump to a session</span>
           <kbd className={styles.key}>⌘K</kbd>
         </button>
