@@ -5,13 +5,14 @@ import IconButton from "@mui/material/IconButton";
 import ListSubheader from "@mui/material/ListSubheader";
 import Menu from "@mui/material/Menu";
 import MenuItem from "@mui/material/MenuItem";
+import Popover from "@mui/material/Popover";
 import Tooltip from "@mui/material/Tooltip";
 import { useColorScheme } from "@mui/material/styles";
 import { useEffect, useRef, useState } from "react";
 
 import { usePins } from "@/client/pins";
 import { PHONE_QUERY, useMediaQuery } from "@/client/use-media-query";
-import { homeRelative, tokens, truncateMiddle } from "@/lib/format";
+import { basename, homeRelative, tokens, truncateMiddle } from "@/lib/format";
 import type { ResultStats } from "@/lib/types";
 
 import styles from "./chat-header.module.css";
@@ -85,6 +86,9 @@ export function ChatHeader({
   const [menuAnchor, setMenuAnchor] = useState<HTMLElement | null>(null);
   const menuOpen = menuAnchor !== null;
   const phone = useMediaQuery(PHONE_QUERY);
+  const identityRef = useRef<HTMLDivElement>(null);
+  const [detailsAnchor, setDetailsAnchor] = useState<HTMLElement | null>(null);
+  const detailsOpen = phone && detailsAnchor !== null;
   const { mode, setMode } = useColorScheme();
   const currentMode = mode ?? "system";
 
@@ -119,17 +123,35 @@ export function ChatHeader({
         </IconButton>
       </Tooltip>
 
-      <div className={styles.identity}>
-        <span className={styles.title}>{title}</span>
+      <div className={styles.identity} ref={identityRef}>
+        {phone ? (
+          <button
+            aria-controls={detailsOpen ? "chat-header-details" : undefined}
+            aria-expanded={detailsOpen}
+            aria-haspopup="dialog"
+            className={`${styles.title} ${styles.titleButton}`}
+            onClick={() => setDetailsAnchor(identityRef.current)}
+            type="button"
+          >
+            {title}
+          </button>
+        ) : (
+          <span className={styles.title}>{title}</span>
+        )}
         <span className={styles.chips}>
           <span className={`${styles.chip} ${styles.pathChip}`} title={cwd ?? undefined}>
             <IconFolder />
-            <span className={styles.chipText}>{truncateMiddle(homeRelative(cwd, home), 46)}</span>
+            <span className={`${styles.chipLabel} ${styles.fullPath}`}>
+              {truncateMiddle(homeRelative(cwd, home), 46)}
+            </span>
+            <span className={`${styles.chipLabel} ${styles.repoName}`}>
+              {cwd ? basename(cwd) : "unknown"}
+            </span>
           </span>
           {branch && (
             <span className={`${styles.chip} ${styles.branchChip}`}>
               <IconCodeBranch />
-              {truncateMiddle(branch, 28)}
+              <span className={styles.chipLabel}>{truncateMiddle(branch, 28)}</span>
             </span>
           )}
           <ContextMeter stats={contextStats} />
@@ -274,6 +296,30 @@ export function ChatHeader({
           </MenuItem>
         ))}
       </Menu>
+
+      <Popover
+        anchorEl={detailsAnchor}
+        anchorOrigin={{ horizontal: "left", vertical: "bottom" }}
+        id="chat-header-details"
+        onClose={() => setDetailsAnchor(null)}
+        open={detailsOpen}
+        slotProps={{
+          paper: { "aria-label": "Session details", className: styles.details, role: "dialog" },
+        }}
+        transformOrigin={{ horizontal: "left", vertical: "top" }}
+      >
+        <p className={styles.detailsTitle}>{title}</p>
+        <p className={styles.detailsRow}>
+          <IconFolder />
+          <span>{homeRelative(cwd, home)}</span>
+        </p>
+        {branch && (
+          <p className={styles.detailsRow}>
+            <IconCodeBranch />
+            <span>{branch}</span>
+          </p>
+        )}
+      </Popover>
     </header>
   );
 }
