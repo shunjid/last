@@ -86,6 +86,11 @@ export function Workspace({
     [activeSessionId, liveSessions],
   );
 
+  const attention = useMemo(
+    () => liveSessions.some((session) => session.waiting && session.sessionId !== activeSessionId),
+    [activeSessionId, liveSessions],
+  );
+
   const openSession = useCallback((session: SessionSummary) => {
     setCreatedId(null);
     setPane(newPane(session.cwd ?? session.project, session.sessionId));
@@ -167,6 +172,10 @@ export function Workspace({
           home={home}
           loadError={loadError}
           onBrowseGroup={setGroupScope}
+          onJump={() => {
+            setDrawerOpen(false);
+            setPaletteOpen(true);
+          }}
           onNewChat={newChat}
           onSelect={openSession}
           onToggle={() => setRailOpen(false)}
@@ -175,6 +184,7 @@ export function Workspace({
       </div>
 
       <ChatPane
+        attention={attention}
         home={home}
         key={paneKey}
         mode={mode}

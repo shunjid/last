@@ -452,3 +452,14 @@
     gap: 4px;
   }
 }
+
+.attention {
+  position: absolute;
+  top: 6px;
+  right: 6px;
+  width: 9px;
+  height: 9px;
+  border-radius: 50%;
+  background: var(--last-fg-warning);
+  box-shadow: 0 0 0 2px var(--last-bg-page);
+}

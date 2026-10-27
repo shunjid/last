@@ -27,6 +27,7 @@ import { ThreadView } from "./thread-view";
 type Pick = { against: string | null; value: string };
 
 export function ChatPane({
+  attention,
   home,
   mode,
   models,
@@ -38,6 +39,7 @@ export function ChatPane({
   summary,
   target,
 }: {
+  attention: boolean;
   home: string;
   mode: PermissionMode;
   models: ModelChoice[];
@@ -208,6 +210,7 @@ export function ChatPane({
     >
       <div className={styles.top} onFocus={showBars} ref={topRef}>
         <ChatHeader
+          attention={attention}
           branch={branch}
           busy={busy}
           contextStats={view.contextStats}

@@ -2,8 +2,6 @@
 
 import Button from "@mui/material/Button";
 import IconButton from "@mui/material/IconButton";
-import InputAdornment from "@mui/material/InputAdornment";
-import TextField from "@mui/material/TextField";
 import Tooltip from "@mui/material/Tooltip";
 import Link from "next/link";
 import { useCallback, useMemo, useState } from "react";
@@ -21,7 +19,7 @@ import {
   IconSearch,
   IconSidebar,
   IconSparkles,
-  IconXmark,
+  IconTriangleExclamation,
 } from "./icons";
 import styles from "./sidebar.module.css";
 
@@ -61,6 +59,7 @@ export function Sidebar({
   home,
   loadError,
   onBrowseGroup,
+  onJump,
   onNewChat,
   onSelect,
   onToggle,
@@ -70,12 +69,12 @@ export function Sidebar({
   home: string;
   loadError: string | null;
   onBrowseGroup: (group: { cwd: string; label: string }) => void;
+  onJump: () => void;
   onNewChat: () => void;
   onSelect: (session: SessionSummary) => void;
   onToggle: () => void;
   sessions: SessionSummary[];
 }) {
-  const [query, setQuery] = useState("");
   const [expanded, setExpanded] = useState<Set<string>>(new Set());
   const localRuns = useLocalRuns();
   const { pins } = usePins();
@@ -85,24 +84,17 @@ export function Sidebar({
     [localRuns],
   );
 
+  const waitingCount = useMemo(
+    () => sessions.filter((session) => session.waiting).length,
+    [sessions],
+  );
+
   const runningCount = useMemo(
-    () => sessions.filter((session) => isRunning(session)).length,
+    () => sessions.filter((session) => isRunning(session) && !session.waiting).length,
     [isRunning, sessions],
   );
 
-  const groups = useMemo(() => {
-    const needle = query.trim().toLowerCase();
-    const matched = needle
-      ? sessions.filter(
-          (session) =>
-            session.title.toLowerCase().includes(needle) ||
-            session.project.toLowerCase().includes(needle),
-        )
-      : sessions;
-    return groupSessions(matched);
-  }, [query, sessions]);
-
-  const searching = query.trim().length > 0;
+  const groups = useMemo(() => groupSessions(sessions), [sessions]);
 
   const toggleGroup = useCallback((cwd: string) => {
     setExpanded((current) => {
@@ -130,8 +122,8 @@ export function Sidebar({
     [pins, sessions],
   );
 
-  const pinnedVisible = pinned.length > 0 && !searching;
-  const recentVisible = recent.length > 0 && !searching;
+  const pinnedVisible = pinned.length > 0;
+  const recentVisible = recent.length > 0;
 
   const anyExpanded = groups.some((group) => expanded.has(group.cwd));
 
@@ -147,18 +139,31 @@ export function Sidebar({
       type="button"
     >
       <span className={styles.itemTitle}>
-        {isRunning(session) && (
+        {session.waiting ? (
           <>
-            <span aria-hidden className={styles.dot} />
-            <span className={styles.quiet}>Running. </span>
+            <span aria-hidden className={styles.ask}>
+              <IconTriangleExclamation />
+            </span>
+            <span className={styles.quiet}>Needs your answer. </span>
           </>
+        ) : (
+          isRunning(session) && (
+            <>
+              <span aria-hidden className={styles.dot} />
+              <span className={styles.quiet}>Running. </span>
+            </>
+          )
         )}
         {session.title}
       </span>
       <span className={styles.itemMeta}>
-        <span className={isRunning(session) ? styles.runNow : undefined}>
-          {isRunning(session) ? "working now" : relativeStamp(session.lastModified)}
-        </span>
+        {session.waiting ? (
+          <span className={styles.askNow}>needs your answer</span>
+        ) : (
+          <span className={isRunning(session) ? styles.runNow : undefined}>
+            {isRunning(session) ? "working now" : relativeStamp(session.lastModified)}
+          </span>
+        )}
         {session.gitBranch && (
           <span className={styles.branch}>
             <IconCodeBranch />
@@ -193,36 +198,11 @@ export function Sidebar({
           New chat
         </Button>
 
-        <TextField
-          className={styles.search}
-          id="sidebar-search"
-          name="search"
-          onChange={(event) => setQuery(event.target.value)}
-          placeholder="Search sessions"
-          size="small"
-          slotProps={{
-            htmlInput: { "aria-label": "Search sessions" },
-            input: {
-              startAdornment: (
-                <InputAdornment position="start">
-                  <IconSearch />
-                </InputAdornment>
-              ),
-              endAdornment: query ? (
-                <InputAdornment position="end">
-                  <IconButton
-                    aria-label="Clear search"
-                    className={styles.clear}
-                    onClick={() => setQuery("")}
-                  >
-                    <IconXmark />
-                  </IconButton>
-                </InputAdornment>
-              ) : null,
-            },
-          }}
-          value={query}
-        />
+        <button className={styles.jump} onClick={onJump} type="button">
+          <IconSearch />
+          <span className={styles.jumpLabel}>Jump to a session</span>
+          <kbd className={styles.key}>⌘K</kbd>
+        </button>
       </div>
 
       {loadError && <p className={styles.alert}>{loadError}</p>}
@@ -246,7 +226,7 @@ export function Sidebar({
           </div>
         )}
 
-        {!searching && groups.length > 0 && (
+        {groups.length > 0 && (
           <div className={styles.projectsHead}>
             <span className={styles.projectsLabel}>Projects</span>
             {anyExpanded && (
@@ -259,13 +239,11 @@ export function Sidebar({
 
         {groups.length === 0 ? (
           <p className={styles.empty}>
-            {sessions.length === 0
-              ? "No Claude Code sessions found yet. Run claude in a terminal, then reload."
-              : "Nothing matches that search."}
+            No Claude Code sessions found yet. Run claude in a terminal, then reload.
           </p>
         ) : (
           groups.map((group) => {
-            const open = searching || expanded.has(group.cwd);
+            const open = expanded.has(group.cwd);
             return (
               <div className={styles.group} key={group.cwd}>
                 <div className={`${styles.groupHead} ${open ? styles.open : ""}`}>
@@ -281,7 +259,15 @@ export function Sidebar({
                     <span className={styles.groupName} title={homeRelative(group.cwd, home)}>
                       {group.label}
                     </span>
-                    <span className={styles.groupCount}>{group.sessions.length}</span>
+                    <span className={styles.groupCount}>
+                      {group.sessions.some((session) => session.waiting) && (
+                        <span className={styles.groupAsk}>
+                          <IconTriangleExclamation />
+                          <span className={styles.quiet}>A session here needs your answer. </span>
+                        </span>
+                      )}
+                      {group.sessions.length}
+                    </span>
                   </button>
                   <button
                     aria-label={`Browse ${group.label} sessions`}
@@ -304,7 +290,13 @@ export function Sidebar({
         <span>
           {sessions.length} session{sessions.length === 1 ? "" : "s"} on this machine
         </span>
-        {runningCount > 0 && <span className={styles.footRun}>{runningCount} running</span>}
+        {waitingCount + runningCount > 0 && (
+          <span className={styles.footRun}>
+            {waitingCount > 0 && <span className={styles.footAsk}>{waitingCount} waiting</span>}
+            {waitingCount > 0 && runningCount > 0 && " · "}
+            {runningCount > 0 && `${runningCount} running`}
+          </span>
+        )}
       </div>
     </aside>
   );

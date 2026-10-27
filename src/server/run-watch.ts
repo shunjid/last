@@ -8,10 +8,14 @@ type Watchers = Map<string, Set<() => void>>;
 
 declare global {
   var __lastRunWatchers__: Watchers | undefined;
+  var __lastRunListeners__: Set<() => void> | undefined;
 }
 
 const watchers: Watchers =
   globalThis.__lastRunWatchers__ ?? (globalThis.__lastRunWatchers__ = new Map());
+
+const listeners: Set<() => void> =
+  globalThis.__lastRunListeners__ ?? (globalThis.__lastRunListeners__ = new Set());
 
 export function serverRun(sessionId: string): ServerRun | null {
   for (const state of registries.streams.values()) {
@@ -25,6 +29,21 @@ export function serverRun(sessionId: string): ServerRun | null {
     return { asks, questionAsks, startedAt: state.startedAt, streamId: state.streamId };
   }
   return null;
+}
+
+export function waitingSessions(): Set<string> {
+  const ids = new Set<string>();
+  for (const state of registries.streams.values()) {
+    if (state.liveSessionId && state.pending.size > 0) ids.add(state.liveSessionId);
+  }
+  return ids;
+}
+
+export function watchAllRuns(listener: () => void) {
+  listeners.add(listener);
+  return () => {
+    listeners.delete(listener);
+  };
 }
 
 export function watchRun(sessionId: string, listener: () => void) {
@@ -44,9 +63,7 @@ export function watchRun(sessionId: string, listener: () => void) {
 
 export function announceRun(sessionId: string | null) {
   if (!sessionId) return;
-  const set = watchers.get(sessionId);
-  if (!set) return;
-  for (const listener of [...set]) {
+  for (const listener of [...(watchers.get(sessionId) ?? []), ...listeners]) {
     try {
       listener();
     } catch {

@@ -8,6 +8,7 @@ import type { LiveFrame, SessionSummary, ThreadOp } from "@/lib/types";
 
 import { fetchSessions, groupProjects } from "./sessions";
 import { feedLine, findTranscriptFile, ThreadBuilder } from "./transcript";
+import { watchAllRuns } from "./run-watch";
 import { subscribeToTranscripts } from "./watcher";
 
 const CHUNK_BYTES = 4 * 1024 * 1024;
@@ -63,6 +64,7 @@ type ListChannel = {
   sinks: Set<LiveSink>;
   timer: ReturnType<typeof setTimeout> | null;
   unwatch: (() => void) | null;
+  unwatchRuns: (() => void) | null;
 };
 
 type Hub = {
@@ -87,6 +89,7 @@ const hub: Hub =
       sinks: new Set(),
       timer: null,
       unwatch: null,
+      unwatchRuns: null,
     },
     pending: new Map(),
     seq: 0,
@@ -478,6 +481,7 @@ function listFingerprint(sessions: SessionSummary[]) {
         session.gitBranch ?? "",
         session.cwd ?? "",
         session.running ? "run" : "idle",
+        session.waiting ? "ask" : "",
         Math.floor(session.lastModified / 30_000),
       ].join(""),
     )
@@ -525,6 +529,7 @@ export function attachList(sink: LiveSink) {
   channel.sinks.add(sink);
 
   if (!channel.unwatch) channel.unwatch = subscribeToTranscripts(scheduleList);
+  if (!channel.unwatchRuns) channel.unwatchRuns = watchAllRuns(scheduleList);
   if (!channel.poll) {
     channel.poll = setInterval(() => {
       sweep();
@@ -541,6 +546,8 @@ export function attachList(sink: LiveSink) {
     if (channel.sinks.size > 0) return;
     channel.unwatch?.();
     channel.unwatch = null;
+    channel.unwatchRuns?.();
+    channel.unwatchRuns = null;
     if (channel.timer) clearTimeout(channel.timer);
     if (channel.poll) clearInterval(channel.poll);
     channel.timer = null;

@@ -26,6 +26,7 @@ export type SessionSummary = {
   createdAt: number | null;
   fileSize: number | null;
   running: boolean;
+  waiting: boolean;
 };
 
 export type ProjectSummary = {

@@ -30,6 +30,7 @@ function toSummary(info: SDKSessionInfo): SessionSummary {
     running: false,
     sessionId: info.sessionId,
     title: info.customTitle || info.summary || info.firstPrompt || "Untitled session",
+    waiting: false,
   };
 }
 
@@ -128,7 +129,7 @@ export async function resolveChatCwd(input: {
   return { cwd: real, ok: true };
 }
 
-export type SessionMeta = Omit<SessionSummary, "createdAt" | "fileSize" | "running"> & {
+export type SessionMeta = Omit<SessionSummary, "createdAt" | "fileSize" | "running" | "waiting"> & {
   sessionId: string;
 };
 

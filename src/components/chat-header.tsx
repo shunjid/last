@@ -55,6 +55,7 @@ function ContextMeter({ stats }: { stats: ResultStats | null }) {
 }
 
 export function ChatHeader({
+  attention,
   branch,
   busy,
   contextStats,
@@ -67,6 +68,7 @@ export function ChatHeader({
   sidebarHidden,
   title,
 }: {
+  attention: boolean;
   branch: string | null;
   busy: boolean;
   contextStats: ResultStats | null;
@@ -113,13 +115,20 @@ export function ChatHeader({
 
   return (
     <header className={`${styles.root} ${sidebarHidden ? styles.edge : ""}`}>
-      <Tooltip title="Show the sidebar (⌘B)">
+      <Tooltip
+        title={
+          attention ? "Show the sidebar (⌘B). A session needs your answer" : "Show the sidebar (⌘B)"
+        }
+      >
         <IconButton
-          aria-label="Show the sidebar"
+          aria-label={
+            attention ? "Show the sidebar. A session needs your answer" : "Show the sidebar"
+          }
           className={`${styles.tap} ${sidebarHidden ? "" : styles.drawerOnly}`}
           onClick={onToggleSidebar}
         >
           <IconSidebar />
+          {attention && <span aria-hidden className={styles.attention} />}
         </IconButton>
       </Tooltip>
 

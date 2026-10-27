@@ -218,10 +218,22 @@
 }
 
 .groupCount {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
   margin-left: auto;
   font-variant-numeric: tabular-nums;
   text-transform: none;
   letter-spacing: 0;
+}
+
+.groupAsk {
+  display: inline-flex;
+  color: var(--last-fg-warning);
+}
+
+.groupAsk svg {
+  font-size: 15px;
 }
 
 .item {
@@ -309,6 +321,22 @@
   color: var(--last-fg-success-strong);
 }
 
+.ask {
+  display: inline-flex;
+  margin-right: 6px;
+  vertical-align: -3px;
+  color: var(--last-fg-warning);
+}
+
+.ask svg {
+  font-size: 16px;
+}
+
+.askNow {
+  font-weight: 500;
+  color: var(--last-fg-warning-strong);
+}
+
 @keyframes blip {
   0%,
   100% {
@@ -365,8 +393,9 @@
 .foot {
   flex: none;
   display: flex;
+  flex-wrap: wrap;
   align-items: center;
-  gap: 8px;
+  gap: 4px 8px;
   padding: 10px 16px calc(14px + env(safe-area-inset-bottom, 0px));
   font-size: 11.5px;
   color: var(--last-fg-tertiary);
@@ -375,7 +404,55 @@
 .footRun {
   margin-left: auto;
   font-weight: 500;
+  white-space: nowrap;
   color: var(--last-fg-success-strong);
+}
+
+.footAsk {
+  color: var(--last-fg-warning-strong);
+}
+
+.jump {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  width: 100%;
+  min-height: 40px;
+  padding: 0 10px 0 14px;
+  border: 0;
+  border-radius: var(--last-radius-full);
+  background: var(--last-surface-highest);
+  color: var(--last-fg-secondary);
+  font: inherit;
+  font-size: 14px;
+  text-align: left;
+  cursor: pointer;
+}
+
+.jump:hover {
+  background-image: linear-gradient(var(--last-state-hover), var(--last-state-hover));
+  color: var(--last-fg-default);
+}
+
+.jump:focus-visible {
+  outline: 2px solid var(--last-border-focus);
+  outline-offset: 2px;
+}
+
+.jump svg {
+  font-size: 20px;
+}
+
+.jumpLabel {
+  flex: 1;
+}
+
+.key {
+  font-family: var(--last-font-mono);
+  font-size: 11px;
+  padding: 1px 6px;
+  border-radius: var(--last-radius-xs);
+  background: color-mix(in srgb, var(--last-fg-default) 8%, transparent);
 }
 
 @media (hover: none) {
@@ -385,8 +462,8 @@
 }
 
 @media (max-width: 640px), (pointer: coarse) {
-  .search :global(.MuiInputBase-input) {
-    font-size: 16px;
+  .key {
+    display: none;
   }
 }
 
@@ -400,14 +477,8 @@
     height: var(--last-tap);
   }
 
-  .search :global(.MuiInputBase-root) {
+  .jump {
     min-height: var(--last-tap);
-  }
-
-  .search .clear {
-    width: var(--last-tap);
-    height: var(--last-tap);
-    margin-right: -10px;
   }
 
   .projectsHead {
