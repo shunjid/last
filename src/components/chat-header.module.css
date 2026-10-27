@@ -24,6 +24,7 @@
 }
 
 .identity {
+  position: relative;
   display: flex;
   flex-direction: column;
   gap: 2px;
@@ -38,6 +39,34 @@
   overflow: hidden;
   text-overflow: ellipsis;
   white-space: nowrap;
+}
+
+.titleButton {
+  display: block;
+  max-width: 100%;
+  padding: 0;
+  border: 0;
+  background: none;
+  color: inherit;
+  font-family: inherit;
+  text-align: left;
+  cursor: pointer;
+}
+
+.titleButton::after {
+  content: "";
+  position: absolute;
+  inset: -4px 0;
+  border-radius: var(--last-radius-sm);
+}
+
+.titleButton:focus-visible {
+  outline: none;
+}
+
+.titleButton:focus-visible::after {
+  outline: 2px solid var(--last-border-focus);
+  outline-offset: 2px;
 }
 
 .chips {
@@ -60,6 +89,16 @@
   overflow: hidden;
   text-overflow: ellipsis;
   white-space: nowrap;
+}
+
+.chipLabel {
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.repoName {
+  display: none;
 }
 
 .idChip {
@@ -282,6 +321,42 @@
   color: var(--last-fg-default);
 }
 
+.details {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  padding: 14px 16px;
+}
+
+.detailsTitle {
+  margin: 0;
+  font-size: 15px;
+  font-weight: 500;
+  line-height: 1.4;
+  overflow-wrap: anywhere;
+}
+
+.detailsRow {
+  display: flex;
+  align-items: flex-start;
+  gap: 8px;
+  margin: 0;
+  font-family: var(--last-font-mono);
+  font-size: 12.5px;
+  line-height: 20px;
+  color: var(--last-fg-secondary);
+}
+
+.detailsRow span {
+  min-width: 0;
+  overflow-wrap: anywhere;
+}
+
+.detailsRow svg {
+  flex: none;
+  color: var(--last-fg-tertiary);
+}
+
 @media (max-width: 900px) {
   .root {
     gap: 6px;
@@ -328,10 +403,25 @@
 
 @media (max-width: 640px) {
   .root .wideOnly,
-  .pathChip,
-  .branchChip,
-  .contextMeter {
+  .contextMeter,
+  .fullPath {
     display: none;
+  }
+
+  .repoName {
+    display: block;
+  }
+
+  .title {
+    font-size: 14px;
+  }
+
+  .chips {
+    display: grid;
+    grid-auto-columns: minmax(0, max-content);
+    grid-auto-flow: column;
+    justify-content: start;
+    font-size: 12px;
   }
 
   .live {
