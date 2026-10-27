@@ -52,6 +52,7 @@ export function useChat(target: ChatTarget, onSessionCreated: (sessionId: string
   const liveSessionId = entry.sessionId;
   const busy = view.phase === "connecting" || view.phase === "running";
   const terminalBusy = view.activity?.source === "terminal";
+  const serverBusy = view.activity?.source === "server";
 
   useEffect(() => {
     setOnCreated(entry, onSessionCreated);
@@ -195,6 +196,7 @@ export function useChat(target: ChatTarget, onSessionCreated: (sessionId: string
     queue,
     retry,
     send,
+    serverBusy,
     stop,
     terminalBusy,
     unqueue,

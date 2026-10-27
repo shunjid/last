@@ -149,6 +149,7 @@ export type LiveFrame =
   | { t: "resync"; reason: string }
   | { t: "pulse"; sessionId: string; pulse: SessionPulse | null }
   | { t: "sessions"; sessions: SessionSummary[]; projects: ProjectSummary[] }
+  | { t: "run"; run: ServerRun | null }
   | { t: "ping" };
 
 export type PermissionAsk = {
@@ -178,6 +179,13 @@ export type Question = {
 export type QuestionAsk = {
   requestId: string;
   questions: Question[];
+};
+
+export type ServerRun = {
+  streamId: string;
+  startedAt: number;
+  asks: PermissionAsk[];
+  questionAsks: QuestionAsk[];
 };
 
 export type ResultStats = {

@@ -321,7 +321,7 @@ export function ThreadView({
                     activity={activity}
                     connecting={view.phase === "connecting"}
                     key={activity.startedAt}
-                    onStop={activity.source === "local" ? onStop : undefined}
+                    onStop={activity.source === "terminal" ? undefined : onStop}
                     status={view.status}
                   />
                 )}

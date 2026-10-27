@@ -2,7 +2,6 @@ import {
   query,
   type Options,
   type PermissionResult,
-  type Query,
   type SDKMessage,
 } from "@anthropic-ai/claude-agent-sdk";
 
@@ -13,6 +12,7 @@ import { effortAllowed } from "@/server/models";
 import { closeStream, openStream, requestPermission, requestQuestion } from "@/server/permissions";
 import { registerQuery, unregisterQuery, withSessionLock } from "@/server/registries";
 import { releaseRun, tryAcquireRun } from "@/server/run-guard";
+import { announceRun } from "@/server/run-watch";
 import { FrameMapper } from "@/server/sdk-frames";
 import { invalidateCwdAllowlist, resolveChatCwd } from "@/server/sessions";
 import { settingSources } from "@/server/settings";
@@ -43,65 +43,61 @@ export async function POST(request: Request) {
     return Response.json({ error: "too many turns are already running" }, { status: 429 });
   }
   const state = openStream(cwd);
-
-  let releasedRun = false;
-  const releaseSlot = () => {
-    if (releasedRun) return;
-    releasedRun = true;
-    releaseRun();
-  };
+  let detach = () => {};
 
   const stream = new ReadableStream<Uint8Array>({
     async start(controller) {
       let closed = false;
-      let runner: Query | undefined;
       let liveSessionId: string | null = sessionId ?? null;
       const mapper = new FrameMapper();
 
+      const close = () => {
+        if (closed) return;
+        closed = true;
+        clearInterval(heartbeat);
+        try {
+          controller.close();
+        } catch {}
+      };
       const write = (chunk: string) => {
         if (closed) return;
         try {
           controller.enqueue(encoder.encode(chunk));
         } catch {
-          closed = true;
+          close();
         }
       };
       const send = (frame: StreamFrame) => write(`data: ${JSON.stringify(frame)}\n\n`);
+      const heartbeat = setInterval(() => write(": ping\n\n"), HEARTBEAT_MS);
+      detach = close;
+
+      if (request.signal.aborted) state.stopped = true;
+      request.signal.addEventListener("abort", close, { once: true });
 
       write(": open\n\n");
       send({ streamId: state.streamId, t: "open" });
 
-      const heartbeat = setInterval(() => write(": ping\n\n"), HEARTBEAT_MS);
-
-      const cleanup = () => {
-        releaseSlot();
-        if (closed) return;
-        closed = true;
-        clearInterval(heartbeat);
-        closeStream(state.streamId, "Client disconnected");
-        if (liveSessionId) unregisterQuery(liveSessionId, runner);
-      };
-
-      const onAbort = () => {
-        runner?.interrupt().catch(() => undefined);
-        runner?.close();
-        cleanup();
-        try {
-          controller.close();
-        } catch {}
-      };
-      request.signal.addEventListener("abort", onAbort, { once: true });
-
-      const canUseTool = (
+      const canUseTool = async (
         toolName: string,
         input: Record<string, unknown>,
         options: { signal: AbortSignal },
-      ): Promise<PermissionResult> =>
-        toolName === "AskUserQuestion"
-          ? requestQuestion(state, input, options.signal, (ask) => send({ ask, t: "question" }))
-          : requestPermission(state, toolName, input, options.signal, (ask) =>
-              send({ ask, t: "permission" }),
-            );
+      ): Promise<PermissionResult> => {
+        const asked: string[] = [];
+        const result =
+          toolName === "AskUserQuestion"
+            ? await requestQuestion(state, input, options.signal, (ask) => {
+                asked.push(ask.requestId);
+                send({ ask, t: "question" });
+              })
+            : await requestPermission(state, toolName, input, options.signal, (ask) => {
+                asked.push(ask.requestId);
+                send({ ask, t: "permission" });
+              });
+        for (const requestId of asked) {
+          send({ behavior: result.behavior, requestId, t: "permission_resolved" });
+        }
+        return result;
+      };
 
       const options: Options = {
         canUseTool,
@@ -118,15 +114,17 @@ export async function POST(request: Request) {
       };
 
       const run = async () => {
-        runner = query({ options, prompt });
+        if (state.stopped) return;
+        const runner = query({ options, prompt });
+        state.runner = runner;
         try {
           for await (const message of runner as AsyncIterable<SDKMessage>) {
-            if (closed) break;
             for (const frame of mapper.map(message)) {
               if (frame.t === "init") {
                 liveSessionId = frame.sessionId;
                 state.liveSessionId = frame.sessionId;
-                if (runner) registerQuery(frame.sessionId, runner);
+                registerQuery(frame.sessionId, runner);
+                announceRun(frame.sessionId);
               }
               send(frame);
             }
@@ -143,19 +141,18 @@ export async function POST(request: Request) {
         if (sessionId) await withSessionLock(sessionId, run);
         else await run();
       } finally {
-        request.signal.removeEventListener("abort", onAbort);
+        request.signal.removeEventListener("abort", close);
         invalidateCwdAllowlist();
         send({ t: "done" });
-        cleanup();
-        try {
-          controller.close();
-        } catch {}
+        closeStream(state.streamId, "The turn ended");
+        if (liveSessionId) unregisterQuery(liveSessionId, state.runner ?? undefined);
+        releaseRun();
+        close();
       }
     },
 
     cancel() {
-      closeStream(state.streamId, "Client disconnected");
-      releaseSlot();
+      detach();
     },
   });
 

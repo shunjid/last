@@ -1,6 +1,6 @@
 import { jsonError, jsonOk, readJson } from "@/lib/http";
 import { InterruptBodySchema } from "@/lib/schemas";
-import { findQuery, registries } from "@/server/registries";
+import { registries } from "@/server/registries";
 
 export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
@@ -10,12 +10,14 @@ export async function POST(request: Request) {
   if (!body.ok) return body.response;
 
   const { sessionId, streamId } = body.data;
-  if (registries.streams.get(streamId)?.liveSessionId !== sessionId) {
+  const state = registries.streams.get(streamId);
+  if (!state || (sessionId && state.liveSessionId && state.liveSessionId !== sessionId)) {
     return jsonError(404, "no turn is running for that session");
   }
 
-  const runner = findQuery(sessionId);
-  if (!runner) return jsonError(404, "no turn is running for that session");
+  state.stopped = true;
+  const runner = state.runner;
+  if (!runner) return jsonOk({ ok: true });
 
   try {
     await runner.interrupt();

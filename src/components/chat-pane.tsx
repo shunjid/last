@@ -60,6 +60,7 @@ export function ChatPane({
     queue,
     retry,
     send,
+    serverBusy,
     stop,
     terminalBusy,
     unqueue,
@@ -118,8 +119,10 @@ export function ChatPane({
 
   useTitleSignal(busy, view.asks.length > 0);
 
+  const stoppable = busy || serverBusy;
+
   useEffect(() => {
-    if (!busy) return;
+    if (!stoppable) return;
 
     function onKeyDown(event: KeyboardEvent) {
       if (event.key !== "Escape") return;
@@ -131,7 +134,7 @@ export function ChatPane({
 
     window.addEventListener("keydown", onKeyDown);
     return () => window.removeEventListener("keydown", onKeyDown);
-  }, [busy, stop]);
+  }, [stoppable, stop]);
 
   const title = detail?.title ?? summary?.title ?? "New chat";
   const cwd = detail?.cwd ?? summary?.cwd ?? target.cwd;
@@ -245,7 +248,7 @@ export function ChatPane({
 
       <div className={styles.bottom} onFocus={showBars} ref={bottomRef}>
         <Composer
-          busy={busy || terminalBusy}
+          busy={stoppable || terminalBusy}
           disabled={loading}
           effort={effort ?? AUTO_EFFORT}
           effortLevels={effortLevels}
@@ -260,7 +263,7 @@ export function ChatPane({
           onSend={(prompt) => void send(prompt, options)}
           onStop={() => void stop()}
           onUnqueue={unqueue}
-          owner={busy ? "local" : "terminal"}
+          owner={terminalBusy ? "terminal" : "local"}
           placeholder={
             target.sessionId ? "Reply to this session…" : "Ask Claude to work in this folder…"
           }
