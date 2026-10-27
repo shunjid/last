@@ -43,13 +43,6 @@ const INTERRUPT_TEXTS = new Set([
   "[Request interrupted by user for tool use]",
 ]);
 
-const SKIPPED_ENTRY_TYPES = new Set([
-  "attachment",
-  "file-history-snapshot",
-  "summary",
-  "x-mirror-error",
-]);
-
 type RawEntry = {
   uuid?: string;
   parentUuid?: string | null;
@@ -435,8 +428,6 @@ export function feedLine(builder: ThreadBuilder, line: string) {
   const at = entry.timestamp ? Date.parse(entry.timestamp) : Number.NaN;
   if (!Number.isNaN(at) && entry.isSidechain !== true) builder.pulse.touch(at);
 
-  if (entry.type && SKIPPED_ENTRY_TYPES.has(entry.type)) return;
-
   if (entry.type === "system" && entry.subtype === "compact_boundary") {
     const meta = entry.compact_metadata ?? {};
     const tokens = meta.pre_tokens
@@ -456,7 +447,7 @@ export function feedLine(builder: ThreadBuilder, line: string) {
     return;
   }
 
-  const role = entry.message?.role ?? entry.type;
+  const role = entry.type;
   const timestamp = entry.timestamp ?? null;
 
   if (role === "assistant") {
