@@ -40,6 +40,12 @@ SDK, so a reply you send here is waiting for you the next time you run `claude -
 - [Claude Code](https://docs.claude.com/en/docs/claude-code) installed and signed in. LAST reuses
   your existing CLI credentials, so there is no API key to set up
 
+LAST talks to Claude through the copy of Claude Code bundled with `@anthropic-ai/claude-agent-sdk`,
+not the `claude` on your PATH. The SDK is pinned to 0.3.310, which bundles Claude Code 2.1.310.
+Newer Claude models need Claude Code 2.1.280 or newer, so if a reply fails with "Claude Code … does
+not support this model", `claude update` won't fix it. The SDK version in `package.json` has to go
+up.
+
 ## Run it
 
 ```bash
