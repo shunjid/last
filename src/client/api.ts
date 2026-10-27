@@ -50,9 +50,9 @@ export async function sendQuestionAnswer(body: QuestionDecisionBody) {
   return unwrap<{ ok: true }>(response);
 }
 
-export async function interruptSession(sessionId: string, streamId: string) {
+export async function interruptSession(sessionId: string | null, streamId: string) {
   const response = await fetch("/api/interrupt", {
-    body: JSON.stringify({ sessionId, streamId }),
+    body: JSON.stringify(sessionId ? { sessionId, streamId } : { streamId }),
     headers: JSON_HEADERS,
     method: "POST",
   });

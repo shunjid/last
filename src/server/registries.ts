@@ -2,21 +2,29 @@ import "server-only";
 
 import type { PermissionResult, Query } from "@anthropic-ai/claude-agent-sdk";
 
+import type { StreamFrame } from "@/lib/types";
+
+export type AskFrame = Extract<StreamFrame, { t: "permission" | "question" }>;
+
 export type PendingPermission = {
   requestId: string;
   streamId: string;
   toolName: string;
   resolve: (result: PermissionResult) => void;
   timer: ReturnType<typeof setTimeout>;
+  frame: AskFrame;
   input?: Record<string, unknown>;
 };
 
 export type StreamState = {
   cwd: string;
   streamId: string;
+  startedAt: number;
   pending: Map<string, PendingPermission>;
   allowedTools: Set<string>;
   liveSessionId: string | null;
+  runner: Query | null;
+  stopped: boolean;
 };
 
 type Registries = {
@@ -58,8 +66,4 @@ export function registerQuery(sessionId: string, runner: Query) {
 export function unregisterQuery(sessionId: string, runner?: Query) {
   const current = registries.queries.get(sessionId);
   if (!runner || current === runner) registries.queries.delete(sessionId);
-}
-
-export function findQuery(sessionId: string) {
-  return registries.queries.get(sessionId);
 }

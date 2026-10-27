@@ -49,7 +49,7 @@ export const QuestionDecisionSchema = z.discriminatedUnion("decision", [
 ]);
 
 export const InterruptBodySchema = z.strictObject({
-  sessionId: SessionIdSchema,
+  sessionId: SessionIdSchema.optional(),
   streamId: z.uuid(),
 });
 

@@ -8,6 +8,7 @@ import type {
   PermissionMode,
   QuestionAsk,
   ResultStats,
+  ServerRun,
   SessionDetail,
   SessionPulse,
   ThreadItem,
@@ -41,7 +42,7 @@ export type ChatActivity = {
   effort: EffortLevel | null;
   lastRecordAt: number;
   outputTokens: number;
-  source: "local" | "terminal";
+  source: "local" | "server" | "terminal";
   startedAt: number;
   thinking: boolean;
   thinkingTokens: number;
@@ -84,6 +85,7 @@ export type Entry = {
   retry: PendingSend | null;
   revision: number;
   run: RunState | null;
+  serverRun: ServerRun | null;
   sessionId: string | null;
   stopped: boolean;
   tail: ThreadItem[];
@@ -131,11 +133,10 @@ export function nextDraftId(): string {
 const interrupted = new WeakSet<RunState>();
 
 function interruptRun(entry: Entry, run: RunState) {
-  const id = entry.sessionId;
-  if (!id || !run.streamId) return false;
+  if (!run.streamId) return false;
   if (!interrupted.has(run)) {
     interrupted.add(run);
-    void interruptSession(id, run.streamId).catch(() => undefined);
+    void interruptSession(entry.sessionId, run.streamId).catch(() => undefined);
   }
   return true;
 }
@@ -177,6 +178,7 @@ function create(key: string, cwd: string, sessionId: string | null): Entry {
     retry: null,
     revision: 0,
     run: null,
+    serverRun: null,
     sessionId,
     stopped: false,
     tail: [],
@@ -237,6 +239,18 @@ function pickActivity(entry: Entry): ChatActivity | null {
     };
   }
   const pulse = entry.pulse;
+  const remote = entry.serverRun;
+  if (remote) {
+    return {
+      effort: pulse?.effort ?? null,
+      lastRecordAt: pulse?.lastRecordAt ?? 0,
+      outputTokens: pulse?.outputTokens ?? 0,
+      source: "server",
+      startedAt: pulse?.startedAt ?? remote.startedAt,
+      thinking: pulse?.thinking ?? false,
+      thinkingTokens: 0,
+    };
+  }
   if (!pulse) return null;
   if (pulse.startedAt <= entry.localRunEndedAt) return null;
   return {
@@ -252,17 +266,18 @@ function pickActivity(entry: Entry): ChatActivity | null {
 
 function snapshot(entry: Entry) {
   const run = entry.run;
+  const remote = isBusy(entry) ? null : entry.serverRun;
   const base = [...entry.history, ...entry.tail];
   entry.view = {
     activity: pickActivity(entry),
-    asks: run?.asks ?? [],
+    asks: remote ? remote.asks : (run?.asks ?? []),
     canRetry: run?.phase === "error" && entry.retry !== null,
     contextStats: entry.lastStats,
     error: run?.error ?? null,
     items: run ? [...base, ...run.produced] : base,
     live: run?.current ?? null,
     phase: run?.phase ?? "idle",
-    questionAsks: run?.questionAsks ?? [],
+    questionAsks: remote ? remote.questionAsks : (run?.questionAsks ?? []),
     stats: run?.stats ?? null,
     status: run?.status ?? null,
     truncated: entry.truncated,
@@ -351,6 +366,13 @@ export function applyLive(entry: Entry, frame: LiveFrame) {
     if (had && frame.pulse === null) drainQueue(entry);
     return;
   }
+  if (frame.t === "run") {
+    const had = entry.serverRun !== null;
+    entry.serverRun = frame.run;
+    flushNow(entry);
+    if (had && frame.run === null) drainQueue(entry);
+    return;
+  }
   if (frame.t !== "ops") return;
 
   const next = applyOps(entry.history, frame.ops);
@@ -400,7 +422,7 @@ export function unqueue(entry: Entry, id: string) {
 }
 
 function drainQueue(entry: Entry) {
-  if (isBusy(entry) || entry.stopped) return;
+  if (isBusy(entry) || entry.stopped || entry.serverRun) return;
   const next = entry.queue[0];
   if (!next) return;
   setQueue(entry, entry.queue.slice(1));
@@ -427,6 +449,7 @@ export async function send(entry: Entry, prompt: string, options: SendOptions) {
   const run = createRun();
   run.effort = options.effort;
   entry.run = run;
+  entry.serverRun = null;
   entry.stopped = false;
   flushNow(entry);
 
@@ -434,6 +457,7 @@ export async function send(entry: Entry, prompt: string, options: SendOptions) {
   entry.controller = controller;
   const resumeId = entry.sessionId;
   let drain = true;
+  let detached = false;
   let marked = resumeId;
   setLocalRun(marked, true);
 
@@ -445,8 +469,10 @@ export async function send(entry: Entry, prompt: string, options: SendOptions) {
       ...(options.effort ? { effort: options.effort } : {}),
       ...(resumeId ? { sessionId: resumeId } : { cwd: entry.cwd }),
     };
+    let ended = false;
     for await (const frame of streamChat(body, controller.signal)) {
       applyFrame(run, frame);
+      if (frame.t === "done") ended = true;
       if (frame.t === "result") entry.lastStats = frame.stats;
       if (frame.t === "init" && !entry.sessionId && frame.sessionId) {
         entry.sessionId = frame.sessionId;
@@ -459,6 +485,10 @@ export async function send(entry: Entry, prompt: string, options: SendOptions) {
       if (frame.t === "delta" || frame.t === "usage" || frame.t === "thinking_tokens") flush(entry);
       else flushNow(entry);
     }
+    if (!ended && !entry.stopped && run.streamId) {
+      drain = false;
+      detached = true;
+    }
     if (run.phase !== "error") {
       commitCurrent(run);
       run.phase = "done";
@@ -468,6 +498,10 @@ export async function send(entry: Entry, prompt: string, options: SendOptions) {
     if (controller.signal.aborted) {
       commitCurrent(run);
       run.phase = "done";
+    } else if (run.streamId) {
+      commitCurrent(run);
+      run.phase = "done";
+      detached = true;
     } else {
       run.error = error instanceof Error ? error.message : "The connection dropped.";
       run.phase = "error";
@@ -475,7 +509,7 @@ export async function send(entry: Entry, prompt: string, options: SendOptions) {
     }
   } finally {
     setLocalRun(marked, false);
-    entry.localRunEndedAt = Date.now();
+    if (!detached) entry.localRunEndedAt = Date.now();
     run.asks = [];
     run.questionAsks = [];
     run.status = null;
@@ -506,11 +540,28 @@ export function retry(entry: Entry) {
 }
 
 export function stop(entry: Entry) {
+  const remote = isBusy(entry) ? null : entry.serverRun;
   entry.stopped = true;
   entry.controller?.abort();
   setQueue(entry, []);
   const run = entry.run;
-  if (run) interruptRun(entry, run);
+  if (remote) void interruptSession(entry.sessionId, remote.streamId).catch(() => undefined);
+  else if (run) interruptRun(entry, run);
+}
+
+async function decideRemote(
+  entry: Entry,
+  remote: ServerRun,
+  requestId: string,
+  post: (streamId: string) => Promise<unknown>,
+) {
+  entry.serverRun = {
+    ...remote,
+    asks: remote.asks.filter((item) => item.requestId !== requestId),
+    questionAsks: remote.questionAsks.filter((item) => item.requestId !== requestId),
+  };
+  flushNow(entry);
+  await post(remote.streamId).catch(() => undefined);
 }
 
 export async function decide(
@@ -519,6 +570,13 @@ export async function decide(
   decision: "allow" | "deny",
   scope: "once" | "session",
 ) {
+  const remote = isBusy(entry) ? null : entry.serverRun;
+  if (remote) {
+    await decideRemote(entry, remote, ask.requestId, (streamId) =>
+      sendPermission({ decision, requestId: ask.requestId, scope, streamId }),
+    );
+    return;
+  }
   const run = entry.run;
   if (!run) return;
   if (!run.streamId) {
@@ -554,6 +612,17 @@ export async function decideQuestion(
   ask: QuestionAsk,
   outcome: { answers: Record<string, string> } | { cancelled: true },
 ) {
+  const remote = isBusy(entry) ? null : entry.serverRun;
+  if (remote) {
+    await decideRemote(entry, remote, ask.requestId, (streamId) =>
+      sendQuestionAnswer(
+        "cancelled" in outcome
+          ? { decision: "cancel", requestId: ask.requestId, streamId }
+          : { answers: outcome.answers, decision: "answer", requestId: ask.requestId, streamId },
+      ),
+    );
+    return;
+  }
   const run = entry.run;
   if (!run) return;
   if (!run.streamId) {

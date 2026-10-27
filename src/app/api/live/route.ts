@@ -1,6 +1,7 @@
 import { jsonError } from "@/lib/http";
 import { SessionIdSchema } from "@/lib/schemas";
 import { attachList, attachThread, encodeFrame, type LiveSink } from "@/server/live";
+import { serverRun, watchRun } from "@/server/run-watch";
 
 export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
@@ -26,6 +27,7 @@ export async function GET(request: Request) {
   const encoder = new TextEncoder();
   let detachThread: (() => void) | null = null;
   let detachList: (() => void) | null = null;
+  let detachRun: (() => void) | null = null;
   let heartbeat: ReturnType<typeof setInterval> | null = null;
   let closed = false;
 
@@ -35,8 +37,10 @@ export async function GET(request: Request) {
     heartbeat = null;
     detachThread?.();
     detachList?.();
+    detachRun?.();
     detachThread = null;
     detachList = null;
+    detachRun = null;
   }
 
   const stream = new ReadableStream<Uint8Array>({
@@ -74,6 +78,11 @@ export async function GET(request: Request) {
           return;
         }
         detachThread = detach;
+
+        const id = sessionId;
+        const announce = () => sink(encodeFrame({ run: serverRun(id), t: "run" }));
+        detachRun = watchRun(id, announce);
+        announce();
       }
 
       if (closed) return;

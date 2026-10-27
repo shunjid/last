@@ -261,6 +261,7 @@ export function applyFrame(run: RunState, frame: StreamFrame): void {
 
     case "permission_resolved": {
       run.asks = run.asks.filter((ask) => ask.requestId !== frame.requestId);
+      run.questionAsks = run.questionAsks.filter((ask) => ask.requestId !== frame.requestId);
       return;
     }
 

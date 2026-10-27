@@ -9,6 +9,7 @@ import type { PermissionResult } from "@anthropic-ai/claude-agent-sdk";
 import type { PermissionAsk, Question, QuestionAsk, QuestionOption } from "@/lib/types";
 import { editDiff, isMutatingTool, toolDisplayName, toolLanguage, toolSummary } from "@/lib/tools";
 import { registries, type StreamState } from "./registries";
+import { announceRun } from "./run-watch";
 
 const TTL_MS = 5 * 60 * 1000;
 const MAX_PENDING_PER_STREAM = 32;
@@ -31,6 +32,9 @@ export function openStream(cwd: string): StreamState {
     cwd,
     liveSessionId: null,
     pending: new Map(),
+    runner: null,
+    startedAt: Date.now(),
+    stopped: false,
     streamId,
   };
   registries.streams.set(streamId, state);
@@ -45,6 +49,7 @@ export function closeStream(streamId: string, message: string) {
   }
   state.pending.clear();
   registries.streams.delete(streamId);
+  announceRun(state.liveSessionId);
 }
 
 type Redaction = Pick<PermissionAsk, "detail" | "summary" | "truncatedChars">;
@@ -177,6 +182,7 @@ export function requestPermission(
       state.pending.delete(requestId);
       clearTimeout(entry.timer);
       resolve(result);
+      announceRun(state.liveSessionId);
     };
 
     const timer = setTimeout(
@@ -189,14 +195,17 @@ export function requestPermission(
       once: true,
     });
 
+    const ask = buildAsk(requestId, toolName, input);
     state.pending.set(requestId, {
+      frame: { ask, t: "permission" },
       requestId,
       resolve: settle,
       streamId: state.streamId,
       timer,
       toolName,
     });
-    emit(buildAsk(requestId, toolName, input));
+    emit(ask);
+    announceRun(state.liveSessionId);
   });
 }
 
@@ -270,6 +279,7 @@ export function requestQuestion(
       state.pending.delete(requestId);
       clearTimeout(entry.timer);
       resolve(result);
+      announceRun(state.liveSessionId);
     };
 
     const timer = setTimeout(
@@ -282,7 +292,9 @@ export function requestQuestion(
       once: true,
     });
 
+    const ask: QuestionAsk = { questions: parseQuestions(input), requestId };
     state.pending.set(requestId, {
+      frame: { ask, t: "question" },
       input,
       requestId,
       resolve: settle,
@@ -290,7 +302,8 @@ export function requestQuestion(
       timer,
       toolName: "AskUserQuestion",
     });
-    emit({ questions: parseQuestions(input), requestId });
+    emit(ask);
+    announceRun(state.liveSessionId);
   });
 }
 
