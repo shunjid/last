@@ -194,6 +194,12 @@
   color: var(--last-fg-black);
 }
 
+.glyphAsk,
+.selected .glyphAsk {
+  background: var(--last-bg-warning-container);
+  color: var(--last-fg-warning-container);
+}
+
 .text {
   min-width: 0;
   flex: 1;
@@ -225,6 +231,11 @@
 
 .optionRow:hover .stamp {
   opacity: 0;
+}
+
+.stampAsk {
+  font-weight: 500;
+  color: var(--last-fg-warning-strong);
 }
 
 .empty {

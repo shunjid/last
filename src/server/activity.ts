@@ -5,6 +5,7 @@ import { open, stat } from "node:fs/promises";
 import type { SessionSummary } from "@/lib/types";
 
 import { registries } from "./registries";
+import { waitingSessions } from "./run-watch";
 import { findTranscriptFile } from "./transcript";
 
 const WINDOW_MS = 30 * 60 * 1_000;
@@ -138,8 +139,10 @@ async function probe(sessionId: string): Promise<boolean> {
 export async function markRunning(sessions: SessionSummary[]): Promise<void> {
   const cutoff = Date.now() - WINDOW_MS;
   const pending: SessionSummary[] = [];
+  const waiting = waitingSessions();
 
   for (const session of sessions) {
+    if (waiting.has(session.sessionId)) session.waiting = true;
     if (registries.queries.has(session.sessionId)) {
       session.running = true;
       continue;

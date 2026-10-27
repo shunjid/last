@@ -5,7 +5,14 @@ import { createPortal } from "react-dom";
 
 import { useKeyboardInset } from "@/client/use-keyboard-inset";
 import { CopyResume } from "@/components/copy-resume";
-import { IconFolderOpen, IconMessages, IconPlus, IconSearch, IconXmark } from "@/components/icons";
+import {
+  IconFolderOpen,
+  IconMessages,
+  IconPlus,
+  IconSearch,
+  IconTriangleExclamation,
+  IconXmark,
+} from "@/components/icons";
 import { relativeStamp } from "@/lib/format";
 import type { ProjectSummary, SessionSummary } from "@/lib/types";
 
@@ -43,7 +50,6 @@ export function CommandPalette({
   sessions: SessionSummary[];
 }) {
   const [query, setQuery] = useState("");
-  const [cursor, setCursor] = useState(0);
   const listRef = useRef<HTMLDivElement>(null);
   const panelRef = useRef<HTMLDivElement>(null);
   const inputRef = useRef<HTMLInputElement>(null);
@@ -52,7 +58,14 @@ export function CommandPalette({
   const entries = useMemo<Entry[]>(() => {
     const needle = query.trim().toLowerCase();
 
-    const matches = sessions
+    const ordered = needle
+      ? sessions
+      : [
+          ...sessions.filter((session) => session.waiting),
+          ...sessions.filter((session) => !session.waiting),
+        ];
+
+    const matches = ordered
       .filter(
         (session) =>
           !needle ||
@@ -96,6 +109,13 @@ export function CommandPalette({
       ...matches,
     ];
   }, [projects, query, scope, sessions]);
+
+  const [cursor, setCursor] = useState(() =>
+    Math.max(
+      0,
+      entries.findIndex((entry) => entry.kind === "session" && entry.session.waiting),
+    ),
+  );
 
   const index = Math.min(cursor, entries.length - 1);
 
@@ -207,11 +227,15 @@ export function CommandPalette({
                 onMouseMove={() => setCursor(position)}
                 type="button"
               >
-                <span className={styles.glyph}>
+                <span
+                  className={`${styles.glyph} ${entry.kind === "session" && entry.session.waiting ? styles.glyphAsk : ""}`}
+                >
                   {entry.kind === "new" ? (
                     <IconPlus />
                   ) : entry.kind === "project" ? (
                     <IconFolderOpen />
+                  ) : entry.session.waiting ? (
+                    <IconTriangleExclamation />
                   ) : (
                     <IconMessages />
                   )}
@@ -220,9 +244,14 @@ export function CommandPalette({
                   <span className={styles.label}>{entry.label}</span>
                   <span className={styles.sub}>{entry.sub}</span>
                 </span>
-                {entry.kind === "session" && (
-                  <span className={styles.stamp}>{relativeStamp(entry.session.lastModified)}</span>
-                )}
+                {entry.kind === "session" &&
+                  (entry.session.waiting ? (
+                    <span className={`${styles.stamp} ${styles.stampAsk}`}>needs your answer</span>
+                  ) : (
+                    <span className={styles.stamp}>
+                      {relativeStamp(entry.session.lastModified)}
+                    </span>
+                  ))}
               </button>
               {entry.kind === "session" && (
                 <CopyResume
