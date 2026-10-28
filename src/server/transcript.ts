@@ -4,6 +4,7 @@ import { readdir, stat } from "node:fs/promises";
 import os from "node:os";
 import path from "node:path";
 
+import { answersOf } from "@/lib/tools";
 import { EFFORT_LEVELS, MAX_THREAD_ITEMS } from "@/lib/types";
 import type {
   Block,
@@ -195,7 +196,11 @@ type ParsedContent = {
   classes: UserTextClass[];
 };
 
-function parseContent(content: unknown, role: "user" | "assistant"): ParsedContent {
+function parseContent(
+  content: unknown,
+  role: "user" | "assistant",
+  toolUseResult?: unknown,
+): ParsedContent {
   const blocks: Block[] = [];
   const toolResults: Array<{ id: string; result: ToolResult }> = [];
   const classes: UserTextClass[] = [];
@@ -249,6 +254,8 @@ function parseContent(content: unknown, role: "user" | "assistant"): ParsedConte
       case "mcp_tool_result": {
         const result = flattenResult(block.content);
         result.isError = block.is_error === true;
+        const answers = answersOf(toolUseResult);
+        if (answers) result.answers = answers;
         toolResults.push({ id: String(block.tool_use_id ?? ""), result });
         break;
       }
@@ -469,7 +476,7 @@ export function feedLine(builder: ThreadBuilder, line: string) {
 
   if (role !== "user") return;
 
-  const parsed = parseContent(entry.message?.content, "user");
+  const parsed = parseContent(entry.message?.content, "user", entry.toolUseResult);
   if (parsed.toolResults.length > 0) builder.attachResults(parsed.toolResults);
 
   const interrupt = parsed.classes.some((item) => item.kind === "interrupt");

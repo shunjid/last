@@ -6,8 +6,15 @@ import { basename, dirname, join, normalize, resolve, sep } from "node:path";
 
 import type { PermissionResult } from "@anthropic-ai/claude-agent-sdk";
 
-import type { PermissionAsk, Question, QuestionAsk, QuestionOption } from "@/lib/types";
-import { editDiff, isMutatingTool, toolDisplayName, toolLanguage, toolSummary } from "@/lib/tools";
+import type { PermissionAsk, QuestionAsk } from "@/lib/types";
+import {
+  editDiff,
+  isMutatingTool,
+  questionsOf,
+  toolDisplayName,
+  toolLanguage,
+  toolSummary,
+} from "@/lib/tools";
 import { registries, type StreamState } from "./registries";
 import { announceRun } from "./run-watch";
 
@@ -236,31 +243,6 @@ export function decide(
   return { ok: true, tool: entry.toolName };
 }
 
-function parseOptions(raw: unknown): QuestionOption[] {
-  if (!Array.isArray(raw)) return [];
-  return raw.map((entry) => {
-    const option = (entry ?? {}) as Record<string, unknown>;
-    return {
-      description: typeof option.description === "string" ? option.description : "",
-      label: typeof option.label === "string" ? option.label : "",
-      preview: typeof option.preview === "string" ? option.preview : null,
-    };
-  });
-}
-
-function parseQuestions(input: Record<string, unknown>): Question[] {
-  if (!Array.isArray(input.questions)) return [];
-  return input.questions.map((entry) => {
-    const question = (entry ?? {}) as Record<string, unknown>;
-    return {
-      header: typeof question.header === "string" ? question.header : "",
-      multiSelect: question.multiSelect === true,
-      options: parseOptions(question.options),
-      question: typeof question.question === "string" ? question.question : "",
-    };
-  });
-}
-
 export function requestQuestion(
   state: StreamState,
   input: Record<string, unknown>,
@@ -293,7 +275,7 @@ export function requestQuestion(
       once: true,
     });
 
-    const ask: QuestionAsk = { questions: parseQuestions(input), requestId };
+    const ask: QuestionAsk = { questions: questionsOf(input), requestId };
     state.pending.set(requestId, {
       frame: { ask, t: "question" },
       input,

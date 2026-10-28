@@ -2,6 +2,7 @@ import "server-only";
 
 import type { SDKMessage } from "@anthropic-ai/claude-agent-sdk";
 
+import { answersOf } from "@/lib/tools";
 import type { ResultStats, StreamFrame, ToolResult } from "@/lib/types";
 
 const MAX_RESULT_CHARS = 20_000;
@@ -256,6 +257,8 @@ export class FrameMapper {
       if (item?.type !== "tool_result" && item?.type !== "web_search_tool_result") continue;
       const result = flattenResult(item.content);
       result.isError = item.is_error === true;
+      const answers = answersOf(raw.tool_use_result);
+      if (answers) result.answers = answers;
       frames.push({ id: String(item.tool_use_id ?? ""), result, sub, t: "tool_result" });
     }
     return frames;

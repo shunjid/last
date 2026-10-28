@@ -47,6 +47,7 @@ export type ToolResult = {
   isError: boolean;
   text: string;
   images: number;
+  answers?: Record<string, string>;
 };
 
 export type Block =

@@ -2,7 +2,7 @@
 
 import { createContext, useContext, useState } from "react";
 
-import { hidesResultOnSuccess, todosOf, toolSections } from "@/lib/tools";
+import { hidesResultOnSuccess, pickOf, questionsOf, todosOf, toolSections } from "@/lib/tools";
 import type { Block, TaskNotice, ThreadItem, Turn } from "@/lib/types";
 
 export type FindHit = { key: string; nth: number };
@@ -27,12 +27,20 @@ export function userText(turn: Turn): string {
 
 function toolText(block: Extract<Block, { kind: "tool" }>): string {
   const todos = block.name === "TodoWrite" ? todosOf(block.input) : null;
+  const questions = block.name === "AskUserQuestion" ? questionsOf(block.input) : [];
+  const result = block.result;
   const parts = todos
     ? todos.map((todo) => todo.content)
-    : toolSections(block.name, block.input).map((section) => section.code);
+    : questions.length > 0
+      ? questions.flatMap((question) => [
+          question.header,
+          question.question,
+          ...question.options.flatMap((option) => [option.label, option.description]),
+          pickOf(question, result?.answers?.[question.question]).custom ?? "",
+        ])
+      : toolSections(block.name, block.input).map((section) => section.code);
   if (block.subText) parts.push(block.subText);
-  const result = block.result;
-  if (result?.text && (result.isError || !hidesResultOnSuccess(block.name))) {
+  if (result?.text && (result.isError || !hidesResultOnSuccess(block.name, result))) {
     parts.push(result.text);
   }
   return parts.join("\n");
