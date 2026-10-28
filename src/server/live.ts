@@ -92,7 +92,7 @@ const hub: Hub =
       unwatchRuns: null,
     },
     pending: new Map(),
-    seq: 0,
+    seq: Date.now(),
     threads: new Map(),
   });
 
@@ -314,6 +314,7 @@ function schedule(thread: LiveThread) {
 }
 
 function createThread(sessionId: string): LiveThread {
+  hub.seq += 1;
   return {
     builder: new ThreadBuilder(),
     carry: "",
