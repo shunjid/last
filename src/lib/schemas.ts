@@ -59,6 +59,12 @@ export const InterruptBodySchema = z.strictObject({
   streamId: z.uuid(),
 });
 
+export const SendNowBodySchema = z.strictObject({
+  prompt: z.string().trim().min(1).max(MAX_PROMPT_CHARS),
+  sessionId: SessionIdSchema.optional(),
+  streamId: z.uuid(),
+});
+
 export const ListSessionsQuerySchema = z.strictObject({
   limit: z.coerce.number().int().min(1).max(500).default(300),
 });

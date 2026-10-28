@@ -56,12 +56,14 @@ export function Composer({
   onModelChange,
   onQueue,
   onSend,
+  onSendNow,
   onStop,
   onUnqueue,
   owner,
   placeholder,
   queue,
   scope,
+  sendingNow,
 }: {
   busy: boolean;
   disabled: boolean;
@@ -76,12 +78,14 @@ export function Composer({
   onModelChange: (model: string) => void;
   onQueue: (prompt: string) => void;
   onSend: (prompt: string) => void;
+  onSendNow?: (id: string) => void;
   onStop: () => void;
   onUnqueue: (id: string) => void;
   owner: "local" | "terminal";
   placeholder: string;
   queue: QueuedMessage[];
   scope: string;
+  sendingNow: QueuedMessage | null;
 }) {
   const [value, setValue] = useState(() => readDraft(scope));
   const [sheetOpen, setSheetOpen] = useState(false);
@@ -153,20 +157,37 @@ export function Composer({
 
   return (
     <div className={styles.dock}>
-      {queue.length > 0 && (
+      {(queue.length > 0 || sendingNow) && (
         <div className={styles.queue}>
-          <span className={styles.queueLabel}>
-            {queue.length} queued ·{" "}
-            {terminal
-              ? "sends when the terminal turn finishes"
-              : busy
-                ? "sends when this turn finishes"
-                : "sends after your next message"}
-          </span>
+          {sendingNow && (
+            <div className={styles.queued}>
+              <span className={styles.queuedText}>{sendingNow.text}</span>
+              <span className={styles.queuedStatus}>Sending now…</span>
+            </div>
+          )}
+          {queue.length > 0 && (
+            <span className={styles.queueLabel}>
+              {queue.length} queued ·{" "}
+              {terminal
+                ? "sends when the terminal turn finishes"
+                : busy
+                  ? "sends when this turn finishes"
+                  : "sends after your next message"}
+            </span>
+          )}
           {queue.map((item, index) => (
             <div className={styles.queued} key={item.id}>
               <span className={styles.queuedIndex}>{index + 1}</span>
               <span className={styles.queuedText}>{item.text}</span>
+              {onSendNow && (
+                <button
+                  className={styles.queuedSendNow}
+                  onClick={() => onSendNow(item.id)}
+                  type="button"
+                >
+                  Send now
+                </button>
+              )}
               <button
                 aria-label="Remove queued message"
                 className={styles.queuedRemove}

@@ -24,6 +24,7 @@ export type StreamState = {
   allowedTools: Set<string>;
   liveSessionId: string | null;
   runner: Query | null;
+  sendNow: { text: string; uuid: string } | null;
   stopped: boolean;
 };
 

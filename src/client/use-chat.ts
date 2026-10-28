@@ -17,6 +17,7 @@ import {
   nextDraftId,
   retry as retryOn,
   send as sendOn,
+  sendNow as sendNowOn,
   setOnCreated,
   stop as stopOn,
   subscribe as subscribeTo,
@@ -48,11 +49,12 @@ export function useChat(target: ChatTarget, onSessionCreated: (sessionId: string
     () => 0,
   );
 
-  const { detail, epoch, loadError, loadedKey, loading, queue, view } = entry;
+  const { detail, epoch, loadError, loadedKey, loading, queue, sendingNow, view } = entry;
   const liveSessionId = entry.sessionId;
   const busy = view.phase === "connecting" || view.phase === "running";
   const terminalBusy = view.activity?.source === "terminal";
   const serverBusy = view.activity?.source === "server";
+  const canSendNow = view.phase === "running" && sendingNow === null;
 
   useEffect(() => {
     setOnCreated(entry, onSessionCreated);
@@ -169,6 +171,8 @@ export function useChat(target: ChatTarget, onSessionCreated: (sessionId: string
 
   const unqueue = useCallback((id: string) => unqueueOn(entry, id), [entry]);
 
+  const sendNow = useCallback((id: string) => sendNowOn(entry, id), [entry]);
+
   const retry = useCallback(() => retryOn(entry), [entry]);
 
   const stop = useCallback(() => stopOn(entry), [entry]);
@@ -193,9 +197,12 @@ export function useChat(target: ChatTarget, onSessionCreated: (sessionId: string
     enqueue,
     loadError,
     loading,
+    canSendNow,
     queue,
     retry,
     send,
+    sendNow,
+    sendingNow,
     serverBusy,
     stop,
     terminalBusy,

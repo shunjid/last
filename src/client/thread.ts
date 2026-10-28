@@ -310,6 +310,13 @@ export function applyFrame(run: RunState, frame: StreamFrame): void {
       return;
     }
 
+    case "prompt": {
+      commitCurrent(run);
+      run.produced.push({ turn: userTurn(frame.text), type: "turn" });
+      run.status = null;
+      return;
+    }
+
     case "error": {
       run.error = frame.message;
       run.phase = "error";

@@ -4,6 +4,7 @@ import type {
   PermissionDecisionBody,
   ProjectSummary,
   QuestionDecisionBody,
+  SendNowBody,
   SessionDetail,
   SessionSummary,
   StreamFrame,
@@ -53,6 +54,15 @@ export async function sendQuestionAnswer(body: QuestionDecisionBody) {
 export async function interruptSession(sessionId: string | null, streamId: string) {
   const response = await fetch("/api/interrupt", {
     body: JSON.stringify(sessionId ? { sessionId, streamId } : { streamId }),
+    headers: JSON_HEADERS,
+    method: "POST",
+  });
+  return unwrap<{ ok: true }>(response);
+}
+
+export async function sendNowToSession(body: SendNowBody) {
+  const response = await fetch("/api/send-now", {
+    body: JSON.stringify(body),
     headers: JSON_HEADERS,
     method: "POST",
   });

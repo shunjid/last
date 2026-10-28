@@ -17,7 +17,13 @@ import type {
 import { DEFAULT_MODEL } from "@/lib/types";
 
 import { setLocalRun } from "./activity";
-import { interruptSession, sendPermission, sendQuestionAnswer, streamChat } from "./api";
+import {
+  interruptSession,
+  sendNowToSession,
+  sendPermission,
+  sendQuestionAnswer,
+  streamChat,
+} from "./api";
 import { applyOps } from "./live";
 import {
   applyFrame,
@@ -85,6 +91,7 @@ export type Entry = {
   retry: PendingSend | null;
   revision: number;
   run: RunState | null;
+  sendingNow: QueuedMessage | null;
   serverRun: ServerRun | null;
   sessionId: string | null;
   stopped: boolean;
@@ -178,6 +185,7 @@ function create(key: string, cwd: string, sessionId: string | null): Entry {
     retry: null,
     revision: 0,
     run: null,
+    sendingNow: null,
     serverRun: null,
     sessionId,
     stopped: false,
@@ -421,6 +429,35 @@ export function unqueue(entry: Entry, id: string) {
   );
 }
 
+function requeueSendingNow(entry: Entry) {
+  const item = entry.sendingNow;
+  entry.sendingNow = null;
+  if (item && !entry.stopped) setQueue(entry, [item, ...entry.queue]);
+  else snapshot(entry);
+}
+
+export async function sendNow(entry: Entry, id: string) {
+  const run = entry.run;
+  const item = entry.queue.find((queued) => queued.id === id);
+  if (!item || !run?.streamId || run.phase !== "running" || entry.sendingNow) return;
+  entry.sendingNow = item;
+  setQueue(
+    entry,
+    entry.queue.filter((queued) => queued.id !== id),
+  );
+  try {
+    await sendNowToSession({
+      prompt: item.text,
+      streamId: run.streamId,
+      ...(entry.sessionId ? { sessionId: entry.sessionId } : {}),
+    });
+  } catch {
+    if (entry.sendingNow !== item) return;
+    requeueSendingNow(entry);
+    drainQueue(entry);
+  }
+}
+
 function drainQueue(entry: Entry) {
   if (isBusy(entry) || entry.stopped || entry.serverRun) return;
   const next = entry.queue[0];
@@ -473,6 +510,8 @@ export async function send(entry: Entry, prompt: string, options: SendOptions) {
     for await (const frame of streamChat(body, controller.signal)) {
       applyFrame(run, frame);
       if (frame.t === "done") ended = true;
+      if (frame.t === "prompt") entry.sendingNow = null;
+      if (frame.t === "unsent") requeueSendingNow(entry);
       if (frame.t === "result") entry.lastStats = frame.stats;
       if (frame.t === "init" && !entry.sessionId && frame.sessionId) {
         entry.sessionId = frame.sessionId;
@@ -508,6 +547,7 @@ export async function send(entry: Entry, prompt: string, options: SendOptions) {
       entry.retry = { anchor, options, prompt: text };
     }
   } finally {
+    if (detached) entry.sendingNow = null;
     setLocalRun(marked, false);
     if (!detached) entry.localRunEndedAt = Date.now();
     run.asks = [];
@@ -542,6 +582,7 @@ export function retry(entry: Entry) {
 export function stop(entry: Entry) {
   const remote = isBusy(entry) ? null : entry.serverRun;
   entry.stopped = true;
+  entry.sendingNow = null;
   entry.controller?.abort();
   setQueue(entry, []);
   const run = entry.run;
