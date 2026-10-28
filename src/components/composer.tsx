@@ -31,6 +31,7 @@ const MODES: Array<{ label: string; value: PermissionMode }> = [
   { label: "Auto-accept edits", value: "acceptEdits" },
   { label: "Plan only", value: "plan" },
   { label: "Auto-approve safe actions", value: "auto" },
+  { label: "Bypass permissions", value: "bypassPermissions" },
 ];
 
 const EFFORT_LABELS: Record<EffortLevel, string> = {

@@ -21,9 +21,9 @@ SDK, so a reply you send here is waiting for you the next time you run `claude -
 - **Permission prompts in the browser.** Allow once, allow for the session, or deny.
 - **Clarifying questions as a proper dialog.** When Claude asks a multiple-choice question, it opens
   as a modal with each option's explanation next to it, not just plain chat text.
-- **Permission modes** in the composer: Ask before changes, Auto-accept edits, Plan only, or Auto
+- **Permission modes** in the composer: Ask before changes, Auto-accept edits, Plan only, Auto
   (Anthropic's own classifier approves or denies routine calls; anything it isn't sure about still
-  asks you).
+  asks you), or Bypass permissions (the CLI's `--dangerously-skip-permissions`: nothing asks).
 - **Model and effort pickers**, and a light / dark / system theme.
 - **Works on a phone.** The sidebar becomes a drawer and the whole app resizes down to a small
   screen.

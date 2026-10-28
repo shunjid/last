@@ -4,7 +4,13 @@ export const MAX_PROMPT_CHARS = 100_000;
 
 export const SessionIdSchema = z.uuid();
 
-export const PermissionModeSchema = z.enum(["default", "acceptEdits", "plan", "auto"]);
+export const PermissionModeSchema = z.enum([
+  "default",
+  "acceptEdits",
+  "plan",
+  "auto",
+  "bypassPermissions",
+]);
 
 export const EffortSchema = z.enum(["low", "medium", "high", "xhigh", "max"]);
 

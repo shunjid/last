@@ -111,6 +111,9 @@ export async function POST(request: Request) {
         ...(useModel ? { model: useModel } : {}),
         ...(useEffort ? { effort: useEffort } : {}),
         ...(sessionId ? { resume: sessionId } : {}),
+        ...(permissionMode === "bypassPermissions"
+          ? { allowDangerouslySkipPermissions: true }
+          : {}),
       };
 
       const run = async () => {
