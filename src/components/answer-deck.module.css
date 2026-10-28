@@ -1,0 +1,98 @@
+.root {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  scroll-margin: calc(var(--chat-top, 64px) + 12px) 0 calc(var(--chat-bottom, 76px) + 12px);
+}
+
+.track {
+  position: relative;
+  display: flex;
+  align-items: flex-start;
+  gap: 12px;
+  overflow-x: auto;
+  overflow-y: hidden;
+  overscroll-behavior-x: contain;
+  scroll-snap-type: x mandatory;
+  scroll-behavior: smooth;
+  scrollbar-width: none;
+}
+
+.track::-webkit-scrollbar {
+  display: none;
+}
+
+.card {
+  flex: 0 0 100%;
+  min-width: 0;
+  padding: 14px 16px 16px;
+  border-radius: var(--last-radius-lg);
+  background: var(--last-surface);
+  scroll-snap-align: start;
+  scroll-snap-stop: always;
+}
+
+.card * {
+  overscroll-behavior-x: contain;
+}
+
+.nav {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+}
+
+.nav .step {
+  width: var(--last-tap);
+  height: var(--last-tap);
+  border: 1px solid var(--last-border-secondary);
+  color: var(--last-fg-default);
+}
+
+.where {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 4px;
+  min-width: 0;
+}
+
+.dots {
+  display: flex;
+  gap: 6px;
+}
+
+.dot {
+  width: 6px;
+  height: 6px;
+  border-radius: var(--last-radius-full);
+  background: var(--last-surface-highest);
+  transition:
+    width var(--last-duration-md) var(--last-ease-standard),
+    background var(--last-duration-md) var(--last-ease-standard);
+}
+
+.on {
+  width: 18px;
+  background: var(--last-bg-accent);
+}
+
+.label {
+  max-width: 100%;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  font-size: 12px;
+  color: var(--last-fg-tertiary);
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .track {
+    scroll-behavior: auto;
+  }
+
+  .dot {
+    transition: none;
+  }
+}

@@ -4,6 +4,7 @@ export { default as IconArrowUp } from "@mui/icons-material/ArrowUpward";
 export { default as IconBan } from "@mui/icons-material/Block";
 export { default as IconBrain } from "@mui/icons-material/Psychology";
 export { default as IconCheck } from "@mui/icons-material/Check";
+export { default as IconChevronLeft } from "@mui/icons-material/ChevronLeft";
 export { default as IconChevronRight } from "@mui/icons-material/ChevronRight";
 export { default as IconCircleExclamation } from "@mui/icons-material/ErrorOutlineOutlined";
 export { default as IconCircleStop } from "@mui/icons-material/StopCircle";

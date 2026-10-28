@@ -79,6 +79,11 @@
   }
 }
 
+.whole {
+  font-size: 13px;
+  color: var(--last-fg-secondary);
+}
+
 @media (pointer: coarse) {
   .tools {
     margin: -6px 0 -6px -6px;
@@ -87,6 +92,10 @@
   .tools .copy {
     width: var(--last-tap);
     height: var(--last-tap);
+  }
+
+  .tools .whole {
+    min-height: var(--last-tap);
   }
 }
 
