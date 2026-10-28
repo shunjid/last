@@ -41,7 +41,7 @@ function segmentBlocks(blocks: Block[], liveIndex: number | null): Segment[] {
   };
 
   blocks.forEach((block, index) => {
-    if (block.kind === "tool") {
+    if (block.kind === "tool" && block.name !== "AskUserQuestion") {
       if (run.length === 0) runStart = index;
       run.push(block);
       return;

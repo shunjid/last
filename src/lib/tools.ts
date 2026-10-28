@@ -1,4 +1,5 @@
 import { basename, truncateMiddle } from "@/lib/format";
+import type { Question, ToolResult } from "@/lib/types";
 
 type ToolInput = Record<string, unknown>;
 
@@ -55,6 +56,12 @@ export function toolSummary(name: string, rawInput: unknown): string {
       return str(input, "skill") ?? "";
     case "SendMessage":
       return str(input, "to") ?? "";
+    case "AskUserQuestion": {
+      const questions = questionsOf(input);
+      if (questions.length === 0) return "";
+      const more = questions.length > 1 ? ` (+${questions.length - 1} more)` : "";
+      return `${truncateMiddle(questions[0].question, 80)}${more}`;
+    }
     default: {
       const firstString = Object.values(input).find(
         (value): value is string => typeof value === "string" && value.length > 0,
@@ -78,15 +85,20 @@ export function toolDisplayName(name: string): string {
   return `${match[2]} (${shortServer(match[1])})`;
 }
 
-const OPENS_BY_DEFAULT = new Set(["ExitPlanMode", "exit_plan_mode", "TodoWrite"]);
+const OPENS_BY_DEFAULT = new Set([
+  "AskUserQuestion",
+  "ExitPlanMode",
+  "exit_plan_mode",
+  "TodoWrite",
+]);
 const QUIET_ON_SUCCESS = new Set(["Edit", "NotebookEdit", "TodoWrite", "Write"]);
 
 export function opensByDefault(name: string): boolean {
   return OPENS_BY_DEFAULT.has(name);
 }
 
-export function hidesResultOnSuccess(name: string): boolean {
-  return QUIET_ON_SUCCESS.has(name);
+export function hidesResultOnSuccess(name: string, result: ToolResult | null): boolean {
+  return QUIET_ON_SUCCESS.has(name) || result?.answers !== undefined;
 }
 
 const WRAPPER_TAG = /<\/?(?:tool_use_error|error|system-reminder)>/g;
@@ -120,6 +132,48 @@ export function todoHeadline(todos: Todo[]): string {
   const running = todos.find((todo) => todo.status === "in_progress");
   const label = running ? truncateMiddle(running.content, 60) : "Task list";
   return `${label} — ${done}/${todos.length}`;
+}
+
+export function questionsOf(rawInput: unknown): Question[] {
+  const rows = asRecord(rawInput).questions;
+  if (!Array.isArray(rows)) return [];
+  return rows.map((row) => {
+    const question = asRecord(row);
+    const options = Array.isArray(question.options) ? question.options : [];
+    return {
+      header: str(question, "header") ?? "",
+      multiSelect: question.multiSelect === true,
+      options: options.map((entry) => {
+        const option = asRecord(entry);
+        return {
+          description: str(option, "description") ?? "",
+          label: str(option, "label") ?? "",
+          preview: str(option, "preview"),
+        };
+      }),
+      question: str(question, "question") ?? "",
+    };
+  });
+}
+
+export function answersOf(rawResult: unknown): Record<string, string> | null {
+  const entries = Object.entries(asRecord(asRecord(rawResult).answers)).filter(
+    (entry): entry is [string, string] => typeof entry[1] === "string",
+  );
+  return entries.length > 0 ? Object.fromEntries(entries) : null;
+}
+
+export type QuestionPick = { chosen: Set<string>; custom: string | null };
+
+export function pickOf(question: Question, answer: string | undefined): QuestionPick {
+  if (answer === undefined) return { chosen: new Set(), custom: null };
+  const labels = new Set(question.options.map((option) => option.label));
+  const parts = question.multiSelect ? answer.split(", ") : [answer];
+  const custom = parts.filter((part) => !labels.has(part)).join(", ");
+  return {
+    chosen: new Set(parts.filter((part) => labels.has(part))),
+    custom: custom.trim() ? custom : null,
+  };
 }
 
 const PATH_LANGUAGE_TOOLS = new Set(["NotebookRead", "Read", "Write"]);

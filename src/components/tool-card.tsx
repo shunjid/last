@@ -8,6 +8,7 @@ import {
   errorHeadline,
   hidesResultOnSuccess,
   opensByDefault,
+  questionsOf,
   todosOf,
   toolDisplayName,
   toolSections,
@@ -22,6 +23,7 @@ import {
   IconFileLines,
   IconFolderOpen,
   IconGlobe,
+  IconHelp,
   IconListCheck,
   IconPen,
   IconPuzzlePiece,
@@ -30,6 +32,7 @@ import {
   IconTerminal,
   IconToolbox,
 } from "./icons";
+import { QuestionList } from "./question-list";
 import { TodoList } from "./todo-list";
 import styles from "./tool-card.module.css";
 
@@ -37,6 +40,7 @@ type ToolBlock = Extract<Block, { kind: "tool" }>;
 
 const ICONS: Record<string, ReactNode> = {
   Agent: <IconSubAgent />,
+  AskUserQuestion: <IconHelp />,
   Bash: <IconTerminal />,
   BashOutput: <IconTerminal />,
   Edit: <IconPen />,
@@ -64,10 +68,12 @@ export const ToolCard = memo(function ToolCard({ block }: { block: ToolBlock }) 
   const [open, setOpen] = useRevealOpen(opensByDefault(block.name), block.id);
 
   const todos = block.name === "TodoWrite" ? todosOf(block.input) : null;
+  const questions = block.name === "AskUserQuestion" ? questionsOf(block.input) : [];
+  const asking = questions.length > 0;
   const summary = toolSummary(block.name, block.input);
   const headline = failed && block.result?.text ? errorHeadline(block.result.text) : null;
-  const sections = open && !todos ? toolSections(block.name, block.input) : [];
-  const quiet = !failed && hidesResultOnSuccess(block.name);
+  const sections = open && !todos && !asking ? toolSections(block.name, block.input) : [];
+  const quiet = !failed && hidesResultOnSuccess(block.name, block.result);
 
   return (
     <div
@@ -105,6 +111,8 @@ export const ToolCard = memo(function ToolCard({ block }: { block: ToolBlock }) 
         <div className={styles.body} data-find={block.id}>
           {todos && <TodoList todos={todos} />}
 
+          {asking && <QuestionList answers={block.result?.answers ?? null} questions={questions} />}
+
           {sections.map((section) => (
             <CodeBlock
               code={section.code}
@@ -141,7 +149,7 @@ export const ToolCard = memo(function ToolCard({ block }: { block: ToolBlock }) 
             )
           ) : (
             <p className={styles.empty} data-find-skip>
-              Still running…
+              {asking ? "Waiting for an answer…" : "Still running…"}
             </p>
           )}
         </div>
