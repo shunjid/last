@@ -20,6 +20,7 @@ import {
   paintFind,
   revealFind,
 } from "@/client/find";
+import { STEER_EVENT } from "@/client/steer";
 import type { ChatView } from "@/client/use-chat";
 import { cost, duration, tokens } from "@/lib/format";
 import type { PermissionAsk, ResultStats } from "@/lib/types";
@@ -138,6 +139,13 @@ export function ThreadView({
     autoUntilRef.current = 0;
     setPin(false);
   }, [setPin]);
+
+  useEffect(() => {
+    const node = viewportRef.current;
+    if (!node) return;
+    node.addEventListener(STEER_EVENT, takeControl);
+    return () => node.removeEventListener(STEER_EVENT, takeControl);
+  }, [takeControl]);
 
   const onTouchStart = useCallback(() => {
     gestureTopRef.current = viewportRef.current?.scrollTop ?? 0;

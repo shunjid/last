@@ -1,13 +1,17 @@
 "use client";
 
+import Button from "@mui/material/Button";
 import IconButton from "@mui/material/IconButton";
 import Tooltip from "@mui/material/Tooltip";
-import { memo } from "react";
+import { memo, useMemo, useState } from "react";
 
 import { userText } from "@/client/find";
 import { useCopy } from "@/client/use-copy";
+import { PHONE_QUERY, useMediaQuery } from "@/client/use-media-query";
+import { answerCards } from "@/lib/cards";
 import type { Block, Turn } from "@/lib/types";
 
+import { AnswerDeck } from "./answer-deck";
 import { IconCheck, IconCopy, IconFileLines, IconImage } from "./icons";
 import { Markdown } from "./markdown";
 import styles from "./turn-bubble.module.css";
@@ -54,9 +58,20 @@ function segmentBlocks(blocks: Block[], liveIndex: number | null): Segment[] {
   return segments;
 }
 
-function BlockView({ block, findKey, live }: { block: Block; findKey: string; live: boolean }) {
+function BlockView({
+  block,
+  cards,
+  findKey,
+  live,
+}: {
+  block: Block;
+  cards?: string[] | null;
+  findKey: string;
+  live: boolean;
+}) {
   switch (block.kind) {
     case "text":
+      if (cards) return <AnswerDeck cards={cards} findKey={findKey} />;
       return (
         <div data-find={findKey}>
           <Markdown text={block.text} />
@@ -118,24 +133,25 @@ function CopyAnswer({ text }: { text: string }) {
   const { copied, copy } = useCopy(text);
 
   return (
-    <div className={styles.tools}>
-      <Tooltip title={copied ? "Copied" : "Copy answer"}>
-        <IconButton aria-label="Copy answer" className={styles.copy} onClick={copy}>
-          {copied ? <IconCheck /> : <IconCopy />}
-        </IconButton>
-      </Tooltip>
-    </div>
+    <Tooltip title={copied ? "Copied" : "Copy answer"}>
+      <IconButton aria-label="Copy answer" className={styles.copy} onClick={copy}>
+        {copied ? <IconCheck /> : <IconCopy />}
+      </IconButton>
+    </Tooltip>
   );
 }
 
-export const TurnBubble = memo(function TurnBubble({
-  live = false,
-  turn,
-}: {
-  live?: boolean;
-  turn: Turn;
-}) {
-  if (turn.role === "user") return <UserTurn turn={turn} />;
+function AssistantTurn({ live, turn }: { live: boolean; turn: Turn }) {
+  const phone = useMediaQuery(PHONE_QUERY);
+  const [whole, setWhole] = useState(false);
+  const decks = useMemo(
+    () =>
+      phone && !live
+        ? turn.blocks.map((block) => (block.kind === "text" ? answerCards(block.text) : null))
+        : null,
+    [live, phone, turn.blocks],
+  );
+  const decked = decks?.some(Boolean) ?? false;
 
   const lastIndex = turn.blocks.length - 1;
   const answer = turn.blocks
@@ -155,6 +171,7 @@ export const TurnBubble = memo(function TurnBubble({
           ) : (
             <BlockView
               block={segment.block}
+              cards={whole ? null : decks?.[segment.index]}
               findKey={`${turn.id}:${segment.index}`}
               key={segment.index}
               live={live && segment.index === lastIndex}
@@ -163,7 +180,32 @@ export const TurnBubble = memo(function TurnBubble({
         )}
       </div>
 
-      {!live && answer && <CopyAnswer text={answer} />}
+      {!live && answer && (
+        <div className={styles.tools}>
+          <CopyAnswer text={answer} />
+          {decked && (
+            <Button
+              className={styles.whole}
+              color="inherit"
+              onClick={() => setWhole((value) => !value)}
+              variant="text"
+            >
+              {whole ? "Show as cards" : "Show all"}
+            </Button>
+          )}
+        </div>
+      )}
     </div>
   );
+}
+
+export const TurnBubble = memo(function TurnBubble({
+  live = false,
+  turn,
+}: {
+  live?: boolean;
+  turn: Turn;
+}) {
+  if (turn.role === "user") return <UserTurn turn={turn} />;
+  return <AssistantTurn live={live} turn={turn} />;
 });

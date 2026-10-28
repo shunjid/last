@@ -27,6 +27,8 @@ SDK, so a reply you send here is waiting for you the next time you run `claude -
 - **Model and effort pickers**, and a light / dark / system theme.
 - **Works on a phone.** The sidebar becomes a drawer and the whole app resizes down to a small
   screen.
+- **Long replies as cards on a phone.** A long answer splits at its headings and bold labels into
+  a deck you swipe through one card at a time. Show all turns it back into the whole reply.
 - **Search this session.** `⌘F` finds text in prompts, replies, thinking and tool calls of the
   open session, opens the card that holds each match, and steps through them newest first.
 - **Keyboard first.** `⌘K` session palette, `⌘F` search this session, `⌘B` sidebar, `Esc` stops a
