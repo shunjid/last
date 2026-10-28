@@ -1,0 +1,73 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <meta name="color-scheme" content="light dark" />
+    <title>LAST is not running</title>
+    <style>
+      :root {
+        color-scheme: light dark;
+        --bg: #f6fbf9;
+        --fg: #0f201b;
+        --muted: #5b6963;
+        --code: #e9f1ed;
+      }
+      @media (prefers-color-scheme: dark) {
+        :root {
+          --bg: #121714;
+          --fg: #e4ece8;
+          --muted: #98a7a1;
+          --code: #232b27;
+        }
+      }
+      body {
+        margin: 0;
+        min-height: 100vh;
+        display: grid;
+        place-items: center;
+        background: var(--bg);
+        color: var(--fg);
+        font-family: system-ui, sans-serif;
+      }
+      main {
+        max-width: 28rem;
+        padding: 2rem;
+        text-align: center;
+      }
+      img {
+        width: 64px;
+        height: 64px;
+      }
+      h1 {
+        font-size: 1.375rem;
+        font-weight: 500;
+        margin: 1.5rem 0 0.5rem;
+      }
+      p {
+        color: var(--muted);
+        line-height: 1.5;
+        margin: 0 0 1rem;
+      }
+      code {
+        background: var(--code);
+        border-radius: 6px;
+        padding: 0.125rem 0.375rem;
+        font-size: 0.875rem;
+      }
+      a {
+        color: inherit;
+      }
+    </style>
+  </head>
+  <body>
+    <main>
+      <img src="/icons/icon-192.png" alt="" />
+      <h1>LAST is not running</h1>
+      <p>
+        Start the server with <code>pm2 restart last</code> or <code>npm start</code>, then reload.
+      </p>
+      <p><a href="/">Reload</a></p>
+    </main>
+  </body>
+</html>

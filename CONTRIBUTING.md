@@ -186,6 +186,11 @@ Outside of that it writes nothing but your browser's `localStorage`:
 | `last-mode`         | Theme mode (MUI)                  |
 | `last-color-scheme` | Resolved colour scheme (MUI)      |
 
+The production build also registers a service worker at `/sw.js`, which keeps `/offline.html`, one icon
+and the favicon in Cache Storage under `last-shell-v*`. When the server is down, page loads show that
+offline page instead of a connection error. It never caches pages or API responses. The web app
+manifest lets Chromium browsers and Safari install LAST as a standalone app on `127.0.0.1:4123`.
+
 No telemetry. No analytics. No server-side database. No account. No network calls except the Claude
 API reached through your CLI credentials.
 

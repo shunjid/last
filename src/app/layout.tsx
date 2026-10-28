@@ -3,6 +3,8 @@ import type { Metadata, Viewport } from "next";
 import { Google_Sans, Google_Sans_Code } from "next/font/google";
 import { headers } from "next/headers";
 
+import { ServiceWorker } from "@/components/service-worker";
+
 import { Providers } from "./providers";
 import "./globals.css";
 
@@ -10,6 +12,8 @@ const sans = Google_Sans({ display: "swap", subsets: ["latin"], variable: "--fon
 const mono = Google_Sans_Code({ display: "swap", subsets: ["latin"], variable: "--font-mono" });
 
 export const metadata: Metadata = {
+  applicationName: "LAST",
+  appleWebApp: { capable: true, statusBarStyle: "default", title: "LAST" },
   description: "LAST — browse and continue your local Claude Code terminal sessions.",
   title: "LAST",
 };
@@ -41,6 +45,7 @@ export default async function RootLayout({ children }: LayoutProps<"/">) {
         <div id="app-root">
           <Providers nonce={nonce}>{children}</Providers>
         </div>
+        <ServiceWorker />
       </body>
     </html>
   );
