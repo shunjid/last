@@ -23,15 +23,11 @@
   flex: 0 0 100%;
   min-width: 0;
   overflow-y: auto;
-  overscroll-behavior: contain;
+  overscroll-behavior-y: contain;
   padding: calc(env(safe-area-inset-top) + 24px) calc(env(safe-area-inset-right) + 20px)
     calc(env(safe-area-inset-bottom) + 96px) calc(env(safe-area-inset-left) + 20px);
   scroll-snap-align: start;
   scroll-snap-stop: always;
-}
-
-.card * {
-  overscroll-behavior-x: contain;
 }
 
 .bar {
