@@ -53,6 +53,7 @@ export function ChatPane({
 }) {
   const {
     busy,
+    canSendNow,
     decide,
     decideQuestion,
     detail,
@@ -62,6 +63,8 @@ export function ChatPane({
     queue,
     retry,
     send,
+    sendNow,
+    sendingNow,
     serverBusy,
     stop,
     terminalBusy,
@@ -264,6 +267,7 @@ export function ChatPane({
           onModelChange={pickModel}
           onQueue={(prompt) => enqueue(prompt, options)}
           onSend={(prompt) => void send(prompt, options)}
+          onSendNow={canSendNow ? (id) => void sendNow(id) : undefined}
           onStop={() => void stop()}
           onUnqueue={unqueue}
           owner={terminalBusy ? "terminal" : "local"}
@@ -272,6 +276,7 @@ export function ChatPane({
           }
           queue={queue}
           scope={scope}
+          sendingNow={sendingNow}
         />
       </div>
 

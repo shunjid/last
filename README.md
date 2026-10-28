@@ -24,6 +24,9 @@ SDK, so a reply you send here is waiting for you the next time you run `claude -
 - **Permission modes** in the composer: Ask before changes, Auto-accept edits, Plan only, Auto
   (Anthropic's own classifier approves or denies routine calls; anything it isn't sure about still
   asks you), or Bypass permissions (the CLI's `--dangerously-skip-permissions`: nothing asks).
+- **Queue while Claude works, or send now.** A message typed during a turn waits in a queue. Its
+  Send now button cuts in like `ctrl+x ctrl+s` in the terminal: Claude stops what it's doing and
+  answers the message straight away, keeping everything it had already done.
 - **Model and effort pickers**, and a light / dark / system theme.
 - **Works on a phone.** The sidebar becomes a drawer and the whole app resizes down to a small
   screen.

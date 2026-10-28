@@ -14,6 +14,7 @@ import { registerQuery, unregisterQuery, withSessionLock } from "@/server/regist
 import { releaseRun, tryAcquireRun } from "@/server/run-guard";
 import { announceRun } from "@/server/run-watch";
 import { FrameMapper } from "@/server/sdk-frames";
+import { answersSendNow } from "@/server/send-now";
 import { invalidateCwdAllowlist, resolveChatCwd } from "@/server/sessions";
 import { settingSources } from "@/server/settings";
 
@@ -122,6 +123,14 @@ export async function POST(request: Request) {
         state.runner = runner;
         try {
           for await (const message of runner as AsyncIterable<SDKMessage>) {
+            const pending = state.sendNow;
+            if (pending && answersSendNow(message, pending.uuid)) {
+              state.sendNow = null;
+              if (state.stopped) void runner.interrupt().catch(() => undefined);
+              else send({ t: "prompt", text: pending.text });
+            } else if (pending && message.type === "result" && message.is_error) {
+              continue;
+            }
             for (const frame of mapper.map(message)) {
               if (frame.t === "init") {
                 liveSessionId = frame.sessionId;
@@ -146,6 +155,7 @@ export async function POST(request: Request) {
       } finally {
         request.signal.removeEventListener("abort", close);
         invalidateCwdAllowlist();
+        if (state.sendNow) send({ t: "unsent" });
         send({ t: "done" });
         closeStream(state.streamId, "The turn ended");
         if (liveSessionId) unregisterQuery(liveSessionId, state.runner ?? undefined);

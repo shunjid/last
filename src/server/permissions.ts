@@ -33,6 +33,7 @@ export function openStream(cwd: string): StreamState {
     liveSessionId: null,
     pending: new Map(),
     runner: null,
+    sendNow: null,
     startedAt: Date.now(),
     stopped: false,
     streamId,

@@ -240,6 +240,8 @@ export type StreamFrame =
   | { t: "result"; stats: ResultStats }
   | { t: "notice"; level: "info" | "warning" | "danger"; message: string; detail?: string }
   | { t: "error"; message: string }
+  | { t: "prompt"; text: string }
+  | { t: "unsent" }
   | { t: "done" };
 
 export type ChatRequestBody = {
@@ -257,6 +259,8 @@ export type PermissionDecisionBody = {
   decision: "allow" | "deny";
   scope: "once" | "session";
 };
+
+export type SendNowBody = { streamId: string; sessionId?: string; prompt: string };
 
 export type QuestionDecisionBody =
   | { streamId: string; requestId: string; decision: "answer"; answers: Record<string, string> }
