@@ -1,4 +1,4 @@
-.paper {
+.deck .paper {
   position: relative;
   overflow: hidden;
   background: var(--last-bg-page);
