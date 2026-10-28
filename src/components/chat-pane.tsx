@@ -4,6 +4,7 @@ import IconButton from "@mui/material/IconButton";
 import { useCallback, useEffect, useLayoutEffect, useMemo, useRef, useState } from "react";
 
 import { AUTO_EFFORT, useEffortPref, useModelPref } from "@/client/prefs";
+import { SessionIdentity } from "@/client/session-identity";
 import { useChat, type ChatTarget } from "@/client/use-chat";
 import { SHEET_QUERY, useMediaQuery } from "@/client/use-media-query";
 import { useTitleSignal } from "@/client/use-title-signal";
@@ -136,6 +137,7 @@ export function ChatPane({
   const title = detail?.title ?? summary?.title ?? "New chat";
   const cwd = detail?.cwd ?? summary?.cwd ?? target.cwd;
   const branch = detail?.gitBranch ?? summary?.gitBranch ?? null;
+  const identity = useMemo(() => ({ branch, cwd, title }), [branch, cwd, title]);
   const fresh = !target.sessionId && view.items.length === 0 && !view.live && !busy;
 
   const openFind = useCallback(() => {
@@ -229,18 +231,20 @@ export function ChatPane({
       {fresh ? (
         <EmptyState cwd={cwd} home={home} onPick={(prompt) => void send(prompt, options)} />
       ) : (
-        <ThreadView
-          findInputRef={findInputRef}
-          findOpen={findOpen}
-          loading={loading}
-          onCloseFind={() => setFindOpen(false)}
-          onDecide={(ask, decision, scope) => void decide(ask, decision, scope)}
-          onHideBars={sheet ? hideBars : undefined}
-          onRetry={view.canRetry ? retry : undefined}
-          onShowBars={showBars}
-          onStop={() => void stop()}
-          view={{ ...view, error: view.error ?? loadError }}
-        />
+        <SessionIdentity.Provider value={identity}>
+          <ThreadView
+            findInputRef={findInputRef}
+            findOpen={findOpen}
+            loading={loading}
+            onCloseFind={() => setFindOpen(false)}
+            onDecide={(ask, decision, scope) => void decide(ask, decision, scope)}
+            onHideBars={sheet ? hideBars : undefined}
+            onRetry={view.canRetry ? retry : undefined}
+            onShowBars={showBars}
+            onStop={() => void stop()}
+            view={{ ...view, error: view.error ?? loadError }}
+          />
+        </SessionIdentity.Provider>
       )}
 
       <div className={styles.bottom} onFocus={showBars} ref={bottomRef}>
