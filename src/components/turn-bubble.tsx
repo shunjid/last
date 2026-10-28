@@ -140,7 +140,11 @@ function AssistantTurn({ live, turn }: { live: boolean; turn: Turn }) {
     .map((block) => block.text)
     .join("\n\n")
     .trim();
-  const cards = useMemo(() => (phone && !live ? answerCards(answer) : null), [answer, live, phone]);
+  const finalText = turn.blocks.findLast((block) => block.kind === "text")?.text ?? "";
+  const cards = useMemo(
+    () => (phone && !live ? answerCards(finalText) : null),
+    [finalText, live, phone],
+  );
 
   const segments = segmentBlocks(turn.blocks, live ? lastIndex : null);
 

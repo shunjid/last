@@ -12,7 +12,13 @@ export function AnswerDeck({ cards, onClose }: { cards: string[]; onClose: () =>
   const [index, setIndex] = useState(0);
 
   return (
-    <Dialog fullScreen onClose={onClose} open slotProps={{ paper: { className: styles.paper } }}>
+    <Dialog
+      className={styles.deck}
+      fullScreen
+      onClose={onClose}
+      open
+      slotProps={{ paper: { className: styles.paper } }}
+    >
       <div
         className={styles.track}
         onScroll={(event) => {
