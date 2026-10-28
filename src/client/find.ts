@@ -206,10 +206,7 @@ export function revealFind(
   const measure = () => (range ?? anchor).getBoundingClientRect();
 
   for (let node = anchor.parentElement; node && node !== viewport; node = node.parentElement) {
-    if (
-      node.scrollHeight > node.clientHeight + 1 &&
-      getComputedStyle(node).overflowY !== "hidden"
-    ) {
+    if (node.scrollHeight > node.clientHeight + 1) {
       const box = measure();
       const frame = node.getBoundingClientRect();
       node.scrollTop += box.top + box.height / 2 - (frame.top + frame.height / 2);

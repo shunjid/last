@@ -58,20 +58,9 @@ function segmentBlocks(blocks: Block[], liveIndex: number | null): Segment[] {
   return segments;
 }
 
-function BlockView({
-  block,
-  cards,
-  findKey,
-  live,
-}: {
-  block: Block;
-  cards?: string[] | null;
-  findKey: string;
-  live: boolean;
-}) {
+function BlockView({ block, findKey, live }: { block: Block; findKey: string; live: boolean }) {
   switch (block.kind) {
     case "text":
-      if (cards) return <AnswerDeck cards={cards} findKey={findKey} />;
       return (
         <div data-find={findKey}>
           <Markdown text={block.text} />
@@ -143,15 +132,7 @@ function CopyAnswer({ text }: { text: string }) {
 
 function AssistantTurn({ live, turn }: { live: boolean; turn: Turn }) {
   const phone = useMediaQuery(PHONE_QUERY);
-  const [whole, setWhole] = useState(false);
-  const decks = useMemo(
-    () =>
-      phone && !live
-        ? turn.blocks.map((block) => (block.kind === "text" ? answerCards(block.text) : null))
-        : null,
-    [live, phone, turn.blocks],
-  );
-  const decked = decks?.some(Boolean) ?? false;
+  const [deckOpen, setDeckOpen] = useState(false);
 
   const lastIndex = turn.blocks.length - 1;
   const answer = turn.blocks
@@ -159,6 +140,7 @@ function AssistantTurn({ live, turn }: { live: boolean; turn: Turn }) {
     .map((block) => block.text)
     .join("\n\n")
     .trim();
+  const cards = useMemo(() => (phone && !live ? answerCards(answer) : null), [answer, live, phone]);
 
   const segments = segmentBlocks(turn.blocks, live ? lastIndex : null);
 
@@ -171,7 +153,6 @@ function AssistantTurn({ live, turn }: { live: boolean; turn: Turn }) {
           ) : (
             <BlockView
               block={segment.block}
-              cards={whole ? null : decks?.[segment.index]}
               findKey={`${turn.id}:${segment.index}`}
               key={segment.index}
               live={live && segment.index === lastIndex}
@@ -183,18 +164,20 @@ function AssistantTurn({ live, turn }: { live: boolean; turn: Turn }) {
       {!live && answer && (
         <div className={styles.tools}>
           <CopyAnswer text={answer} />
-          {decked && (
+          {cards && (
             <Button
-              className={styles.whole}
+              className={styles.asCards}
               color="inherit"
-              onClick={() => setWhole((value) => !value)}
+              onClick={() => setDeckOpen(true)}
               variant="text"
             >
-              {whole ? "Show as cards" : "Show all"}
+              Show as cards
             </Button>
           )}
         </div>
       )}
+
+      {deckOpen && cards && <AnswerDeck cards={cards} onClose={() => setDeckOpen(false)} />}
     </div>
   );
 }
