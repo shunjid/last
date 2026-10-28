@@ -79,7 +79,7 @@
   }
 }
 
-.whole {
+.asCards {
   font-size: 13px;
   color: var(--last-fg-secondary);
 }
@@ -94,7 +94,7 @@
     height: var(--last-tap);
   }
 
-  .tools .whole {
+  .tools .asCards {
     min-height: var(--last-tap);
   }
 }

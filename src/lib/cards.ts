@@ -6,7 +6,6 @@ const FENCE = /^ {0,3}(`{3,}|~{3,})/;
 const HEADING = /^#{1,4}\s/;
 const LABEL = /^\*\*[^*\n]+\*\*/;
 const RULE = /^(?:-{3,}|\*{3,}|_{3,})\s*$/;
-const TITLE = /^(?:#{1,4}\s+(.+)|\*\*([^*\n]+)\*\*)/;
 
 function sections(text: string): string[] {
   const parts: string[][] = [[]];
@@ -54,10 +53,4 @@ export function answerCards(text: string): string[] | null {
   if (carry && cards.length > 0) cards[cards.length - 1] += `\n\n${carry}`;
 
   return cards.length >= MIN_CARDS ? cards : null;
-}
-
-export function cardTitle(card: string): string | null {
-  const match = TITLE.exec(card.split("\n", 1)[0]);
-  const title = (match?.[1] ?? match?.[2] ?? "").replace(/[`*]/g, "").replace(/[:.]$/, "").trim();
-  return title || null;
 }
