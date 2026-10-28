@@ -2,13 +2,17 @@
 
 import Dialog from "@mui/material/Dialog";
 import IconButton from "@mui/material/IconButton";
-import { useState } from "react";
+import { useContext, useState } from "react";
+
+import { SessionIdentity } from "@/client/session-identity";
+import { basename, truncateMiddle } from "@/lib/format";
 
 import styles from "./answer-deck.module.css";
-import { IconXmark } from "./icons";
+import { IconCodeBranch, IconFolder, IconXmark } from "./icons";
 import { Markdown } from "./markdown";
 
 export function AnswerDeck({ cards, onClose }: { cards: string[]; onClose: () => void }) {
+  const { branch, cwd, title } = useContext(SessionIdentity);
   const [index, setIndex] = useState(0);
 
   return (
@@ -19,6 +23,22 @@ export function AnswerDeck({ cards, onClose }: { cards: string[]; onClose: () =>
       open
       slotProps={{ paper: { className: styles.paper } }}
     >
+      <div className={styles.head}>
+        <span className={styles.title}>{title}</span>
+        <span className={styles.chips}>
+          <span className={styles.chip}>
+            <IconFolder />
+            <span className={styles.chipLabel}>{cwd ? basename(cwd) : "unknown"}</span>
+          </span>
+          {branch && (
+            <span className={styles.chip}>
+              <IconCodeBranch />
+              <span className={styles.chipLabel}>{truncateMiddle(branch, 28)}</span>
+            </span>
+          )}
+        </span>
+      </div>
+
       <div
         className={styles.track}
         onScroll={(event) => {
