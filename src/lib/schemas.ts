@@ -1,5 +1,7 @@
 import { z } from "zod";
 
+import { DEFAULT_MODE } from "./types";
+
 export const MAX_PROMPT_CHARS = 100_000;
 
 export const SessionIdSchema = z.uuid();
@@ -25,7 +27,7 @@ export const ChatBodySchema = z
       .max(120)
       .regex(/^[\w.:@[\]-]+$/)
       .optional(),
-    permissionMode: PermissionModeSchema.default("default"),
+    permissionMode: PermissionModeSchema.default(DEFAULT_MODE),
     prompt: z.string().trim().min(1).max(MAX_PROMPT_CHARS),
     sessionId: SessionIdSchema.optional(),
   })

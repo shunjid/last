@@ -11,7 +11,7 @@ import { readDraft, writeDraft } from "@/client/drafts";
 import { AUTO_EFFORT } from "@/client/prefs";
 import type { QueuedMessage } from "@/client/use-chat";
 import { COARSE_QUERY, useMediaQuery } from "@/client/use-media-query";
-import type { EffortLevel, ModelChoice, PermissionMode } from "@/lib/types";
+import { DEFAULT_MODE, type EffortLevel, type ModelChoice, type PermissionMode } from "@/lib/types";
 
 import styles from "./composer.module.css";
 import { ComposerSheet } from "./composer-sheet";
@@ -289,7 +289,7 @@ export function Composer({
           <IconButton
             aria-haspopup="dialog"
             aria-label={
-              mode === "default"
+              mode === DEFAULT_MODE
                 ? "Mode, model and effort"
                 : `Mode, model and effort · ${MODES.find((option) => option.value === mode)?.label}`
             }
@@ -298,7 +298,7 @@ export function Composer({
             onClick={() => setSheetOpen(true)}
           >
             <IconMoreHoriz />
-            {mode !== "default" && <span className={styles.flag} />}
+            {mode !== DEFAULT_MODE && <span className={styles.flag} />}
           </IconButton>
 
           <span className={styles.hint}>

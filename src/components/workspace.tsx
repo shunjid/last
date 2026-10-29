@@ -7,7 +7,13 @@ import { nextDraftId, type ChatTarget } from "@/client/use-chat";
 import { COMPACT_QUERY, useMediaQuery } from "@/client/use-media-query";
 import { useModels } from "@/client/use-models";
 import { useSessionList, type SessionListPush } from "@/client/use-session-list";
-import type { FolderChoice, PermissionMode, ProjectSummary, SessionSummary } from "@/lib/types";
+import {
+  DEFAULT_MODE,
+  type FolderChoice,
+  type PermissionMode,
+  type ProjectSummary,
+  type SessionSummary,
+} from "@/lib/types";
 
 import { ChatPane } from "./chat-pane";
 import { CommandPalette } from "./command-palette";
@@ -64,7 +70,7 @@ export function Workspace({
   const [paletteOpen, setPaletteOpen] = useState(false);
   const [pickerOpen, setPickerOpen] = useState(false);
   const [groupScope, setGroupScope] = useState<{ cwd: string; label: string } | null>(null);
-  const [mode, setMode] = useState<PermissionMode>("default");
+  const [mode, setMode] = useState<PermissionMode>(DEFAULT_MODE);
   const models = useModels();
   const compact = useMediaQuery(COMPACT_QUERY);
 
