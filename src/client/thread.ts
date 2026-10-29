@@ -2,6 +2,7 @@ import type {
   Block,
   EffortLevel,
   PermissionAsk,
+  PermissionMode,
   QuestionAsk,
   ResultStats,
   StreamFrame,
@@ -26,6 +27,7 @@ export type RunState = {
   effort: EffortLevel | null;
   error: string | null;
   indexMap: Map<number, number>;
+  mode: PermissionMode | null;
   model: string | null;
   outputTokens: number;
   phase: RunPhase;
@@ -48,6 +50,7 @@ export function createRun(): RunState {
     effort: null,
     error: null,
     indexMap: new Map(),
+    mode: null,
     model: null,
     outputTokens: 0,
     phase: "connecting",
@@ -273,6 +276,11 @@ export function applyFrame(run: RunState, frame: StreamFrame): void {
 
     case "status": {
       run.status = frame.status;
+      return;
+    }
+
+    case "mode": {
+      run.mode = frame.mode;
       return;
     }
 

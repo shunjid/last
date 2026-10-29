@@ -9,7 +9,13 @@ import { readJson } from "@/lib/http";
 import { ChatBodySchema } from "@/lib/schemas";
 import { DEFAULT_MODEL, type StreamFrame } from "@/lib/types";
 import { effortAllowed } from "@/server/models";
-import { closeStream, openStream, requestPermission, requestQuestion } from "@/server/permissions";
+import {
+  closeStream,
+  openStream,
+  requestPermission,
+  requestQuestion,
+  setStreamMode,
+} from "@/server/permissions";
 import { registerQuery, unregisterQuery, withSessionLock } from "@/server/registries";
 import { releaseRun, tryAcquireRun } from "@/server/run-guard";
 import { announceRun } from "@/server/run-watch";
@@ -43,7 +49,7 @@ export async function POST(request: Request) {
   if (!tryAcquireRun()) {
     return Response.json({ error: "too many turns are already running" }, { status: 429 });
   }
-  const state = openStream(cwd);
+  const state = openStream(cwd, permissionMode);
   let detach = () => {};
 
   const stream = new ReadableStream<Uint8Array>({
@@ -101,6 +107,7 @@ export async function POST(request: Request) {
       };
 
       const options: Options = {
+        allowDangerouslySkipPermissions: true,
         canUseTool,
         cwd,
         env: { ...process.env, CLAUDE_AGENT_SDK_CLIENT_APP: "last" },
@@ -112,9 +119,6 @@ export async function POST(request: Request) {
         ...(useModel ? { model: useModel } : {}),
         ...(useEffort ? { effort: useEffort } : {}),
         ...(sessionId ? { resume: sessionId } : {}),
-        ...(permissionMode === "bypassPermissions"
-          ? { allowDangerouslySkipPermissions: true }
-          : {}),
       };
 
       const run = async () => {
@@ -138,6 +142,7 @@ export async function POST(request: Request) {
                 registerQuery(frame.sessionId, runner);
                 announceRun(frame.sessionId);
               }
+              if (frame.t === "mode") setStreamMode(state, frame.mode);
               send(frame);
             }
           }

@@ -63,6 +63,7 @@ export function ChatPane({
     loading,
     queue,
     retry,
+    retune,
     send,
     sendNow,
     sendPromptNow,
@@ -109,12 +110,29 @@ export function ChatPane({
   const pickModel = (next: string) => {
     setModelPick({ against: sessionModel, value: next });
     setModelPref(next);
+    void retune({ model: next });
   };
 
   const pickEffort = (next: string) => {
     setEffortPick({ against: sessionEffort, value: next });
     setEffortPref(next);
+    void retune({
+      effort: effortLevels.includes(next as EffortLevel) ? (next as EffortLevel) : null,
+    });
   };
+
+  const pickMode = (next: PermissionMode) => {
+    const previous = mode;
+    onModeChange(next);
+    void retune({ mode: next }).then((error) => {
+      if (error) onModeChange(previous);
+    });
+  };
+
+  const runMode = view.mode;
+  useEffect(() => {
+    if (runMode) onModeChange(runMode);
+  }, [onModeChange, runMode]);
 
   const options = useMemo(() => ({ effort, mode, model }), [effort, mode, model]);
 
@@ -268,7 +286,7 @@ export function ChatPane({
           model={model}
           models={modelList}
           onEffortChange={pickEffort}
-          onModeChange={onModeChange}
+          onModeChange={pickMode}
           onModelChange={pickModel}
           onQueue={(prompt) => enqueue(prompt, options)}
           onSend={(prompt) => void send(prompt, options)}

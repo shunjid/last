@@ -26,7 +26,13 @@ export function serverRun(sessionId: string): ServerRun | null {
       if (entry.frame.t === "permission") asks.push(entry.frame.ask);
       else questionAsks.push(entry.frame.ask);
     }
-    return { asks, questionAsks, startedAt: state.startedAt, streamId: state.streamId };
+    return {
+      asks,
+      mode: state.mode,
+      questionAsks,
+      startedAt: state.startedAt,
+      streamId: state.streamId,
+    };
   }
   return null;
 }

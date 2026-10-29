@@ -16,17 +16,18 @@ export const PermissionModeSchema = z.enum([
 
 export const EffortSchema = z.enum(["low", "medium", "high", "xhigh", "max"]);
 
+const ModelSchema = z
+  .string()
+  .trim()
+  .min(1)
+  .max(120)
+  .regex(/^[\w.:@[\]-]+$/);
+
 export const ChatBodySchema = z
   .strictObject({
     cwd: z.string().min(1).max(4096).optional(),
     effort: EffortSchema.optional(),
-    model: z
-      .string()
-      .trim()
-      .min(1)
-      .max(120)
-      .regex(/^[\w.:@[\]-]+$/)
-      .optional(),
+    model: ModelSchema.optional(),
     permissionMode: PermissionModeSchema.default(DEFAULT_MODE),
     prompt: z.string().trim().min(1).max(MAX_PROMPT_CHARS),
     sessionId: SessionIdSchema.optional(),
@@ -66,6 +67,20 @@ export const SendNowBodySchema = z.strictObject({
   sessionId: SessionIdSchema.optional(),
   streamId: z.uuid(),
 });
+
+export const RunOptionsBodySchema = z
+  .strictObject({
+    effort: EffortSchema.nullable().optional(),
+    model: ModelSchema.optional(),
+    permissionMode: PermissionModeSchema.optional(),
+    sessionId: SessionIdSchema.optional(),
+    streamId: z.uuid(),
+  })
+  .refine(
+    (value) =>
+      value.permissionMode !== undefined || value.model !== undefined || value.effort !== undefined,
+    { message: "permissionMode, model or effort is required" },
+  );
 
 export const ListSessionsQuerySchema = z.strictObject({
   limit: z.coerce.number().int().min(1).max(500).default(300),
