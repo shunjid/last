@@ -5,14 +5,7 @@ import { createPortal } from "react-dom";
 
 import { useKeyboardInset } from "@/client/use-keyboard-inset";
 import { CopyResume } from "@/components/copy-resume";
-import {
-  IconFolderOpen,
-  IconMessages,
-  IconPlus,
-  IconSearch,
-  IconTriangleExclamation,
-  IconXmark,
-} from "@/components/icons";
+import { IconFolderOpen, IconPlus, IconSearch, IconXmark } from "@/components/icons";
 import { relativeStamp } from "@/lib/format";
 import type { ProjectSummary, SessionSummary } from "@/lib/types";
 
@@ -227,19 +220,11 @@ export function CommandPalette({
                 onMouseMove={() => setCursor(position)}
                 type="button"
               >
-                <span
-                  className={`${styles.glyph} ${entry.kind === "session" && entry.session.waiting ? styles.glyphAsk : ""}`}
-                >
-                  {entry.kind === "new" ? (
-                    <IconPlus />
-                  ) : entry.kind === "project" ? (
-                    <IconFolderOpen />
-                  ) : entry.session.waiting ? (
-                    <IconTriangleExclamation />
-                  ) : (
-                    <IconMessages />
-                  )}
-                </span>
+                {entry.kind !== "session" && (
+                  <span className={styles.glyph}>
+                    {entry.kind === "new" ? <IconPlus /> : <IconFolderOpen />}
+                  </span>
+                )}
                 <span className={styles.text}>
                   <span className={styles.label}>{entry.label}</span>
                   <span className={styles.sub}>{entry.sub}</span>
