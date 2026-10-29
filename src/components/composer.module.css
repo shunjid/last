@@ -160,8 +160,14 @@
   gap: 6px;
 }
 
-.hint {
+.end {
+  display: flex;
+  align-items: center;
+  gap: inherit;
   margin-left: auto;
+}
+
+.hint {
   font-size: 11.5px;
   color: var(--last-fg-tertiary);
   white-space: nowrap;

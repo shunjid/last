@@ -57,6 +57,7 @@ export function Composer({
   onQueue,
   onSend,
   onSendNow,
+  onSendPromptNow,
   onStop,
   onUnqueue,
   owner,
@@ -79,6 +80,7 @@ export function Composer({
   onQueue: (prompt: string) => void;
   onSend: (prompt: string) => void;
   onSendNow?: (id: string) => void;
+  onSendPromptNow?: (prompt: string) => void;
   onStop: () => void;
   onUnqueue: (id: string) => void;
   owner: "local" | "terminal";
@@ -146,12 +148,13 @@ export function Composer({
     wasBusy.current = busy;
   }, [busy, coarse, disabled, fieldRef]);
 
-  function submit() {
+  function submit(now: boolean) {
     const text = value.trim();
     if (!text || disabled) return;
     setValue("");
-    if (busy) onQueue(text);
-    else onSend(text);
+    if (!busy) onSend(text);
+    else if (now && onSendPromptNow) onSendPromptNow(text);
+    else onQueue(text);
     fieldRef.current?.focus();
   }
 
@@ -210,14 +213,16 @@ export function Composer({
           disabled={disabled}
           onChange={(event) => setValue(event.target.value)}
           onKeyDown={(event) => {
-            if (
-              event.key === "Enter" &&
-              !event.shiftKey &&
-              !event.nativeEvent.isComposing &&
-              (!coarse || event.metaKey || event.ctrlKey)
-            ) {
+            if (event.nativeEvent.isComposing) return;
+            const modifier = event.metaKey || event.ctrlKey;
+            const enter = event.key === "Enter";
+            const now =
+              modifier &&
+              !event.altKey &&
+              ((enter && event.shiftKey) || (!event.shiftKey && event.key.toLowerCase() === "j"));
+            if (now || (enter && !event.shiftKey && (!coarse || modifier))) {
               event.preventDefault();
-              submit();
+              submit(now);
             }
           }}
           placeholder={
@@ -301,67 +306,74 @@ export function Composer({
             {mode !== DEFAULT_MODE && <span className={styles.flag} />}
           </IconButton>
 
-          <span className={styles.hint}>
-            {value.startsWith("/") ? (
-              <span className={styles.slash}>slash command</span>
-            ) : (
-              <>
-                <kbd className={styles.key}>Enter</kbd> {busy ? "queue" : "send"} ·{" "}
-                <kbd className={styles.key}>Shift ↵</kbd> new line
-              </>
-            )}
-          </span>
-
-          {busy ? (
-            <div className={styles.actions}>
-              <Tooltip
-                title={
-                  terminal
-                    ? "Queue this message for after the terminal turn"
-                    : "Queue this message for after the current turn"
-                }
-              >
-                <span>
-                  <Button
-                    aria-label="Queue message"
-                    className={styles.send}
-                    color="primary"
-                    disabled={disabled || !value.trim()}
-                    onClick={submit}
-                    sx={SEND_SX}
-                    variant="contained"
-                  >
-                    <IconArrowUp sx={{ fontSize: 20 }} />
-                  </Button>
-                </span>
-              </Tooltip>
-              {!terminal && (
-                <Button
-                  aria-label="Stop"
-                  className={styles.stop}
-                  color="error"
-                  onClick={onStop}
-                  size="medium"
-                  startIcon={<IconCircleStop />}
-                  variant="outlined"
-                >
-                  <span className={styles.stopLabel}>Stop</span>
-                </Button>
+          <div className={styles.end}>
+            <span className={styles.hint}>
+              {value.startsWith("/") ? (
+                <span className={styles.slash}>slash command</span>
+              ) : (
+                <>
+                  <kbd className={styles.key}>Enter</kbd> {busy ? "queue" : "send"} ·{" "}
+                  {busy && onSendPromptNow && (
+                    <>
+                      <kbd className={styles.key}>⌘J</kbd> send now ·{" "}
+                    </>
+                  )}
+                  <kbd className={styles.key}>Shift ↵</kbd> new line
+                </>
               )}
-            </div>
-          ) : (
-            <Button
-              aria-label="Send"
-              className={styles.send}
-              color="primary"
-              disabled={disabled || !value.trim()}
-              onClick={submit}
-              sx={SEND_SX}
-              variant="contained"
-            >
-              <IconArrowUp sx={{ fontSize: 20 }} />
-            </Button>
-          )}
+            </span>
+
+            {busy ? (
+              <div className={styles.actions}>
+                <Tooltip
+                  title={
+                    terminal
+                      ? "Queue this message for after the terminal turn"
+                      : "Queue this message for after the current turn"
+                  }
+                >
+                  <span>
+                    <Button
+                      aria-label="Queue message"
+                      className={styles.send}
+                      color="primary"
+                      disabled={disabled || !value.trim()}
+                      onClick={() => submit(false)}
+                      sx={SEND_SX}
+                      variant="contained"
+                    >
+                      <IconArrowUp sx={{ fontSize: 20 }} />
+                    </Button>
+                  </span>
+                </Tooltip>
+                {!terminal && (
+                  <Button
+                    aria-label="Stop"
+                    className={styles.stop}
+                    color="error"
+                    onClick={onStop}
+                    size="medium"
+                    startIcon={<IconCircleStop />}
+                    variant="outlined"
+                  >
+                    <span className={styles.stopLabel}>Stop</span>
+                  </Button>
+                )}
+              </div>
+            ) : (
+              <Button
+                aria-label="Send"
+                className={styles.send}
+                color="primary"
+                disabled={disabled || !value.trim()}
+                onClick={() => submit(false)}
+                sx={SEND_SX}
+                variant="contained"
+              >
+                <IconArrowUp sx={{ fontSize: 20 }} />
+              </Button>
+            )}
+          </div>
         </div>
       </div>
 
