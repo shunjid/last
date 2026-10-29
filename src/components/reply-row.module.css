@@ -1,0 +1,167 @@
+.stack {
+  position: relative;
+  z-index: 0;
+  padding-bottom: 10px;
+}
+
+.row {
+  position: relative;
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  width: 100%;
+  min-height: 64px;
+  padding: 12px 10px 12px 14px;
+  border: 1px solid var(--last-border-secondary);
+  border-radius: var(--last-radius-xl);
+  border-bottom-left-radius: var(--last-radius-xs);
+  background: var(--last-bg-paper);
+  color: var(--last-fg-default);
+  font: inherit;
+  text-align: left;
+  transition:
+    background var(--last-duration-sm) var(--last-ease-standard),
+    transform var(--last-duration-sm) var(--last-ease-standard);
+}
+
+button.row {
+  cursor: pointer;
+}
+
+button.row:active {
+  transform: scale(0.985);
+  background-image: linear-gradient(var(--last-state-press), var(--last-state-press));
+}
+
+button.row:focus-visible {
+  outline: 2px solid var(--last-border-focus);
+  outline-offset: 2px;
+}
+
+.stacked::before,
+.stacked::after {
+  content: "";
+  position: absolute;
+  right: 14px;
+  left: 14px;
+  z-index: -1;
+  height: 10px;
+  border: 1px solid var(--last-border-secondary);
+  border-top: 0;
+  border-radius: 0 0 var(--last-radius-lg) var(--last-radius-lg);
+  background: var(--last-surface-low);
+}
+
+.stacked::before {
+  bottom: -6px;
+}
+
+.stacked::after {
+  right: 26px;
+  bottom: -11px;
+  left: 26px;
+  opacity: 0.7;
+}
+
+.glyph {
+  flex: none;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 36px;
+  height: 36px;
+  border-radius: var(--last-radius-full);
+  background: var(--last-bg-secondary-container);
+  color: var(--last-fg-secondary-container);
+}
+
+.glyph svg {
+  width: 18px;
+  height: 18px;
+}
+
+.text {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  min-width: 0;
+}
+
+.title,
+.meta {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.title {
+  font-size: 14.5px;
+  font-weight: 500;
+}
+
+.meta {
+  font-size: 12.5px;
+  color: var(--last-fg-tertiary);
+}
+
+.count {
+  font-weight: 500;
+  color: var(--last-fg-secondary);
+}
+
+.chevron {
+  flex: none;
+  width: 20px;
+  height: 20px;
+  color: var(--last-fg-tertiary);
+}
+
+.working .glyph {
+  background: var(--last-surface-high);
+}
+
+.shimmer {
+  background: linear-gradient(
+    90deg,
+    var(--last-fg-tertiary) 0%,
+    var(--last-fg-default) 50%,
+    var(--last-fg-tertiary) 100%
+  );
+  background-size: 200% 100%;
+  background-clip: text;
+  color: transparent;
+  animation: shimmer 1.8s linear infinite;
+}
+
+@keyframes shimmer {
+  to {
+    background-position: -200% 0;
+  }
+}
+
+.short {
+  min-width: 0;
+}
+
+.empty {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 0 4px;
+  font-size: 13px;
+  color: var(--last-fg-tertiary);
+}
+
+.empty svg {
+  width: 16px;
+  height: 16px;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .shimmer {
+    animation: none;
+    color: var(--last-fg-secondary);
+    background: none;
+  }
+}

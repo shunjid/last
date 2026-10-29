@@ -34,12 +34,20 @@
 
 .chips {
   display: flex;
+  align-items: center;
   gap: 8px;
   min-width: 0;
   overflow: hidden;
   font-family: var(--last-font-mono);
   font-size: 12px;
   color: var(--last-fg-tertiary);
+}
+
+.position {
+  flex: none;
+  font-family: var(--last-font-sans);
+  font-weight: 500;
+  color: var(--last-fg-accent);
 }
 
 .chip {
@@ -61,30 +69,76 @@
   text-overflow: ellipsis;
 }
 
-.track {
+.pages {
   display: flex;
   flex: 1;
+  flex-direction: column;
   min-height: 0;
-  overflow-x: auto;
-  overflow-y: hidden;
+  overflow-x: hidden;
+  overflow-y: auto;
   overscroll-behavior: contain;
-  scroll-snap-type: x mandatory;
+  scroll-snap-type: y mandatory;
   scrollbar-width: none;
 }
 
+.pages::-webkit-scrollbar,
 .track::-webkit-scrollbar {
   display: none;
+}
+
+.page {
+  display: flex;
+  flex: 0 0 100%;
+  min-height: 0;
+  scroll-snap-align: start;
+  scroll-snap-stop: always;
+}
+
+.track {
+  display: flex;
+  flex: 1;
+  min-width: 0;
+  overflow-x: auto;
+  overflow-y: hidden;
+  overscroll-behavior-x: contain;
+  scroll-snap-type: x mandatory;
+  scrollbar-width: none;
 }
 
 .card {
   flex: 0 0 100%;
   min-width: 0;
   overflow-y: auto;
-  overscroll-behavior-y: contain;
   padding: calc(env(safe-area-inset-top) + 84px) calc(env(safe-area-inset-right) + 20px)
-    calc(env(safe-area-inset-bottom) + 96px) calc(env(safe-area-inset-left) + 20px);
+    calc(env(safe-area-inset-bottom) + 112px) calc(env(safe-area-inset-left) + 20px);
   scroll-snap-align: start;
   scroll-snap-stop: always;
+}
+
+.asked {
+  display: flex;
+  align-items: flex-start;
+  gap: 10px;
+  margin: 0 0 16px;
+  padding: 10px 12px;
+  border-radius: var(--last-radius-md);
+  background: color-mix(in srgb, var(--last-bg-primary-container) 55%, transparent);
+  color: var(--last-fg-primary-container);
+  font-size: 13px;
+  line-height: 1.5;
+}
+
+.you {
+  flex: none;
+  font-weight: 600;
+}
+
+.prompt {
+  display: -webkit-box;
+  overflow: hidden;
+  -webkit-box-orient: vertical;
+  -webkit-line-clamp: 2;
+  overflow-wrap: anywhere;
 }
 
 .bar {
@@ -95,19 +149,71 @@
   display: flex;
   align-items: center;
   justify-content: center;
-  height: calc(env(safe-area-inset-bottom) + 72px);
+  height: calc(env(safe-area-inset-bottom) + 96px);
   padding-bottom: env(safe-area-inset-bottom);
-  background: linear-gradient(transparent, var(--last-bg-page) 40%);
+  background: linear-gradient(transparent, var(--last-bg-page) 45%);
   pointer-events: none;
 }
 
+.nav {
+  position: absolute;
+  bottom: calc(env(safe-area-inset-bottom) + 14px);
+  left: calc(env(safe-area-inset-left) + 16px);
+  display: inline-flex;
+  align-items: center;
+  height: var(--last-tap);
+  border-radius: var(--last-radius-full);
+  background: var(--last-surface-high);
+  pointer-events: auto;
+}
+
+.nav button {
+  width: var(--last-tap);
+  height: var(--last-tap);
+  color: var(--last-fg-default);
+}
+
+.navLabel {
+  font-size: 12.5px;
+  font-weight: 500;
+  color: var(--last-fg-secondary);
+}
+
+.dots {
+  position: absolute;
+  bottom: calc(env(safe-area-inset-bottom) + 64px);
+  left: 50%;
+  display: flex;
+  gap: 6px;
+  transform: translateX(-50%);
+}
+
+.dots i {
+  width: 6px;
+  height: 6px;
+  border-radius: var(--last-radius-full);
+  background: var(--last-border-default);
+  transition:
+    width var(--last-duration-sm) var(--last-ease-standard),
+    background var(--last-duration-sm) var(--last-ease-standard);
+}
+
+.dots .dotOn {
+  width: 16px;
+  background: var(--last-bg-accent);
+}
+
 .count {
+  position: absolute;
+  bottom: calc(env(safe-area-inset-bottom) + 22px);
+  left: 50%;
   padding: 6px 14px;
   border-radius: var(--last-radius-full);
   background: var(--last-surface-high);
   font-size: 13px;
   font-variant-numeric: tabular-nums;
   color: var(--last-fg-secondary);
+  transform: translateX(-50%);
 }
 
 .bar .close {

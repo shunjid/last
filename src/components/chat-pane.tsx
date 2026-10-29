@@ -7,7 +7,7 @@ import { AUTO_EFFORT, useEffortPref, useModelPref } from "@/client/prefs";
 import { RunsHere } from "@/client/runs-here";
 import { SessionIdentity } from "@/client/session-identity";
 import { useChat, type ChatTarget } from "@/client/use-chat";
-import { SHEET_QUERY, useMediaQuery } from "@/client/use-media-query";
+import { PHONE_QUERY, SHEET_QUERY, useMediaQuery } from "@/client/use-media-query";
 import { useTitleSignal } from "@/client/use-title-signal";
 import { resolveModelChoice } from "@/lib/models";
 import {
@@ -83,6 +83,9 @@ export function ChatPane({
   const [findOpen, setFindOpen] = useState(false);
   const findInputRef = useRef<HTMLInputElement>(null);
   const sheet = useMediaQuery(SHEET_QUERY);
+  const phone = useMediaQuery(PHONE_QUERY);
+  const [cardsOn, setCardsOn] = useState(false);
+  const cardsView = phone && cardsOn;
   const [barsHidden, setBarsHidden] = useState(false);
   const mainRef = useRef<HTMLElement>(null);
   const topRef = useRef<HTMLDivElement>(null);
@@ -241,7 +244,16 @@ export function ChatPane({
           contextStats={view.contextStats}
           cwd={cwd}
           home={home}
+          cardsView={cardsView}
           onOpenFind={fresh ? undefined : openFind}
+          onToggleCards={
+            phone && !fresh
+              ? () => {
+                  setFindOpen(false);
+                  setCardsOn(!cardsView);
+                }
+              : undefined
+          }
           onOpenPalette={onOpenPalette}
           onToggleSidebar={onToggleSidebar}
           sessionId={target.sessionId ?? detail?.sessionId ?? null}
@@ -263,6 +275,7 @@ export function ChatPane({
         <SessionIdentity.Provider value={identity}>
           <RunsHere.Provider value={stoppable}>
             <ThreadView
+              cards={cardsView && !findOpen}
               findInputRef={findInputRef}
               findOpen={findOpen}
               loading={loading}

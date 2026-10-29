@@ -3,15 +3,15 @@
 import Button from "@mui/material/Button";
 import IconButton from "@mui/material/IconButton";
 import Tooltip from "@mui/material/Tooltip";
-import { memo, useMemo, useState } from "react";
+import { memo, useContext, useMemo } from "react";
 
 import { userText } from "@/client/find";
+import { OpenCards } from "@/client/open-cards";
 import { useCopy } from "@/client/use-copy";
 import { PHONE_QUERY, useMediaQuery } from "@/client/use-media-query";
 import { answerCards } from "@/lib/cards";
 import type { Block, Turn } from "@/lib/types";
 
-import { AnswerDeck } from "./answer-deck";
 import { IconCheck, IconCopy, IconFileLines, IconImage } from "./icons";
 import { Markdown } from "./markdown";
 import styles from "./turn-bubble.module.css";
@@ -95,7 +95,7 @@ function UserTurn({ turn }: { turn: Turn }) {
   const text = userText(turn);
 
   return (
-    <div className={`${styles.row} ${styles.user}`}>
+    <div className={`${styles.row} ${styles.user}`} data-anchor={turn.id}>
       {text && (
         <div
           className={`${styles.bubble} ${turn.pending ? styles.pending : ""}`}
@@ -139,7 +139,7 @@ function CopyAnswer({ text }: { text: string }) {
 
 function AssistantTurn({ live, turn }: { live: boolean; turn: Turn }) {
   const phone = useMediaQuery(PHONE_QUERY);
-  const [deckOpen, setDeckOpen] = useState(false);
+  const openCards = useContext(OpenCards);
 
   const lastIndex = turn.blocks.length - 1;
   const answer = turn.blocks
@@ -149,8 +149,8 @@ function AssistantTurn({ live, turn }: { live: boolean; turn: Turn }) {
     .trim();
   const finalText = turn.blocks.findLast((block) => block.kind === "text")?.text ?? "";
   const cards = useMemo(
-    () => (phone && !live ? answerCards(finalText) : null),
-    [finalText, live, phone],
+    () => (phone && !live && openCards ? answerCards(finalText) : null),
+    [finalText, live, openCards, phone],
   );
 
   const segments = segmentBlocks(turn.blocks, live ? lastIndex : null);
@@ -179,7 +179,7 @@ function AssistantTurn({ live, turn }: { live: boolean; turn: Turn }) {
             <Button
               className={styles.asCards}
               color="inherit"
-              onClick={() => setDeckOpen(true)}
+              onClick={() => openCards?.(turn.id)}
               variant="text"
             >
               Show as cards
@@ -187,8 +187,6 @@ function AssistantTurn({ live, turn }: { live: boolean; turn: Turn }) {
           )}
         </div>
       )}
-
-      {deckOpen && cards && <AnswerDeck cards={cards} onClose={() => setDeckOpen(false)} />}
     </div>
   );
 }
