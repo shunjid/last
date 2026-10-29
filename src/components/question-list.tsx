@@ -28,7 +28,9 @@ export function QuestionList({
                   className={`${styles.option} ${chosen.has(option.label) ? styles.chosen : ""}`}
                   key={option.label}
                 >
-                  <span className={styles.mark}>{chosen.has(option.label) && <IconCheck />}</span>
+                  {answer !== undefined && (
+                    <span className={styles.mark}>{chosen.has(option.label) && <IconCheck />}</span>
+                  )}
                   <span className={styles.optionText}>
                     <span className={styles.label}>{option.label}</span>
                     {option.description && (
