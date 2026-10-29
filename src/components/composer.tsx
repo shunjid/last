@@ -34,14 +34,7 @@ import {
 
 import styles from "./composer.module.css";
 import { ComposerSheet } from "./composer-sheet";
-import {
-  IconArrowUp,
-  IconCircleStop,
-  IconImage,
-  IconImagePlus,
-  IconMoreHoriz,
-  IconXmark,
-} from "./icons";
+import { IconArrowUp, IconImage, IconImagePlus, IconMoreHoriz, IconXmark } from "./icons";
 
 const SEND_SX = { minWidth: 40, width: 40, height: 40, padding: 0, borderRadius: "50%" };
 
@@ -98,7 +91,6 @@ export function Composer({
   onSend,
   onSendNow,
   onSendPromptNow,
-  onStop,
   onUnqueue,
   owner,
   placeholder,
@@ -121,7 +113,6 @@ export function Composer({
   onSend: (prompt: string, images: PromptImage[]) => void;
   onSendNow?: (id: string) => void;
   onSendPromptNow?: (prompt: string, images: PromptImage[]) => void;
-  onStop: () => void;
   onUnqueue: (id: string) => void;
   owner: "local" | "terminal";
   placeholder: string;
@@ -508,42 +499,27 @@ export function Composer({
             </span>
 
             {busy ? (
-              <div className={styles.actions}>
-                <Tooltip
-                  title={
-                    terminal
-                      ? "Queue this message for after the terminal turn"
-                      : "Queue this message for after the current turn"
-                  }
-                >
-                  <span>
-                    <Button
-                      aria-label="Queue message"
-                      className={styles.send}
-                      color="primary"
-                      disabled={!canSend}
-                      onClick={() => submit(false)}
-                      sx={SEND_SX}
-                      variant="contained"
-                    >
-                      <IconArrowUp sx={{ fontSize: 20 }} />
-                    </Button>
-                  </span>
-                </Tooltip>
-                {!terminal && (
+              <Tooltip
+                title={
+                  terminal
+                    ? "Queue this message for after the terminal turn"
+                    : "Queue this message for after the current turn"
+                }
+              >
+                <span>
                   <Button
-                    aria-label="Stop"
-                    className={styles.stop}
-                    color="error"
-                    onClick={onStop}
-                    size="medium"
-                    startIcon={<IconCircleStop />}
-                    variant="outlined"
+                    aria-label="Queue message"
+                    className={styles.send}
+                    color="primary"
+                    disabled={!canSend}
+                    onClick={() => submit(false)}
+                    sx={SEND_SX}
+                    variant="contained"
                   >
-                    <span className={styles.stopLabel}>Stop</span>
+                    <IconArrowUp sx={{ fontSize: 20 }} />
                   </Button>
-                )}
-              </div>
+                </span>
+              </Tooltip>
             ) : (
               <Button
                 aria-label="Send"

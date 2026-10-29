@@ -310,7 +310,6 @@ export function ChatPane({
           onSendPromptNow={
             canSendNow ? (prompt, images) => void sendPromptNow(prompt, options, images) : undefined
           }
-          onStop={() => void stop()}
           onUnqueue={unqueue}
           owner={terminalBusy ? "terminal" : "local"}
           placeholder={
