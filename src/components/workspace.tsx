@@ -3,6 +3,7 @@
 import { useSearchParams } from "next/navigation";
 import { useCallback, useEffect, useMemo, useState } from "react";
 
+import { useBackClose } from "@/client/back";
 import { nextDraftId, type ChatTarget } from "@/client/use-chat";
 import { COMPACT_QUERY, useMediaQuery } from "@/client/use-media-query";
 import { useModels } from "@/client/use-models";
@@ -75,6 +76,8 @@ export function Workspace({
   const compact = useMediaQuery(COMPACT_QUERY);
 
   const onSessionCreated = useCallback((sessionId: string) => setCreatedId(sessionId), []);
+
+  useBackClose(compact && drawerOpen, () => setDrawerOpen(false));
 
   useSessionList(setPushed);
 

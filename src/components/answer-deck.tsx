@@ -4,6 +4,7 @@ import Dialog from "@mui/material/Dialog";
 import IconButton from "@mui/material/IconButton";
 import { useContext, useState } from "react";
 
+import { useBackClose } from "@/client/back";
 import { SessionIdentity } from "@/client/session-identity";
 import { basename, truncateMiddle } from "@/lib/format";
 
@@ -14,6 +15,7 @@ import { Markdown } from "./markdown";
 export function AnswerDeck({ cards, onClose }: { cards: string[]; onClose: () => void }) {
   const { branch, cwd, title } = useContext(SessionIdentity);
   const [index, setIndex] = useState(0);
+  useBackClose(true, onClose);
 
   return (
     <Dialog

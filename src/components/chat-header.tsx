@@ -10,6 +10,7 @@ import Tooltip from "@mui/material/Tooltip";
 import { useColorScheme } from "@mui/material/styles";
 import { useEffect, useRef, useState } from "react";
 
+import { useBackClose } from "@/client/back";
 import { usePins } from "@/client/pins";
 import { PHONE_QUERY, useMediaQuery } from "@/client/use-media-query";
 import { basename, homeRelative, tokens, truncateMiddle } from "@/lib/format";
@@ -93,6 +94,8 @@ export function ChatHeader({
   const detailsOpen = phone && detailsAnchor !== null;
   const { mode, setMode } = useColorScheme();
   const currentMode = mode ?? "system";
+  useBackClose(menuOpen, () => setMenuAnchor(null));
+  useBackClose(detailsOpen, () => setDetailsAnchor(null));
 
   useEffect(
     () => () => {

@@ -5,6 +5,7 @@ import { ThemeProvider } from "@mui/material/styles";
 import { AppRouterCacheProvider } from "@mui/material-nextjs/v16-appRouter";
 import type { ReactNode } from "react";
 
+import { BackGuard } from "@/components/back-guard";
 import { theme } from "@/theme";
 
 export function Providers({ children, nonce }: { children: ReactNode; nonce?: string }) {
@@ -19,6 +20,7 @@ export function Providers({ children, nonce }: { children: ReactNode; nonce?: st
       >
         <CssBaseline enableColorScheme />
         {children}
+        <BackGuard />
       </ThemeProvider>
     </AppRouterCacheProvider>
   );

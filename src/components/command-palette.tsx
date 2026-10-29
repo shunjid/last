@@ -3,6 +3,7 @@
 import { type KeyboardEvent, useEffect, useMemo, useRef, useState } from "react";
 import { createPortal } from "react-dom";
 
+import { useBackClose } from "@/client/back";
 import { useKeyboardInset } from "@/client/use-keyboard-inset";
 import { CopyResume } from "@/components/copy-resume";
 import { IconFolderOpen, IconPlus, IconSearch, IconXmark } from "@/components/icons";
@@ -47,6 +48,7 @@ export function CommandPalette({
   const panelRef = useRef<HTMLDivElement>(null);
   const inputRef = useRef<HTMLInputElement>(null);
   const keyboardInset = useKeyboardInset();
+  useBackClose(true, onClose);
 
   const entries = useMemo<Entry[]>(() => {
     const needle = query.trim().toLowerCase();

@@ -1,0 +1,9 @@
+.toast:global(.MuiSnackbar-root) {
+  bottom: calc(16px + env(safe-area-inset-bottom, 0px));
+}
+
+.toast .content {
+  justify-content: center;
+  min-width: 0;
+  border-radius: var(--last-radius-sm);
+}

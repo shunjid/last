@@ -8,6 +8,7 @@ import IconButton from "@mui/material/IconButton";
 import TextField from "@mui/material/TextField";
 import { useState } from "react";
 
+import { useBackClose } from "@/client/back";
 import { useKeyboardInset } from "@/client/use-keyboard-inset";
 import { SHEET_QUERY, useMediaQuery } from "@/client/use-media-query";
 import type { QuestionAsk } from "@/lib/types";
@@ -85,6 +86,8 @@ export function QuestionModal({
   function cancel() {
     onSubmit({ cancelled: true });
   }
+
+  useBackClose(true, cancel);
 
   const previewOption =
     active.options[focusedOption[activeIndex] ?? -1] ??
