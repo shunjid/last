@@ -27,7 +27,8 @@ SDK, so a reply you send here is waiting for you the next time you run `claude -
   `--dangerously-skip-permissions`: nothing asks).
 - **Queue while Claude works, or send now.** A message typed during a turn waits in a queue. Its
   Send now button cuts in like `ctrl+x ctrl+s` in the terminal: Claude stops what it's doing and
-  answers the message straight away, keeping everything it had already done.
+  answers the message straight away, keeping everything it had already done. `⌘J` or `⌘⇧↵` sends
+  what you typed that way without queueing it first.
 - **Model and effort pickers**, and a light / dark / system theme.
 - **Works on a phone.** The sidebar becomes a drawer and the whole app resizes down to a small
   screen.
@@ -36,8 +37,8 @@ SDK, so a reply you send here is waiting for you the next time you run `claude -
   right to move between them.
 - **Search this session.** `⌘F` finds text in prompts, replies, thinking and tool calls of the
   open session, opens the card that holds each match, and steps through them newest first.
-- **Keyboard first.** `⌘K` session palette, `⌘F` search this session, `⌘B` sidebar, `Esc` stops a
-  running turn.
+- **Keyboard first.** `⌘K` session palette, `⌘F` search this session, `⌘B` sidebar, `⌘J` send now,
+  `Esc` stops a running turn.
 - **Nothing leaves your machine.** No telemetry, no analytics, no account, no server-side database.
 
 ## Requirements

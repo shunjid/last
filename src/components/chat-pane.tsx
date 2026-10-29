@@ -65,6 +65,7 @@ export function ChatPane({
     retry,
     send,
     sendNow,
+    sendPromptNow,
     sendingNow,
     serverBusy,
     stop,
@@ -272,6 +273,7 @@ export function ChatPane({
           onQueue={(prompt) => enqueue(prompt, options)}
           onSend={(prompt) => void send(prompt, options)}
           onSendNow={canSendNow ? (id) => void sendNow(id) : undefined}
+          onSendPromptNow={canSendNow ? (prompt) => void sendPromptNow(prompt, options) : undefined}
           onStop={() => void stop()}
           onUnqueue={unqueue}
           owner={terminalBusy ? "terminal" : "local"}

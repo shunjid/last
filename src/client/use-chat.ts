@@ -18,6 +18,7 @@ import {
   retry as retryOn,
   send as sendOn,
   sendNow as sendNowOn,
+  sendPromptNow as sendPromptNowOn,
   setOnCreated,
   stop as stopOn,
   subscribe as subscribeTo,
@@ -173,6 +174,11 @@ export function useChat(target: ChatTarget, onSessionCreated: (sessionId: string
 
   const sendNow = useCallback((id: string) => sendNowOn(entry, id), [entry]);
 
+  const sendPromptNow = useCallback(
+    (prompt: string, options: SendOptions) => sendPromptNowOn(entry, prompt, options),
+    [entry],
+  );
+
   const retry = useCallback(() => retryOn(entry), [entry]);
 
   const stop = useCallback(() => stopOn(entry), [entry]);
@@ -202,6 +208,7 @@ export function useChat(target: ChatTarget, onSessionCreated: (sessionId: string
     retry,
     send,
     sendNow,
+    sendPromptNow,
     sendingNow,
     serverBusy,
     stop,

@@ -418,8 +418,10 @@ function setQueue(entry: Entry, next: QueuedMessage[]) {
 
 export function enqueue(entry: Entry, prompt: string, options: SendOptions) {
   const text = prompt.trim();
-  if (!text) return;
-  setQueue(entry, [...entry.queue, { ...options, id: localId("queued"), text }]);
+  if (!text) return null;
+  const item = { ...options, id: localId("queued"), text };
+  setQueue(entry, [...entry.queue, item]);
+  return item.id;
 }
 
 export function unqueue(entry: Entry, id: string) {
@@ -456,6 +458,11 @@ export async function sendNow(entry: Entry, id: string) {
     requeueSendingNow(entry);
     drainQueue(entry);
   }
+}
+
+export async function sendPromptNow(entry: Entry, prompt: string, options: SendOptions) {
+  const id = enqueue(entry, prompt, options);
+  if (id) await sendNow(entry, id);
 }
 
 function drainQueue(entry: Entry) {
