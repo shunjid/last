@@ -4,6 +4,7 @@ import IconButton from "@mui/material/IconButton";
 import { useCallback, useEffect, useLayoutEffect, useMemo, useRef, useState } from "react";
 
 import { AUTO_EFFORT, useEffortPref, useModelPref } from "@/client/prefs";
+import { RunsHere } from "@/client/runs-here";
 import { SessionIdentity } from "@/client/session-identity";
 import { useChat, type ChatTarget } from "@/client/use-chat";
 import { SHEET_QUERY, useMediaQuery } from "@/client/use-media-query";
@@ -260,18 +261,20 @@ export function ChatPane({
         <EmptyState cwd={cwd} home={home} onPick={(prompt) => void send(prompt, options)} />
       ) : (
         <SessionIdentity.Provider value={identity}>
-          <ThreadView
-            findInputRef={findInputRef}
-            findOpen={findOpen}
-            loading={loading}
-            onCloseFind={() => setFindOpen(false)}
-            onDecide={(ask, decision, scope) => void decide(ask, decision, scope)}
-            onHideBars={sheet ? hideBars : undefined}
-            onRetry={view.canRetry ? retry : undefined}
-            onShowBars={showBars}
-            onStop={() => void stop()}
-            view={{ ...view, error: view.error ?? loadError }}
-          />
+          <RunsHere.Provider value={stoppable}>
+            <ThreadView
+              findInputRef={findInputRef}
+              findOpen={findOpen}
+              loading={loading}
+              onCloseFind={() => setFindOpen(false)}
+              onDecide={(ask, decision, scope) => void decide(ask, decision, scope)}
+              onHideBars={sheet ? hideBars : undefined}
+              onRetry={view.canRetry ? retry : undefined}
+              onShowBars={showBars}
+              onStop={() => void stop()}
+              view={{ ...view, error: view.error ?? loadError }}
+            />
+          </RunsHere.Provider>
         </SessionIdentity.Provider>
       )}
 
