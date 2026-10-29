@@ -3,6 +3,7 @@
   --last-font-mono: var(--font-mono), ui-monospace, SFMono-Regular, Menlo, monospace;
 
   --last-bg-page: var(--mui-palette-background-default);
+  --last-bg-paper: var(--mui-palette-background-paper);
   --last-bg-secondary: var(--mui-palette-background-secondary);
   --last-bg-tertiary: var(--mui-palette-background-tertiary);
   --last-bg-overlay: var(--mui-palette-background-overlay);

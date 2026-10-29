@@ -20,14 +20,18 @@ import {
   paintFind,
   revealFind,
 } from "@/client/find";
+import { OpenCards } from "@/client/open-cards";
+import { collectReplies } from "@/client/replies";
 import type { ChatView } from "@/client/use-chat";
 import { cost, duration, tokens } from "@/lib/format";
-import type { PermissionAsk, ResultStats } from "@/lib/types";
+import type { PermissionAsk, ResultStats, ThreadItem } from "@/lib/types";
 
 import { ActivityLine } from "./activity-line";
+import { AnswerDeck, type DeckReply } from "./answer-deck";
 import { FindBar } from "./find-bar";
 import { IconArrowDown, IconCircleExclamation, IconLayerGroup, IconRefresh } from "./icons";
 import { PermissionCard } from "./permission-card";
+import { ReplyEntry } from "./reply-row";
 import { TaskCard } from "./task-card";
 import styles from "./thread-view.module.css";
 import { TurnBubble } from "./turn-bubble";
@@ -58,6 +62,20 @@ function StatsRow({ stats }: { stats: ResultStats }) {
   );
 }
 
+function renderItem(item: ThreadItem) {
+  if (item.type === "turn") return <TurnBubble key={item.turn.id} turn={item.turn} />;
+  if (item.type === "task") return <TaskCard key={item.task.id} task={item.task} />;
+  return (
+    <div className={styles.divider} key={item.divider.id}>
+      <span className={`${styles.chip} ${item.divider.tone === "warning" ? styles.warning : ""}`}>
+        <IconLayerGroup />
+        {item.divider.label}
+        {item.divider.detail && <span className={styles.detail}>{item.divider.detail}</span>}
+      </span>
+    </div>
+  );
+}
+
 function Skeleton() {
   return (
     <div className={styles.skeleton}>
@@ -69,6 +87,7 @@ function Skeleton() {
 }
 
 export function ThreadView({
+  cards,
   findInputRef,
   findOpen,
   loading,
@@ -80,6 +99,7 @@ export function ThreadView({
   onStop,
   view,
 }: {
+  cards: boolean;
   findInputRef: RefObject<HTMLInputElement | null>;
   findOpen: boolean;
   loading: boolean;
@@ -98,7 +118,12 @@ export function ThreadView({
   const touchingRef = useRef(false);
   const gestureTopRef = useRef(0);
   const autoUntilRef = useRef(0);
+  const anchorRef = useRef<string | null>(null);
+  const anchorFrameRef = useRef(0);
+  const shownCardsRef = useRef(cards);
   const [pinned, setPinned] = useState(true);
+  const [available, setAvailable] = useState(0);
+  const [deckAt, setDeckAt] = useState<string | null>(null);
 
   const setPin = useCallback((next: boolean) => {
     pinnedRef.current = next;
@@ -112,9 +137,28 @@ export function ThreadView({
     node.scrollTo({ behavior, top: node.scrollHeight });
   }, []);
 
+  const noteAnchor = useCallback(() => {
+    if (anchorFrameRef.current) return;
+    anchorFrameRef.current = requestAnimationFrame(() => {
+      anchorFrameRef.current = 0;
+      const viewport = viewportRef.current;
+      const inner = innerRef.current;
+      if (!viewport || !inner) return;
+      const top =
+        viewport.getBoundingClientRect().top + parseFloat(getComputedStyle(inner).paddingTop);
+      let anchor: string | null = null;
+      for (const node of inner.querySelectorAll<HTMLElement>("[data-anchor]")) {
+        if (anchor !== null && node.getBoundingClientRect().top > top + 8) break;
+        anchor = node.dataset.anchor ?? null;
+      }
+      anchorRef.current = anchor;
+    });
+  }, []);
+
   const onScroll = useCallback(() => {
     const node = viewportRef.current;
     if (!node) return;
+    noteAnchor();
     const distance = node.scrollHeight - node.scrollTop - node.clientHeight;
 
     if (distance < REPIN_SLACK) {
@@ -132,7 +176,7 @@ export function ThreadView({
       return;
     }
     if (distance > BOTTOM_SLACK && Date.now() > autoUntilRef.current) setPin(false);
-  }, [onHideBars, onShowBars, setPin]);
+  }, [noteAnchor, onHideBars, onShowBars, setPin]);
 
   const takeControl = useCallback(() => {
     steeringRef.current = true;
@@ -251,6 +295,75 @@ export function ThreadView({
 
   const running = view.phase === "connecting" || view.phase === "running";
   const activity = view.asks.length === 0 ? view.activity : null;
+  const working = running || view.activity !== null;
+
+  const entries = useMemo(
+    () => (cards || deckAt !== null ? collectReplies(view.items, view.live, working) : null),
+    [cards, deckAt, view.items, view.live, working],
+  );
+
+  const deckReplies = useMemo(
+    () =>
+      (entries ?? []).flatMap((entry) =>
+        entry.kind === "reply" && !entry.reply.live && entry.reply.text
+          ? [
+              {
+                cards: entry.reply.cards ?? [entry.reply.text],
+                id: entry.reply.id,
+                prompt: entry.reply.prompt,
+                turnIds: entry.reply.turnIds,
+              } satisfies DeckReply & { turnIds: string[] },
+            ]
+          : [],
+      ),
+    [entries],
+  );
+
+  const deckStart =
+    deckAt === null
+      ? -1
+      : deckReplies.findIndex((reply) => reply.id === deckAt || reply.turnIds.includes(deckAt));
+
+  const openCards = useCallback((turnId: string) => setDeckAt(turnId), []);
+
+  useLayoutEffect(() => {
+    if (shownCardsRef.current === cards) return;
+    shownCardsRef.current = cards;
+    const viewport = viewportRef.current;
+    const inner = innerRef.current;
+    if (!viewport || !inner || pinnedRef.current) {
+      scrollToBottom("auto");
+      return;
+    }
+    const id = anchorRef.current;
+    const node = id ? inner.querySelector<HTMLElement>(`[data-anchor="${CSS.escape(id)}"]`) : null;
+    if (!node) return;
+    takeControl();
+    const top =
+      viewport.getBoundingClientRect().top + parseFloat(getComputedStyle(inner).paddingTop);
+    viewport.scrollTop += node.getBoundingClientRect().top - top;
+  }, [cards, scrollToBottom, takeControl]);
+
+  useEffect(() => {
+    const viewport = viewportRef.current;
+    const inner = innerRef.current;
+    if (!cards || !viewport || !inner) return;
+    let width = 0;
+    let tallest = 0;
+    const observer = new ResizeObserver(() => {
+      const style = getComputedStyle(inner);
+      const room =
+        viewport.clientHeight - parseFloat(style.paddingTop) - parseFloat(style.paddingBottom);
+      if (viewport.clientWidth !== width) {
+        width = viewport.clientWidth;
+        tallest = 0;
+      }
+      tallest = Math.max(tallest, Math.round(room));
+      setAvailable(tallest);
+    });
+    observer.observe(viewport);
+    return () => observer.disconnect();
+  }, [cards]);
 
   return (
     <div className={styles.shell}>
@@ -279,85 +392,80 @@ export function ThreadView({
         onWheel={onWheel}
         ref={viewportRef}
       >
-        <FindTarget.Provider value={target}>
-          <div className={styles.inner} ref={innerRef}>
-            {loading ? (
-              <Skeleton />
-            ) : (
-              <>
-                {view.truncated && (
-                  <p className={styles.truncated}>
-                    Older messages are not shown. This session is long, so only the recent part
-                    loaded.
-                  </p>
-                )}
+        <OpenCards.Provider value={openCards}>
+          <FindTarget.Provider value={target}>
+            <div className={styles.inner} ref={innerRef}>
+              {loading ? (
+                <Skeleton />
+              ) : (
+                <>
+                  {view.truncated && (
+                    <p className={styles.truncated}>
+                      Older messages are not shown. This session is long, so only the recent part
+                      loaded.
+                    </p>
+                  )}
 
-                {view.items.map((item) =>
-                  item.type === "turn" ? (
-                    <TurnBubble key={item.turn.id} turn={item.turn} />
-                  ) : item.type === "task" ? (
-                    <TaskCard key={item.task.id} task={item.task} />
-                  ) : (
-                    <div className={styles.divider} key={item.divider.id}>
-                      <span
-                        className={`${styles.chip} ${
-                          item.divider.tone === "warning" ? styles.warning : ""
-                        }`}
-                      >
-                        <IconLayerGroup />
-                        {item.divider.label}
-                        {item.divider.detail && (
-                          <span className={styles.detail}>{item.divider.detail}</span>
-                        )}
-                      </span>
+                  {cards && entries
+                    ? entries.map((entry) =>
+                        entry.kind === "item" ? (
+                          renderItem(entry.item)
+                        ) : (
+                          <ReplyEntry
+                            available={available}
+                            key={entry.reply.id}
+                            onOpen={setDeckAt}
+                            reply={entry.reply}
+                          />
+                        ),
+                      )
+                    : view.items.map(renderItem)}
+
+                  {!cards && view.live && <TurnBubble live={running} turn={view.live} />}
+
+                  {!cards && activity && (
+                    <ActivityLine
+                      activity={activity}
+                      connecting={view.phase === "connecting"}
+                      key={activity.startedAt}
+                      onStop={activity.source === "terminal" ? undefined : onStop}
+                      status={view.status}
+                    />
+                  )}
+
+                  {view.asks.map((ask, index) => (
+                    <PermissionCard
+                      ask={ask}
+                      key={ask.requestId}
+                      onDecide={onDecide}
+                      primary={index === 0}
+                    />
+                  ))}
+
+                  {view.error && (
+                    <div className={styles.error}>
+                      <IconCircleExclamation />
+                      <span className={styles.errorText}>{view.error}</span>
+                      {onRetry && !running && (
+                        <Button
+                          className={styles.retry}
+                          color="inherit"
+                          onClick={onRetry}
+                          startIcon={<IconRefresh />}
+                          variant="text"
+                        >
+                          Send again
+                        </Button>
+                      )}
                     </div>
-                  ),
-                )}
+                  )}
 
-                {view.live && <TurnBubble live={running} turn={view.live} />}
-
-                {activity && (
-                  <ActivityLine
-                    activity={activity}
-                    connecting={view.phase === "connecting"}
-                    key={activity.startedAt}
-                    onStop={activity.source === "terminal" ? undefined : onStop}
-                    status={view.status}
-                  />
-                )}
-
-                {view.asks.map((ask, index) => (
-                  <PermissionCard
-                    ask={ask}
-                    key={ask.requestId}
-                    onDecide={onDecide}
-                    primary={index === 0}
-                  />
-                ))}
-
-                {view.error && (
-                  <div className={styles.error}>
-                    <IconCircleExclamation />
-                    <span className={styles.errorText}>{view.error}</span>
-                    {onRetry && !running && (
-                      <Button
-                        className={styles.retry}
-                        color="inherit"
-                        onClick={onRetry}
-                        startIcon={<IconRefresh />}
-                        variant="text"
-                      >
-                        Send again
-                      </Button>
-                    )}
-                  </div>
-                )}
-
-                {view.stats && !running && <StatsRow stats={view.stats} />}
-              </>
-            )}
-          </div>
-        </FindTarget.Provider>
+                  {view.stats && !running && <StatsRow stats={view.stats} />}
+                </>
+              )}
+            </div>
+          </FindTarget.Provider>
+        </OpenCards.Provider>
       </div>
 
       {!pinned && (
@@ -372,6 +480,10 @@ export function ThreadView({
             Jump to latest
           </Button>
         </div>
+      )}
+
+      {deckStart >= 0 && (
+        <AnswerDeck onClose={() => setDeckAt(null)} replies={deckReplies} start={deckStart} />
       )}
     </div>
   );

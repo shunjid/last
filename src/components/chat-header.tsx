@@ -18,6 +18,7 @@ import type { ResultStats } from "@/lib/types";
 
 import styles from "./chat-header.module.css";
 import {
+  IconCards,
   IconCheck,
   IconCodeBranch,
   IconCopy,
@@ -59,11 +60,13 @@ export function ChatHeader({
   attention,
   branch,
   busy,
+  cardsView = false,
   contextStats,
   cwd,
   home,
   onOpenFind,
   onOpenPalette,
+  onToggleCards,
   onToggleSidebar,
   sessionId,
   sidebarHidden,
@@ -72,11 +75,13 @@ export function ChatHeader({
   attention: boolean;
   branch: string | null;
   busy: boolean;
+  cardsView?: boolean;
   contextStats: ResultStats | null;
   cwd: string | null;
   home: string;
   onOpenFind?: () => void;
   onOpenPalette: () => void;
+  onToggleCards?: () => void;
   onToggleSidebar: () => void;
   sessionId: string | null;
   sidebarHidden: boolean;
@@ -206,6 +211,19 @@ export function ChatHeader({
       </div>
 
       <div className={styles.actions}>
+        {onToggleCards && (
+          <Tooltip title={cardsView ? "Back to the full thread" : "Show replies as cards"}>
+            <button
+              aria-label="Cards view"
+              aria-pressed={cardsView}
+              className={`${styles.palette} ${styles.find} ${cardsView ? styles.viewOn : ""}`}
+              onClick={onToggleCards}
+              type="button"
+            >
+              <IconCards />
+            </button>
+          </Tooltip>
+        )}
         {onOpenFind && (
           <button
             aria-label="Search this session"
