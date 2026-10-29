@@ -2,7 +2,7 @@
 
 import { useCallback, useEffect, useMemo, useSyncExternalStore } from "react";
 
-import type { LiveFrame, PermissionAsk, QuestionAsk } from "@/lib/types";
+import type { LiveFrame, PermissionAsk, PromptImage, QuestionAsk } from "@/lib/types";
 
 import { getSessionDetail } from "./api";
 import {
@@ -162,12 +162,14 @@ export function useChat(target: ChatTarget, onSessionCreated: (sessionId: string
   }, [busy, entry, epoch, liveSessionId, loadedKey]);
 
   const send = useCallback(
-    (prompt: string, options: SendOptions) => sendOn(entry, prompt, options),
+    (prompt: string, options: SendOptions, images?: PromptImage[]) =>
+      sendOn(entry, prompt, options, images),
     [entry],
   );
 
   const enqueue = useCallback(
-    (prompt: string, options: SendOptions) => enqueueOn(entry, prompt, options),
+    (prompt: string, options: SendOptions, images?: PromptImage[]) =>
+      enqueueOn(entry, prompt, options, images),
     [entry],
   );
 
@@ -176,7 +178,8 @@ export function useChat(target: ChatTarget, onSessionCreated: (sessionId: string
   const sendNow = useCallback((id: string) => sendNowOn(entry, id), [entry]);
 
   const sendPromptNow = useCallback(
-    (prompt: string, options: SendOptions) => sendPromptNowOn(entry, prompt, options),
+    (prompt: string, options: SendOptions, images?: PromptImage[]) =>
+      sendPromptNowOn(entry, prompt, options, images),
     [entry],
   );
 

@@ -1,5 +1,7 @@
 "use client";
 
+import type { ImageDraft } from "./images";
+
 const KEY = "last:drafts";
 const LIMIT = 40;
 const MAX_AGE_MS = 30 * 24 * 60 * 60 * 1_000;
@@ -53,4 +55,15 @@ export function writeDraft(scope: string, text: string) {
   } catch {
     return;
   }
+}
+
+const draftImages = new Map<string, ImageDraft[]>();
+
+export function readDraftImages(scope: string): ImageDraft[] {
+  return draftImages.get(scope) ?? [];
+}
+
+export function writeDraftImages(scope: string, images: ImageDraft[]) {
+  if (images.length > 0) draftImages.set(scope, images);
+  else draftImages.delete(scope);
 }

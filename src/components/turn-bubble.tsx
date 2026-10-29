@@ -92,18 +92,25 @@ function BlockView({ block, findKey, live }: { block: Block; findKey: string; li
 }
 
 function UserTurn({ turn }: { turn: Turn }) {
+  const text = userText(turn);
+
   return (
     <div className={`${styles.row} ${styles.user}`}>
-      <div className={`${styles.bubble} ${turn.pending ? styles.pending : ""}`} data-find={turn.id}>
-        {turn.meta?.kind === "slash" ? (
-          <span className={styles.slash}>
-            <span className={styles.slashName}>/{turn.meta.name}</span>
-            {turn.meta.args && <span>{turn.meta.args}</span>}
-          </span>
-        ) : (
-          userText(turn)
-        )}
-      </div>
+      {text && (
+        <div
+          className={`${styles.bubble} ${turn.pending ? styles.pending : ""}`}
+          data-find={turn.id}
+        >
+          {turn.meta?.kind === "slash" ? (
+            <span className={styles.slash}>
+              <span className={styles.slashName}>/{turn.meta.name}</span>
+              {turn.meta.args && <span>{turn.meta.args}</span>}
+            </span>
+          ) : (
+            text
+          )}
+        </div>
+      )}
 
       {turn.blocks.some((block) => block.kind === "image" || block.kind === "document") && (
         <div className={styles.blocks}>

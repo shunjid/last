@@ -17,6 +17,7 @@ export { default as IconFolderOpen } from "@mui/icons-material/FolderOpen";
 export { default as IconGlobe } from "@mui/icons-material/Public";
 export { default as IconHelp } from "@mui/icons-material/HelpOutlineOutlined";
 export { default as IconImage } from "@mui/icons-material/Image";
+export { default as IconImagePlus } from "@mui/icons-material/AddPhotoAlternateOutlined";
 export { default as IconLayerGroup } from "@mui/icons-material/Layers";
 export { default as IconLight } from "@mui/icons-material/LightMode";
 export { default as IconListCheck } from "@mui/icons-material/Checklist";

@@ -1,6 +1,7 @@
 import type {
   Block,
   EffortLevel,
+  ImageMediaType,
   PermissionAsk,
   PermissionMode,
   QuestionAsk,
@@ -67,10 +68,13 @@ export function createRun(): RunState {
   };
 }
 
-export function userTurn(prompt: string): Turn {
+export function userTurn(prompt: string, images: ImageMediaType[] = []): Turn {
   const slash = /^\/([a-z0-9][\w-]*)(?:\s+([\s\S]*))?$/i.exec(prompt.trim());
   return {
-    blocks: [{ kind: "text", text: prompt }],
+    blocks: [
+      ...(prompt ? [{ kind: "text" as const, text: prompt }] : []),
+      ...images.map((mediaType) => ({ kind: "image" as const, mediaType })),
+    ],
     id: localId("user"),
     meta: slash
       ? { args: slash[2]?.trim() || undefined, kind: "slash", name: slash[1] }
@@ -320,7 +324,7 @@ export function applyFrame(run: RunState, frame: StreamFrame): void {
 
     case "prompt": {
       commitCurrent(run);
-      run.produced.push({ turn: userTurn(frame.text), type: "turn" });
+      run.produced.push({ turn: userTurn(frame.text, frame.images), type: "turn" });
       run.status = null;
       return;
     }

@@ -288,10 +288,12 @@ export function ChatPane({
           onEffortChange={pickEffort}
           onModeChange={pickMode}
           onModelChange={pickModel}
-          onQueue={(prompt) => enqueue(prompt, options)}
-          onSend={(prompt) => void send(prompt, options)}
+          onQueue={(prompt, images) => enqueue(prompt, options, images)}
+          onSend={(prompt, images) => void send(prompt, options, images)}
           onSendNow={canSendNow ? (id) => void sendNow(id) : undefined}
-          onSendPromptNow={canSendNow ? (prompt) => void sendPromptNow(prompt, options) : undefined}
+          onSendPromptNow={
+            canSendNow ? (prompt, images) => void sendPromptNow(prompt, options, images) : undefined
+          }
           onStop={() => void stop()}
           onUnqueue={unqueue}
           owner={terminalBusy ? "terminal" : "local"}

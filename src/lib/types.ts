@@ -10,6 +10,18 @@ export const EFFORT_LEVELS: EffortLevel[] = ["low", "medium", "high", "xhigh", "
 
 export const DEFAULT_MODEL = "default";
 
+export const IMAGE_MEDIA_TYPES = ["image/gif", "image/jpeg", "image/png", "image/webp"] as const;
+
+export type ImageMediaType = (typeof IMAGE_MEDIA_TYPES)[number];
+
+export type PromptImage = { data: string; mediaType: ImageMediaType };
+
+export const MAX_IMAGES = 8;
+
+export const MAX_IMAGE_CHARS = 5_000_000;
+
+export const MAX_IMAGES_CHARS = 9_000_000;
+
 export type ModelChoice = {
   value: string;
   resolvedModel?: string;
@@ -245,12 +257,13 @@ export type StreamFrame =
   | { t: "result"; stats: ResultStats }
   | { t: "notice"; level: "info" | "warning" | "danger"; message: string; detail?: string }
   | { t: "error"; message: string }
-  | { t: "prompt"; text: string }
+  | { t: "prompt"; text: string; images?: ImageMediaType[] }
   | { t: "unsent" }
   | { t: "done" };
 
 export type ChatRequestBody = {
   prompt: string;
+  images?: PromptImage[];
   sessionId?: string;
   cwd?: string;
   permissionMode: PermissionMode;
@@ -265,7 +278,12 @@ export type PermissionDecisionBody = {
   scope: "once" | "session";
 };
 
-export type SendNowBody = { streamId: string; sessionId?: string; prompt: string };
+export type SendNowBody = {
+  streamId: string;
+  sessionId?: string;
+  prompt: string;
+  images?: PromptImage[];
+};
 
 export type RunOptionsBody = {
   streamId: string;
