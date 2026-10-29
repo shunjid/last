@@ -2,7 +2,7 @@ import "server-only";
 
 import type { PermissionResult, Query } from "@anthropic-ai/claude-agent-sdk";
 
-import type { PermissionMode, StreamFrame } from "@/lib/types";
+import type { ImageMediaType, PermissionMode, StreamFrame } from "@/lib/types";
 
 export type AskFrame = Extract<StreamFrame, { t: "permission" | "question" }>;
 
@@ -25,7 +25,7 @@ export type StreamState = {
   liveSessionId: string | null;
   mode: PermissionMode;
   runner: Query | null;
-  sendNow: { text: string; uuid: string } | null;
+  sendNow: { images: ImageMediaType[]; text: string; uuid: string } | null;
   stopped: boolean;
 };
 

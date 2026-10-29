@@ -6,7 +6,7 @@ import {
 } from "@anthropic-ai/claude-agent-sdk";
 
 import { readJson } from "@/lib/http";
-import { ChatBodySchema } from "@/lib/schemas";
+import { ChatBodySchema, MAX_CHAT_BODY_CHARS } from "@/lib/schemas";
 import { DEFAULT_MODEL, type StreamFrame } from "@/lib/types";
 import { effortAllowed } from "@/server/models";
 import {
@@ -16,6 +16,7 @@ import {
   requestQuestion,
   setStreamMode,
 } from "@/server/permissions";
+import { chatPrompt } from "@/server/prompt";
 import { registerQuery, unregisterQuery, withSessionLock } from "@/server/registries";
 import { releaseRun, tryAcquireRun } from "@/server/run-guard";
 import { announceRun } from "@/server/run-watch";
@@ -33,7 +34,7 @@ const encoder = new TextEncoder();
 const HEARTBEAT_MS = 15_000;
 
 export async function POST(request: Request) {
-  const body = await readJson(request, ChatBodySchema);
+  const body = await readJson(request, ChatBodySchema, MAX_CHAT_BODY_CHARS);
   if (!body.ok) return body.response;
 
   const resolved = await resolveChatCwd({ cwd: body.data.cwd, sessionId: body.data.sessionId });
@@ -41,7 +42,7 @@ export async function POST(request: Request) {
     return Response.json({ error: resolved.reason }, { status: 400 });
   }
 
-  const { effort, model, permissionMode, prompt, sessionId } = body.data;
+  const { effort, images, model, permissionMode, prompt, sessionId } = body.data;
   const cwd = resolved.cwd;
   const useModel = model && model !== DEFAULT_MODEL ? model : undefined;
   const useEffort =
@@ -123,7 +124,7 @@ export async function POST(request: Request) {
 
       const run = async () => {
         if (state.stopped) return;
-        const runner = query({ options, prompt });
+        const runner = query({ options, prompt: chatPrompt(prompt, images) });
         state.runner = runner;
         try {
           for await (const message of runner as AsyncIterable<SDKMessage>) {
@@ -131,7 +132,7 @@ export async function POST(request: Request) {
             if (pending && answersSendNow(message, pending.uuid)) {
               state.sendNow = null;
               if (state.stopped) void runner.interrupt().catch(() => undefined);
-              else send({ t: "prompt", text: pending.text });
+              else send({ images: pending.images, t: "prompt", text: pending.text });
             } else if (pending && message.type === "result" && message.is_error) {
               continue;
             }

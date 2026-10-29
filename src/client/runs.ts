@@ -6,6 +6,7 @@ import type {
   LiveFrame,
   PermissionAsk,
   PermissionMode,
+  PromptImage,
   QuestionAsk,
   ResultStats,
   ServerRun,
@@ -43,7 +44,7 @@ export type SendOptions = {
   model: string;
 };
 
-export type QueuedMessage = SendOptions & { id: string; text: string };
+export type QueuedMessage = SendOptions & { id: string; images: PromptImage[]; text: string };
 
 export type ChatActivity = {
   effort: EffortLevel | null;
@@ -71,7 +72,7 @@ export type ChatView = {
   truncated: boolean;
 };
 
-type PendingSend = { anchor: number; options: SendOptions; prompt: string };
+type PendingSend = { anchor: number; images: PromptImage[]; options: SendOptions; prompt: string };
 
 export type Entry = {
   controller: AbortController | null;
@@ -319,7 +320,9 @@ function hasUserText(items: ThreadItem[], text: string, from: number) {
     const item = items[index];
     if (item.type !== "turn" || item.turn.role !== "user") continue;
     for (const block of item.turn.blocks) {
-      if (block.kind === "text" && block.text.trim() === text) return true;
+      if (text ? block.kind === "text" && block.text.trim() === text : block.kind === "image") {
+        return true;
+      }
     }
   }
   return false;
@@ -328,7 +331,7 @@ function hasUserText(items: ThreadItem[], text: string, from: number) {
 function absorbHistory(entry: Entry, next: ThreadItem[]) {
   entry.history = next;
   const probe = entry.tailProbe;
-  if (probe && hasUserText(next, probe, entry.tailProbeFrom)) {
+  if (probe !== null && hasUserText(next, probe, entry.tailProbeFrom)) {
     entry.tailProbe = null;
     entry.tailProbeFrom = 0;
     entry.tail = [];
@@ -420,10 +423,15 @@ function setQueue(entry: Entry, next: QueuedMessage[]) {
   snapshot(entry);
 }
 
-export function enqueue(entry: Entry, prompt: string, options: SendOptions) {
+export function enqueue(
+  entry: Entry,
+  prompt: string,
+  options: SendOptions,
+  images: PromptImage[] = [],
+) {
   const text = prompt.trim();
-  if (!text) return null;
-  const item = { ...options, id: localId("queued"), text };
+  if (!text && images.length === 0) return null;
+  const item = { ...options, id: localId("queued"), images, text };
   setQueue(entry, [...entry.queue, item]);
   return item.id;
 }
@@ -454,6 +462,7 @@ export async function sendNow(entry: Entry, id: string) {
   try {
     await sendNowToSession({
       prompt: item.text,
+      ...(item.images.length > 0 ? { images: item.images } : {}),
       streamId: run.streamId,
       ...(entry.sessionId ? { sessionId: entry.sessionId } : {}),
     });
@@ -464,8 +473,13 @@ export async function sendNow(entry: Entry, id: string) {
   }
 }
 
-export async function sendPromptNow(entry: Entry, prompt: string, options: SendOptions) {
-  const id = enqueue(entry, prompt, options);
+export async function sendPromptNow(
+  entry: Entry,
+  prompt: string,
+  options: SendOptions,
+  images: PromptImage[] = [],
+) {
+  const id = enqueue(entry, prompt, options, images);
   if (id) await sendNow(entry, id);
 }
 
@@ -474,12 +488,22 @@ function drainQueue(entry: Entry) {
   const next = entry.queue[0];
   if (!next) return;
   setQueue(entry, entry.queue.slice(1));
-  void send(entry, next.text, { effort: next.effort, mode: next.mode, model: next.model });
+  void send(
+    entry,
+    next.text,
+    { effort: next.effort, mode: next.mode, model: next.model },
+    next.images,
+  );
 }
 
-export async function send(entry: Entry, prompt: string, options: SendOptions) {
+export async function send(
+  entry: Entry,
+  prompt: string,
+  options: SendOptions,
+  images: PromptImage[] = [],
+) {
   const text = prompt.trim();
-  if (!text) return;
+  if (!text && images.length === 0) return;
   const active = entry.run;
   if (active && (active.phase === "connecting" || active.phase === "running")) return;
 
@@ -492,7 +516,8 @@ export async function send(entry: Entry, prompt: string, options: SendOptions) {
   entry.retry = null;
   entry.tailProbe = text;
   entry.tailProbeFrom = entry.history.length;
-  entry.tail = [...entry.tail, { turn: userTurn(text), type: "turn" }];
+  const mediaTypes = images.map((image) => image.mediaType);
+  entry.tail = [...entry.tail, { turn: userTurn(text, mediaTypes), type: "turn" }];
 
   const run = createRun();
   run.effort = options.effort;
@@ -514,6 +539,7 @@ export async function send(entry: Entry, prompt: string, options: SendOptions) {
     const body: ChatRequestBody = {
       permissionMode: options.mode,
       prompt: text,
+      ...(images.length > 0 ? { images } : {}),
       ...(options.model && options.model !== DEFAULT_MODEL ? { model: options.model } : {}),
       ...(options.effort ? { effort: options.effort } : {}),
       ...(resumeId ? { sessionId: resumeId } : { cwd: entry.cwd }),
@@ -556,7 +582,7 @@ export async function send(entry: Entry, prompt: string, options: SendOptions) {
     } else {
       run.error = error instanceof Error ? error.message : "The connection dropped.";
       run.phase = "error";
-      entry.retry = { anchor, options, prompt: text };
+      entry.retry = { anchor, images, options, prompt: text };
     }
   } finally {
     if (detached) entry.sendingNow = null;
@@ -576,7 +602,12 @@ export async function send(entry: Entry, prompt: string, options: SendOptions) {
     const next = keepGoing ? entry.queue[0] : undefined;
     if (next) {
       setQueue(entry, entry.queue.slice(1));
-      void send(entry, next.text, { effort: next.effort, mode: next.mode, model: next.model });
+      void send(
+        entry,
+        next.text,
+        { effort: next.effort, mode: next.mode, model: next.model },
+        next.images,
+      );
     }
   }
 }
@@ -633,7 +664,7 @@ export function retry(entry: Entry) {
   entry.tailProbe = null;
   entry.tailProbeFrom = 0;
   entry.tail = entry.tail.slice(0, pending.anchor);
-  void send(entry, pending.prompt, pending.options);
+  void send(entry, pending.prompt, pending.options, pending.images);
 }
 
 export function stop(entry: Entry) {

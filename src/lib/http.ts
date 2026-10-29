@@ -16,6 +16,7 @@ type ReadResult<T> = { ok: true; data: T } | { ok: false; response: NextResponse
 export async function readJson<S extends z.ZodType>(
   request: Request,
   schema: S,
+  limit = 1_000_000,
 ): Promise<ReadResult<z.infer<S>>> {
   const contentType = (request.headers.get("content-type") ?? "").toLowerCase();
   if (!contentType.startsWith("application/json")) {
@@ -23,7 +24,7 @@ export async function readJson<S extends z.ZodType>(
   }
 
   const raw = await request.text();
-  if (raw.length > 1_000_000) {
+  if (raw.length > limit) {
     return { ok: false, response: jsonError(413, "body too large") };
   }
 
