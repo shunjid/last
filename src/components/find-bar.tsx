@@ -4,6 +4,8 @@ import IconButton from "@mui/material/IconButton";
 import Tooltip from "@mui/material/Tooltip";
 import { useEffect, type RefObject } from "react";
 
+import { useBackClose } from "@/client/back";
+
 import styles from "./find-bar.module.css";
 import { IconArrowDown, IconArrowUp, IconSearch, IconXmark } from "./icons";
 
@@ -30,6 +32,8 @@ export function FindBar({
   searched: boolean;
   truncated: boolean;
 }) {
+  useBackClose(true, onClose);
+
   useEffect(() => {
     const opener = document.activeElement;
     inputRef.current?.focus();

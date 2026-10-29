@@ -3,6 +3,7 @@
 import SwipeableDrawer from "@mui/material/SwipeableDrawer";
 import { useId } from "react";
 
+import { useBackClose } from "@/client/back";
 import type { PermissionMode } from "@/lib/types";
 
 import styles from "./composer-sheet.module.css";
@@ -75,6 +76,7 @@ export function ComposerSheet({
   open: boolean;
 }) {
   const modeId = useId();
+  useBackClose(open, onClose);
 
   return (
     <SwipeableDrawer

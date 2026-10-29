@@ -10,6 +10,7 @@ import InputAdornment from "@mui/material/InputAdornment";
 import TextField from "@mui/material/TextField";
 import { useMemo, useState } from "react";
 
+import { useBackClose } from "@/client/back";
 import { useKeyboardInset } from "@/client/use-keyboard-inset";
 import { COARSE_QUERY, SHEET_QUERY, useMediaQuery } from "@/client/use-media-query";
 import { basename, homeRelative, relativeStamp } from "@/lib/format";
@@ -70,6 +71,8 @@ export function FolderPicker({
     setQuery("");
     onClose();
   }
+
+  useBackClose(open, close);
 
   return (
     <Dialog
