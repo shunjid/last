@@ -1,9 +1,10 @@
 "use client";
 
 import CircularProgress from "@mui/material/CircularProgress";
-import { memo, type ReactNode } from "react";
+import { memo, useContext, type ReactNode } from "react";
 
 import { useRevealOpen } from "@/client/find";
+import { RunsHere } from "@/client/runs-here";
 import {
   errorHeadline,
   hidesResultOnSuccess,
@@ -66,6 +67,7 @@ export const ToolCard = memo(function ToolCard({ block }: { block: ToolBlock }) 
   const running = !block.streaming && block.result === null;
   const failed = block.result?.isError === true;
   const [open, setOpen] = useRevealOpen(opensByDefault(block.name), block.id);
+  const runsHere = useContext(RunsHere);
 
   const todos = block.name === "TodoWrite" ? todosOf(block.input) : null;
   const questions = block.name === "AskUserQuestion" ? questionsOf(block.input) : [];
@@ -149,7 +151,11 @@ export const ToolCard = memo(function ToolCard({ block }: { block: ToolBlock }) 
             )
           ) : (
             <p className={styles.empty} data-find-skip>
-              {asking ? "Waiting for an answer…" : "Still running…"}
+              {!asking
+                ? "Still running…"
+                : runsHere
+                  ? "Waiting for an answer…"
+                  : "Answer this in the terminal where Claude is running."}
             </p>
           )}
         </div>
