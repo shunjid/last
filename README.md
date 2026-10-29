@@ -1,103 +1,111 @@
 <h1><img src="src/app/icon.svg" width="30" height="30" alt=""> LAST</h1>
 
-Your Claude Code sessions, in a browser tab.
+Use your Claude Code sessions in a browser tab.
 
-LAST lists every Claude Code session on your machine and lets you keep chatting in any of them. It
-reads the transcripts your terminal already writes and continues the session through the Claude Agent
-SDK, so a reply you send here is waiting for you the next time you run `claude --resume`.
+LAST shows all the Claude Code sessions on your computer. You can open a session and continue it in
+the browser. LAST reads the transcripts that Claude Code writes, and it continues each session
+through the Claude Agent SDK. When you run `claude --resume` in the terminal, you see the messages
+that you sent from LAST.
 
-## What you get
+## What you can do in LAST
 
-- **Every session in one list.** Grouped by project with git branch and relative time. Groups are
-  collapsible (collapsed by default), a Recent shortcut keeps the latest few on top, and a project
-  header opens that group's full session list in a modal.
-- **The whole conversation.** Markdown, syntax-highlighted code, tool calls and thinking blocks,
-  replayed the way the terminal showed them.
-- **Reply from the browser.** Same folder, same session, same Claude. The turn is appended to the
-  same transcript file your terminal uses.
-- **Live.** Leave a session open in the browser, keep working in the terminal, and the page follows
-  along on its own. No refresh.
-- **Streaming replies** with token count, cost and duration for every turn.
-- **Permission prompts in the browser.** Allow once, allow for the session, or deny.
-- **Clarifying questions as a proper dialog.** When Claude asks a multiple-choice question, it opens
-  as a modal with each option's explanation next to it, not just plain chat text.
-- **Permission modes** in the composer: Ask before changes, Auto-accept edits, Plan only, Auto
-  (the default, as in Claude Code: Anthropic's own classifier approves or denies routine calls;
-  anything it isn't sure about still asks you), or Bypass permissions (the CLI's
-  `--dangerously-skip-permissions`: nothing asks).
-- **Queue while Claude works, or send now.** A message typed during a turn waits in a queue. Its
-  Send now button cuts in like `ctrl+x ctrl+s` in the terminal: Claude stops what it's doing and
-  answers the message straight away, keeping everything it had already done. `⌘J` or `⌘⇧↵` sends
-  what you typed that way without queueing it first.
-- **Model and effort pickers**, and a light / dark / system theme.
-- **Works on a phone.** The sidebar becomes a drawer and the whole app resizes down to a small
-  screen.
-- **Long replies as cards on a phone.** Under a long answer, Show as cards splits it at its
-  headings and bold labels and opens the pieces full screen, one card at a time. Swipe left and
-  right to move between them.
-- **Search this session.** `⌘F` finds text in prompts, replies, thinking and tool calls of the
-  open session, opens the card that holds each match, and steps through them newest first.
-- **Keyboard first.** `⌘K` session palette, `⌘F` search this session, `⌘B` sidebar, `⌘J` send now,
-  `Esc` stops a running turn.
-- **Nothing leaves your machine.** No telemetry, no analytics, no account, no server-side database.
+- **See all your sessions in one list.** LAST groups the sessions by project. Each session shows
+  its git branch and the time of its last activity. Open a project to see all of its sessions.
+- **Pin a session.** Click the pin button above the chat. Pinned sessions show at the top of the
+  sidebar, above Recent.
+- **See which sessions need you.** When a session waits for a permission or an answer, the sidebar
+  shows "needs your answer". Jump to a session (`⌘K`) shows these sessions first.
+- **Read the full conversation.** LAST shows Markdown, highlighted code, tool calls and thinking
+  blocks, as the terminal shows them.
+- **Continue a session from the browser.** Your message goes into the same session, in the same
+  folder. LAST adds the turn to the transcript file that the terminal uses.
+- **Follow a session live.** Keep a session open in the browser and continue it in the terminal.
+  The page updates without a refresh.
+- **Watch each reply as Claude writes it.** Each turn shows its token count, cost and duration.
+- **Close the tab during a turn.** The turn continues until it ends or until you stop it. Open the
+  session again to follow it.
+- **Approve or deny tool calls.** Each permission prompt has Allow once and Deny. Some prompts also
+  have Allow for this session.
+- **Answer questions from Claude.** When Claude asks a multiple-choice question, LAST shows it in a
+  dialog. Each option shows its explanation.
+- **Select a permission mode.** Auto mode is the default, as in Claude Code. These are the modes:
+  - **Auto-approve safe actions** (Auto mode): A classifier from Anthropic approves or denies each
+    tool call. LAST asks you only when the classifier cannot decide.
+  - **Ask before changes**: LAST asks you before each change.
+  - **Auto-accept edits**: Claude edits files without a prompt. LAST asks you about other changes.
+  - **Plan only**: Claude makes a plan. It does not make changes.
+  - **Bypass permissions**: Claude runs all tool calls without a prompt. This is the same as
+    `claude --dangerously-skip-permissions`.
+- **Send a message while Claude works.** LAST puts the message in a queue and sends it when the
+  turn ends. To send a message immediately, press `⌘J` or `⌘⇧↵` instead of Enter. To send a queued
+  message immediately, click its Send now button. Claude stops its reply, answers your message and
+  keeps the work that it did.
+- **Select the model, the effort level and the theme.** The theme can be light, dark or the same as
+  your system.
+- **Use LAST on a phone.** The sidebar becomes a drawer, and the page fits a small screen.
+- **Read a long reply as cards on a phone.** Under a long reply, tap Show as cards. LAST splits the
+  reply at its headings and bold labels, and shows one card at a time. Swipe left or right to go to
+  the next card.
+- **Search the open session.** Press `⌘F` to find text in your messages, the replies, the thinking
+  and the tool calls. LAST opens the card that has each match, from the newest match to the oldest.
+- **Copy the resume command.** In Jump to a session (`⌘K`), copy the `claude --resume` command of a
+  session. Paste it in your terminal to continue the session there.
+- **Use the keyboard.** `⌘K` jumps to a session. `⌘F` searches the open session. `⌘B` shows or
+  hides the sidebar. `⌘J` sends a message immediately. `Esc` stops the turn.
+- **Keep your data on your computer.** LAST itself sends no data off your computer. It has no
+  telemetry, no analytics, no account and no server database. Claude Code sends your messages to
+  Anthropic, as it does in the terminal.
 
 ## Requirements
 
-- Node.js 20.9 or newer
-- macOS or Linux (Windows is untested)
-- [Claude Code](https://docs.claude.com/en/docs/claude-code) installed and signed in. LAST reuses
-  your existing CLI credentials, so there is no API key to set up
+- Node.js 20.9 or later
+- macOS or Linux. Windows is untested.
+- [Claude Code](https://docs.claude.com/en/docs/claude-code), installed and signed in. LAST uses
+  your Claude Code login, so you do not need an API key.
 
-LAST talks to Claude through the copy of Claude Code bundled with `@anthropic-ai/claude-agent-sdk`,
-not the `claude` on your PATH. The SDK is pinned to 0.3.310, which bundles Claude Code 2.1.310.
-Newer Claude models need Claude Code 2.1.280 or newer, so if a reply fails with "Claude Code … does
-not support this model", `claude update` won't fix it. The SDK version in `package.json` has to go
-up.
+LAST uses the Claude Code that comes with `@anthropic-ai/claude-agent-sdk`. It does not use the
+`claude` command on your PATH. LAST pins the SDK at version 0.3.310, which includes Claude Code
+2.1.310.
 
-## Run it
+New Claude models need Claude Code 2.1.280 or later. If a reply fails with "Claude Code … does not
+support this model", `claude update` does not fix it. Increase the SDK version in `package.json`.
 
-```bash
-npm ci
-npm run dev
-```
+## Run LAST
 
-Open http://127.0.0.1:4123.
+1. Run `npm ci` to install the packages.
+2. Run `npm run dev` to start LAST.
+3. Open http://127.0.0.1:4123 in your browser.
 
-You need one Claude Code session on disk before there is anything to show, so run `claude` in a
-project once, then reload.
+LAST needs at least one Claude Code session on your computer. If the list is empty, run `claude` in
+a project one time. Then reload the page.
 
-For a production-style run:
+To run a production build, run `npm run build`, then `npm start`.
 
-```bash
-npm run build
-npm start
-```
+To stop LAST, press Ctrl-C. To see what still uses port 4123, run `npm run check-bind`.
 
-Press Ctrl-C to stop it. `npm run check-bind` tells you what is still listening on 4123.
+## Read this before you run LAST
 
-## Read this before you run it
+> [!WARNING]
+> Do not run LAST on a computer that other people use. Do not forward or tunnel port 4123. LAST has
+> no login and no token. Any program that can connect to `127.0.0.1:4123` can read all your Claude
+> Code history. It can also run Bash commands on your computer as you.
 
-There is no login and no token. Anything that can open a TCP connection to `127.0.0.1:4123` has your
-whole Claude Code history and can run Bash on your machine as you.
+Make sure that your code editor does not forward port 4123 for you.
 
-So: do not run LAST on a shared or multi-user machine, and do not port-forward or tunnel port 4123.
-Check whether your editor forwards ports for you.
+Auto mode is the default. In Auto mode, the classifier approves the tool calls that it is sure are
+safe, and it does not tell you. When it is sure that a call is not safe, it denies the call. LAST
+shows a warning after the denial. LAST asks you only about the calls that the classifier is not
+sure about. To see each change before it runs, select Ask before changes.
 
-Every tool call asks you first in Ask before changes, Auto-accept edits, and Plan only. In Auto mode
-it doesn't: Anthropic's classifier silently approves calls it's confident about, and a call it's
-confident should be denied just shows up as a warning after the fact. Only the calls it isn't sure
-about still reach you. Auto is the default, so switch to Ask before changes if you want to see
-everything before it runs.
+LAST does not load Claude Code settings files by default. This means that your Claude Code allow
+list does not apply in LAST. LAST also does not load `CLAUDE.md` and `AGENTS.md`. To load them, set
+`LAST_SETTING_SOURCES=project`. To load all the settings files, as the terminal does, set
+`LAST_SETTING_SOURCES=user,project,local`.
 
-LAST loads no Claude Code settings files by default, so nothing on your CLI allow list runs
-unprompted. The trade-off is that `CLAUDE.md` and `AGENTS.md` are not loaded either. Set
-`LAST_SETTING_SOURCES=project` to opt back in, or `user,project,local` for full CLI parity.
-
-Typing "ultracode" in a message is a built-in Claude Code trigger, not a LAST feature. It opts that
-turn into the Workflow tool, which can spawn several subagents at once. It needs Workflows enabled
-on your Anthropic plan and a model that supports the deepest effort level; LAST can't check either
-of those for you. LAST shows a line when a workflow starts and when it finishes, but not its live
-progress in between.
+The word "ultracode" in a message starts a Claude Code workflow. A workflow can run many subagents
+at the same time. This is a Claude Code feature, not a LAST feature. It needs Workflows on your
+Anthropic plan and a model with the highest effort level. LAST cannot check these for you. LAST
+shows when a workflow starts and when it ends, but not its progress.
 
 ## Contributing
 
@@ -105,16 +113,16 @@ See [CONTRIBUTING.md](CONTRIBUTING.md).
 
 ## Notes
 
-This is an unofficial, community-built project. It is not affiliated with, endorsed by or supported
-by Anthropic. "Claude" and "Claude Code" are trademarks of Anthropic. LAST is provided as is, with no
-warranty. You are responsible for what the agent does on your machine.
+LAST is an unofficial community project. It has no affiliation with Anthropic, and Anthropic does
+not endorse or support it. "Claude" and "Claude Code" are trademarks of Anthropic. LAST comes as
+is, with no warranty. You are responsible for what the agent does on your computer.
 
-LAST depends on `@anthropic-ai/claude-agent-sdk`, which is proprietary to Anthropic PBC and is **not**
-covered by LAST's licence. It is fetched from npm under Anthropic's own terms, and it spends your
-Claude credits.
+LAST uses `@anthropic-ai/claude-agent-sdk`. Anthropic PBC owns this SDK, and the LAST license does
+not cover it. You get the SDK from npm under the terms of Anthropic. The SDK uses your Claude
+credits.
 
-UI ideas were inspired by [siteboon/claudecodeui](https://github.com/siteboon/claudecodeui). No code
-was copied from it.
+Some UI ideas come from [siteboon/claudecodeui](https://github.com/siteboon/claudecodeui). LAST
+contains no code from that project.
 
 ## License
 
