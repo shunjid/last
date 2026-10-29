@@ -16,6 +16,7 @@ import {
   loadedDetail,
   nextDraftId,
   retry as retryOn,
+  retune as retuneOn,
   send as sendOn,
   sendNow as sendNowOn,
   sendPromptNow as sendPromptNowOn,
@@ -181,6 +182,8 @@ export function useChat(target: ChatTarget, onSessionCreated: (sessionId: string
 
   const retry = useCallback(() => retryOn(entry), [entry]);
 
+  const retune = useCallback((patch: Partial<SendOptions>) => retuneOn(entry, patch), [entry]);
+
   const stop = useCallback(() => stopOn(entry), [entry]);
 
   const decide = useCallback(
@@ -206,6 +209,7 @@ export function useChat(target: ChatTarget, onSessionCreated: (sessionId: string
     canSendNow,
     queue,
     retry,
+    retune,
     send,
     sendNow,
     sendPromptNow,

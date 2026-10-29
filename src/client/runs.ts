@@ -23,6 +23,7 @@ import {
   sendPermission,
   sendQuestionAnswer,
   streamChat,
+  updateRunOptions,
 } from "./api";
 import { applyOps } from "./live";
 import {
@@ -62,6 +63,7 @@ export type ChatView = {
   error: string | null;
   items: ThreadItem[];
   live: Turn | null;
+  mode: PermissionMode | null;
   phase: RunPhase;
   questionAsks: QuestionAsk[];
   stats: ResultStats | null;
@@ -112,6 +114,7 @@ const EMPTY_VIEW: ChatView = {
   error: null,
   items: [],
   live: null,
+  mode: null,
   phase: "idle",
   questionAsks: [],
   stats: null,
@@ -284,6 +287,7 @@ function snapshot(entry: Entry) {
     error: run?.error ?? null,
     items: run ? [...base, ...run.produced] : base,
     live: run?.current ?? null,
+    mode: remote ? remote.mode : isBusy(entry) ? (run?.mode ?? null) : null,
     phase: run?.phase ?? "idle",
     questionAsks: remote ? remote.questionAsks : (run?.questionAsks ?? []),
     stats: run?.stats ?? null,
@@ -492,6 +496,7 @@ export async function send(entry: Entry, prompt: string, options: SendOptions) {
 
   const run = createRun();
   run.effort = options.effort;
+  run.mode = options.mode;
   entry.run = run;
   entry.serverRun = null;
   entry.stopped = false;
@@ -574,6 +579,51 @@ export async function send(entry: Entry, prompt: string, options: SendOptions) {
       void send(entry, next.text, { effort: next.effort, mode: next.mode, model: next.model });
     }
   }
+}
+
+export async function retune(entry: Entry, patch: Partial<SendOptions>): Promise<string | null> {
+  if (entry.queue.length > 0)
+    setQueue(
+      entry,
+      entry.queue.map((item) => ({ ...item, ...patch })),
+    );
+  const run = isBusy(entry) ? entry.run : null;
+  const remote = run ? null : entry.serverRun;
+  const streamId = run ? run.streamId : remote?.streamId;
+  if (!streamId) return null;
+
+  try {
+    await updateRunOptions({
+      streamId,
+      ...(entry.sessionId ? { sessionId: entry.sessionId } : {}),
+      ...(patch.mode ? { permissionMode: patch.mode } : {}),
+      ...(patch.model ? { model: patch.model } : {}),
+      ...(patch.effort !== undefined ? { effort: patch.effort } : {}),
+    });
+  } catch (error) {
+    const reason = error instanceof Error ? error.message : "The turn did not take the change.";
+    const label = "This turn kept its old settings";
+    if (run && entry.run === run) {
+      applyFrame(run, { detail: reason, level: "warning", message: label, t: "notice" });
+    } else {
+      entry.tail = [
+        ...entry.tail,
+        {
+          divider: { detail: reason, id: localId("div"), label, tone: "warning" },
+          type: "divider",
+        },
+      ];
+    }
+    flushNow(entry);
+    return reason;
+  }
+
+  if (run && entry.run === run) {
+    if (patch.mode) run.mode = patch.mode;
+    if (patch.effort !== undefined) run.effort = patch.effort;
+    flushNow(entry);
+  }
+  return null;
 }
 
 export function retry(entry: Entry) {

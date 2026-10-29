@@ -2,6 +2,7 @@ import "server-only";
 
 import type { SDKMessage } from "@anthropic-ai/claude-agent-sdk";
 
+import { PermissionModeSchema } from "@/lib/schemas";
 import { answersOf } from "@/lib/tools";
 import type { ResultStats, StreamFrame, ToolResult } from "@/lib/types";
 
@@ -105,7 +106,12 @@ export class FrameMapper {
     }
     if (raw.subtype === "status") {
       const status = raw.status;
-      return [{ status: typeof status === "string" ? status : null, t: "status" }];
+      const frames: StreamFrame[] = [
+        { status: typeof status === "string" ? status : null, t: "status" },
+      ];
+      const mode = PermissionModeSchema.safeParse(raw.permissionMode);
+      if (mode.success) frames.push({ mode: mode.data, t: "mode" });
+      return frames;
     }
     if (raw.subtype === "compact_boundary") {
       const meta = (raw.compact_metadata ?? {}) as { trigger?: string; pre_tokens?: number };

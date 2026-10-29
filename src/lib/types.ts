@@ -190,6 +190,7 @@ export type ServerRun = {
   startedAt: number;
   asks: PermissionAsk[];
   questionAsks: QuestionAsk[];
+  mode: PermissionMode;
 };
 
 export type ResultStats = {
@@ -237,6 +238,7 @@ export type StreamFrame =
   | { t: "permission_resolved"; requestId: string; behavior: "allow" | "deny" }
   | { t: "question"; ask: QuestionAsk }
   | { t: "status"; status: string | null }
+  | { t: "mode"; mode: PermissionMode }
   | { t: "usage"; outputTokens: number }
   | { t: "thinking_tokens"; estimated: number }
   | { t: "compact"; trigger: "manual" | "auto"; preTokens: number }
@@ -264,6 +266,14 @@ export type PermissionDecisionBody = {
 };
 
 export type SendNowBody = { streamId: string; sessionId?: string; prompt: string };
+
+export type RunOptionsBody = {
+  streamId: string;
+  sessionId?: string;
+  permissionMode?: PermissionMode;
+  model?: string;
+  effort?: EffortLevel | null;
+};
 
 export type QuestionDecisionBody =
   | { streamId: string; requestId: string; decision: "answer"; answers: Record<string, string> }

@@ -6,7 +6,7 @@ import { basename, dirname, join, normalize, resolve, sep } from "node:path";
 
 import type { PermissionResult } from "@anthropic-ai/claude-agent-sdk";
 
-import type { PermissionAsk, QuestionAsk } from "@/lib/types";
+import type { PermissionAsk, PermissionMode, QuestionAsk } from "@/lib/types";
 import {
   editDiff,
   isMutatingTool,
@@ -32,12 +32,15 @@ const ALWAYS_ALLOWED_CANDIDATES = new Set([
   "WebSearch",
 ]);
 
-export function openStream(cwd: string): StreamState {
+const EDIT_TOOLS = new Set(["Edit", "MultiEdit", "NotebookEdit", "Write"]);
+
+export function openStream(cwd: string, mode: PermissionMode): StreamState {
   const streamId = randomUUID();
   const state: StreamState = {
     allowedTools: new Set<string>(),
     cwd,
     liveSessionId: null,
+    mode,
     pending: new Map(),
     runner: null,
     sendNow: null,
@@ -167,6 +170,25 @@ function pathsStayInside(cwd: string, input: Record<string, unknown>): boolean {
   }
 }
 
+function modeAllows(state: StreamState, toolName: string, input: Record<string, unknown>) {
+  if (toolName === "ExitPlanMode") return false;
+  if (state.mode === "bypassPermissions") return true;
+  return (
+    state.mode === "acceptEdits" && EDIT_TOOLS.has(toolName) && pathsStayInside(state.cwd, input)
+  );
+}
+
+export function setStreamMode(state: StreamState, mode: PermissionMode) {
+  if (state.mode === mode) return;
+  state.mode = mode;
+  for (const entry of [...state.pending.values()]) {
+    if (entry.frame.t === "permission" && modeAllows(state, entry.toolName, entry.input ?? {})) {
+      entry.resolve({ behavior: "allow" });
+    }
+  }
+  announceRun(state.liveSessionId);
+}
+
 export function requestPermission(
   state: StreamState,
   toolName: string,
@@ -174,7 +196,10 @@ export function requestPermission(
   signal: AbortSignal,
   emit: (ask: PermissionAsk) => void,
 ): Promise<PermissionResult> {
-  if (state.allowedTools.has(toolName) && pathsStayInside(state.cwd, input)) {
+  if (
+    modeAllows(state, toolName, input) ||
+    (state.allowedTools.has(toolName) && pathsStayInside(state.cwd, input))
+  ) {
     return Promise.resolve({ behavior: "allow", updatedInput: input });
   }
   if (state.pending.size >= MAX_PENDING_PER_STREAM) {
@@ -206,6 +231,7 @@ export function requestPermission(
     const ask = buildAsk(requestId, toolName, input);
     state.pending.set(requestId, {
       frame: { ask, t: "permission" },
+      input,
       requestId,
       resolve: settle,
       streamId: state.streamId,
