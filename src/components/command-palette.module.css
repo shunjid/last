@@ -106,6 +106,24 @@
   position: relative;
 }
 
+.optionRow + .optionRow::before {
+  content: "";
+  position: absolute;
+  top: 0;
+  right: 14px;
+  left: 14px;
+  border-top: 1px solid var(--last-border-secondary);
+  pointer-events: none;
+  transition: opacity var(--last-duration-sm) var(--last-ease-standard);
+}
+
+.optionRow:has(.selected)::before,
+.optionRow:has(.selected) + .optionRow::before,
+.optionRow:hover::before,
+.optionRow:hover + .optionRow::before {
+  opacity: 0;
+}
+
 .option {
   display: flex;
   align-items: center;
@@ -192,12 +210,6 @@
 .selected .glyph {
   background: var(--last-bg-accent);
   color: var(--last-fg-black);
-}
-
-.glyphAsk,
-.selected .glyphAsk {
-  background: var(--last-bg-warning-container);
-  color: var(--last-fg-warning-container);
 }
 
 .text {
