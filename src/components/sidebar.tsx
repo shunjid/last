@@ -131,7 +131,7 @@ export function Sidebar({
     setExpanded(new Set());
   }, []);
 
-  const renderItem = (session: SessionSummary) => (
+  const renderItem = (session: SessionSummary, showRepo = false) => (
     <button
       className={`${styles.item} ${session.sessionId === activeSessionId ? styles.active : ""}`}
       key={session.sessionId}
@@ -167,6 +167,7 @@ export function Sidebar({
         {session.gitBranch && (
           <span className={styles.branch}>
             <IconCodeBranch />
+            {showRepo && session.cwd && `${truncateMiddle(session.project, 18)} · `}
             {truncateMiddle(session.gitBranch, 22)}
           </span>
         )}
@@ -213,7 +214,7 @@ export function Sidebar({
             <div className={styles.projectsHead}>
               <span className={styles.projectsLabel}>Pinned</span>
             </div>
-            {pinned.map(renderItem)}
+            {pinned.map((session) => renderItem(session))}
           </div>
         )}
 
@@ -222,7 +223,7 @@ export function Sidebar({
             <div className={styles.projectsHead}>
               <span className={styles.projectsLabel}>Recent</span>
             </div>
-            {recent.map(renderItem)}
+            {recent.map((session) => renderItem(session, true))}
           </div>
         )}
 
@@ -279,7 +280,7 @@ export function Sidebar({
                   </button>
                 </div>
 
-                {open && group.sessions.map(renderItem)}
+                {open && group.sessions.map((session) => renderItem(session))}
               </div>
             );
           })
