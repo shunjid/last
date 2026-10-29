@@ -9,7 +9,6 @@ export { default as IconChevronDown } from "@mui/icons-material/KeyboardArrowDow
 export { default as IconChevronRight } from "@mui/icons-material/ChevronRight";
 export { default as IconChevronUp } from "@mui/icons-material/KeyboardArrowUp";
 export { default as IconCircleExclamation } from "@mui/icons-material/ErrorOutlineOutlined";
-export { default as IconCircleStop } from "@mui/icons-material/StopCircle";
 export { default as IconCode } from "@mui/icons-material/Code";
 export { default as IconCodeBranch } from "@mui/icons-material/AltRoute";
 export { default as IconCopy } from "@mui/icons-material/ContentCopy";

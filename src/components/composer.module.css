@@ -234,12 +234,6 @@
   margin-left: -6px;
 }
 
-.actions {
-  display: flex;
-  align-items: center;
-  gap: 6px;
-}
-
 .end {
   display: flex;
   align-items: center;
@@ -362,10 +356,6 @@
     height: var(--last-tap);
   }
 
-  .bar .stop {
-    min-height: var(--last-tap);
-  }
-
   .bar .select {
     padding-top: 12px;
     padding-bottom: 12px;
@@ -421,8 +411,7 @@
     padding: 4px 4px 4px 0;
   }
 
-  .bar .picker,
-  .stopLabel {
+  .bar .picker {
     display: none;
   }
 
@@ -430,15 +419,5 @@
     display: inline-flex;
     width: var(--last-tap);
     height: var(--last-tap);
-  }
-
-  .bar .stop {
-    min-width: var(--last-tap);
-    min-height: var(--last-tap);
-    padding: 0;
-  }
-
-  .bar .stop :global(.MuiButton-startIcon) {
-    margin: 0;
   }
 }

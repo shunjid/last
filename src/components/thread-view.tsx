@@ -423,7 +423,7 @@ export function ThreadView({
 
                   {!cards && view.live && <TurnBubble live={running} turn={view.live} />}
 
-                  {!cards && activity && (
+                  {activity && (
                     <ActivityLine
                       activity={activity}
                       connecting={view.phase === "connecting"}
