@@ -1,8 +1,9 @@
 import "server-only";
 
-import { realpath, stat } from "node:fs/promises";
+import { open, realpath, stat } from "node:fs/promises";
 import { homedir } from "node:os";
 import { sep } from "node:path";
+import { StringDecoder } from "node:string_decoder";
 
 import { getSessionInfo, listSessions, type SDKSessionInfo } from "@anthropic-ai/claude-agent-sdk";
 
@@ -16,10 +17,45 @@ const ALLOWLIST_TTL_MS = 30_000;
 
 const PLUGIN_ROOT_PATTERN = /^\.claude(-|$)/;
 
+const CWD_SCAN_CHUNK = 256 * 1024;
+const CWD_SCAN_LIMIT = 16 * 1024 * 1024;
+const CWD_FIELD = /"cwd":("(?:[^"\\]|\\.)*")/;
+
 let allowlistCache: { at: number; dirs: Set<string> } | null = null;
 
-function toSummary(info: SDKSessionInfo): SessionSummary {
-  const cwd = info.cwd ?? null;
+async function cwdInTranscript(file: string): Promise<string | null> {
+  let handle: Awaited<ReturnType<typeof open>> | null = null;
+  try {
+    handle = await open(file, "r");
+    const buffer = Buffer.alloc(CWD_SCAN_CHUNK);
+    const decoder = new StringDecoder("utf8");
+    let carry = "";
+    for (let offset = 0; offset < CWD_SCAN_LIMIT; offset += CWD_SCAN_CHUNK) {
+      const { bytesRead } = await handle.read(buffer, 0, CWD_SCAN_CHUNK, offset);
+      if (bytesRead === 0) return null;
+      const text = carry + decoder.write(buffer.subarray(0, bytesRead));
+      const match = CWD_FIELD.exec(text);
+      if (match) {
+        const value: unknown = JSON.parse(match[1]);
+        return typeof value === "string" && value ? value : null;
+      }
+      carry = text.slice(-4096);
+    }
+    return null;
+  } catch {
+    return null;
+  } finally {
+    await handle?.close();
+  }
+}
+
+async function sessionCwd(info: SDKSessionInfo): Promise<string | null> {
+  if (info.cwd) return info.cwd;
+  const file = await findTranscriptFile(info.sessionId);
+  return file ? cwdInTranscript(file) : null;
+}
+
+function toSummary(info: SDKSessionInfo, cwd: string | null): SessionSummary {
   return {
     createdAt: info.createdAt ?? null,
     cwd,
@@ -44,8 +80,9 @@ function isPluginCwd(cwd: string | null): boolean {
 
 export async function fetchSessions(limit = 300): Promise<SessionSummary[]> {
   const sessions = await listSessions({ limit });
-  const summaries = sessions
-    .map(toSummary)
+  const summaries = (
+    await Promise.all(sessions.map(async (info) => toSummary(info, await sessionCwd(info))))
+  )
     .filter((session) => !isPluginCwd(session.cwd))
     .sort((a, b) => b.lastModified - a.lastModified);
   await markRunning(summaries);
@@ -88,8 +125,9 @@ async function allowedCwds(): Promise<Set<string>> {
   const sessions = await listSessions({ limit: 500 });
   const dirs = await knownCwds();
   for (const session of sessions) {
-    if (!session.cwd) continue;
-    const real = await canonical(session.cwd);
+    const cwd = await sessionCwd(session);
+    if (!cwd) continue;
+    const real = await canonical(cwd);
     if (real) dirs.add(real);
   }
   allowlistCache = { at: Date.now(), dirs };
@@ -110,8 +148,9 @@ export async function resolveChatCwd(input: {
   if (input.sessionId) {
     const info = await getSessionInfo(input.sessionId);
     if (!info) return { ok: false, reason: "unknown sessionId" };
-    if (!info.cwd) return { ok: false, reason: "session has no recorded directory" };
-    const real = await canonical(info.cwd);
+    const cwd = await sessionCwd(info);
+    if (!cwd) return { ok: false, reason: "session has no recorded directory" };
+    const real = await canonical(cwd);
     if (!real) return { ok: false, reason: "session directory no longer exists" };
     return { cwd: real, ok: true };
   }
@@ -138,7 +177,7 @@ export async function fetchSessionMeta(sessionId: string): Promise<SessionMeta |
   const file = await findTranscriptFile(sessionId);
   if (!info && !file) return null;
 
-  const cwd = info?.cwd ?? null;
+  const cwd = info?.cwd ?? (file ? await cwdInTranscript(file) : null);
 
   return {
     cwd,
