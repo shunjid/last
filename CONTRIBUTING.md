@@ -131,9 +131,9 @@ design.
 LAST reads `LAST_SETTING_SOURCES`, a comma separated list of `user`, `project` and `local`. It is
 empty by default, so the app loads no `~/.claude/settings.json`, no `<cwd>/.claude/settings.json`
 and no `.claude/settings.local.json`, and every tool call reaches the browser permission prompt in
-Ask before changes, Auto-accept edits, and Plan only. Auto mode is the exception: Anthropic's
-classifier decides the calls it's confident about on its own, and only escalates the rest to the
-same prompt. See the README for what that trade-off means in practice.
+Ask before changes, Auto-accept edits, and Plan only. Auto mode, the default, is the exception:
+Anthropic's classifier decides the calls it's confident about on its own, and only escalates the
+rest to the same prompt. See the README for what that trade-off means in practice.
 
 The trade-off is that your project instruction files are not loaded either. `CLAUDE.md` and
 `AGENTS.md` are read for a run only when you opt in.

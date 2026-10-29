@@ -22,8 +22,9 @@ SDK, so a reply you send here is waiting for you the next time you run `claude -
 - **Clarifying questions as a proper dialog.** When Claude asks a multiple-choice question, it opens
   as a modal with each option's explanation next to it, not just plain chat text.
 - **Permission modes** in the composer: Ask before changes, Auto-accept edits, Plan only, Auto
-  (Anthropic's own classifier approves or denies routine calls; anything it isn't sure about still
-  asks you), or Bypass permissions (the CLI's `--dangerously-skip-permissions`: nothing asks).
+  (the default, as in Claude Code: Anthropic's own classifier approves or denies routine calls;
+  anything it isn't sure about still asks you), or Bypass permissions (the CLI's
+  `--dangerously-skip-permissions`: nothing asks).
 - **Queue while Claude works, or send now.** A message typed during a turn waits in a queue. Its
   Send now button cuts in like `ctrl+x ctrl+s` in the terminal: Claude stops what it's doing and
   answers the message straight away, keeping everything it had already done.
@@ -84,7 +85,8 @@ Check whether your editor forwards ports for you.
 Every tool call asks you first in Ask before changes, Auto-accept edits, and Plan only. In Auto mode
 it doesn't: Anthropic's classifier silently approves calls it's confident about, and a call it's
 confident should be denied just shows up as a warning after the fact. Only the calls it isn't sure
-about still reach you. Stay on Ask before changes if you want to see everything before it runs.
+about still reach you. Auto is the default, so switch to Ask before changes if you want to see
+everything before it runs.
 
 LAST loads no Claude Code settings files by default, so nothing on your CLI allow list runs
 unprompted. The trade-off is that `CLAUDE.md` and `AGENTS.md` are not loaded either. Set

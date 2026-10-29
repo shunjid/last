@@ -2,6 +2,8 @@ export const MAX_THREAD_ITEMS = 600;
 
 export type PermissionMode = "default" | "acceptEdits" | "plan" | "auto" | "bypassPermissions";
 
+export const DEFAULT_MODE: PermissionMode = "auto";
+
 export type EffortLevel = "low" | "medium" | "high" | "xhigh" | "max";
 
 export const EFFORT_LEVELS: EffortLevel[] = ["low", "medium", "high", "xhigh", "max"];
