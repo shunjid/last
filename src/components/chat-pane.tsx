@@ -84,7 +84,7 @@ export function ChatPane({
   const findInputRef = useRef<HTMLInputElement>(null);
   const sheet = useMediaQuery(SHEET_QUERY);
   const phone = useMediaQuery(PHONE_QUERY);
-  const [cardsOn, setCardsOn] = useState(false);
+  const [cardsOn, setCardsOn] = useState(true);
   const cardsView = phone && cardsOn;
   const [barsHidden, setBarsHidden] = useState(false);
   const mainRef = useRef<HTMLElement>(null);
