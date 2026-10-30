@@ -463,8 +463,3 @@
   background: var(--last-fg-warning);
   box-shadow: 0 0 0 2px var(--last-bg-page);
 }
-
-.actions .viewOn {
-  background: var(--last-bg-secondary-container);
-  color: var(--last-fg-secondary-container);
-}

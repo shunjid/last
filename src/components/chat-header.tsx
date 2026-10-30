@@ -211,19 +211,6 @@ export function ChatHeader({
       </div>
 
       <div className={styles.actions}>
-        {onToggleCards && (
-          <Tooltip title={cardsView ? "Back to the full thread" : "Show replies as cards"}>
-            <button
-              aria-label="Cards view"
-              aria-pressed={cardsView}
-              className={`${styles.palette} ${styles.find} ${cardsView ? styles.viewOn : ""}`}
-              onClick={onToggleCards}
-              type="button"
-            >
-              <IconCards />
-            </button>
-          </Tooltip>
-        )}
         {onOpenFind && (
           <button
             aria-label="Search this session"
@@ -281,6 +268,21 @@ export function ChatHeader({
           >
             <IconMessages />
             Jump to a session
+          </MenuItem>
+        )}
+        {onToggleCards && (
+          <MenuItem
+            aria-checked={cardsView}
+            className={styles.menuItem}
+            onClick={() => {
+              setMenuAnchor(null);
+              onToggleCards();
+            }}
+            role="menuitemcheckbox"
+          >
+            <IconCards />
+            Cards view
+            {cardsView && <IconCheck className={styles.menuCheck} />}
           </MenuItem>
         )}
         {sessionId && (
