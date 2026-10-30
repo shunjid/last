@@ -119,13 +119,30 @@
   display: flex;
   align-items: flex-start;
   gap: 10px;
+  width: 100%;
   margin: 0 0 16px;
   padding: 10px 12px;
+  border: 0;
   border-radius: var(--last-radius-md);
   background: color-mix(in srgb, var(--last-bg-primary-container) 55%, transparent);
   color: var(--last-fg-primary-container);
+  font-family: inherit;
   font-size: 13px;
   line-height: 1.5;
+  text-align: left;
+}
+
+.toggles {
+  cursor: pointer;
+}
+
+.toggles:active {
+  background-image: linear-gradient(var(--last-state-press), var(--last-state-press));
+}
+
+.toggles:focus-visible {
+  outline: 2px solid var(--last-border-focus);
+  outline-offset: 2px;
 }
 
 .you {
@@ -137,8 +154,13 @@
   display: -webkit-box;
   overflow: hidden;
   -webkit-box-orient: vertical;
-  -webkit-line-clamp: 2;
+  -webkit-line-clamp: 3;
   overflow-wrap: anywhere;
+}
+
+.promptOpen {
+  display: block;
+  white-space: pre-wrap;
 }
 
 .bar {

@@ -18,6 +18,36 @@ function sameCards(a: string[], b: string[]): boolean {
   return a === b || (a.length === b.length && a.every((card, index) => card === b[index]));
 }
 
+function Asked({ prompt }: { prompt: string }) {
+  const ref = useRef<HTMLSpanElement>(null);
+  const [open, setOpen] = useState(false);
+  const [clipped, setClipped] = useState(false);
+  const toggles = clipped || open;
+
+  useEffect(() => {
+    const node = ref.current;
+    if (!node || open) return;
+    const observer = new ResizeObserver(() => setClipped(node.scrollHeight > node.clientHeight));
+    observer.observe(node);
+    return () => observer.disconnect();
+  }, [open, prompt]);
+
+  return (
+    <button
+      aria-expanded={toggles ? open : undefined}
+      className={`${styles.asked} ${toggles ? styles.toggles : ""}`}
+      disabled={!toggles}
+      onClick={() => setOpen(!open)}
+      type="button"
+    >
+      <span className={styles.you}>You</span>
+      <span className={`${styles.prompt} ${open ? styles.promptOpen : ""}`} ref={ref}>
+        {prompt}
+      </span>
+    </button>
+  );
+}
+
 const Page = memo(
   function Page({
     index,
@@ -52,12 +82,7 @@ const Page = memo(
           >
             {reply.cards.map((card, cardIndex) => (
               <article className={styles.card} key={cardIndex}>
-                {cardIndex === 0 && reply.prompt && (
-                  <p className={styles.asked}>
-                    <span className={styles.you}>You</span>
-                    <span className={styles.prompt}>{reply.prompt}</span>
-                  </p>
-                )}
+                {cardIndex === 0 && reply.prompt && <Asked prompt={reply.prompt} />}
                 <Markdown text={card} />
               </article>
             ))}
