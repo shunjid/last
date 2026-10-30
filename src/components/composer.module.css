@@ -420,4 +420,14 @@
     width: var(--last-tap);
     height: var(--last-tap);
   }
+
+  .long .field {
+    flex-basis: 100%;
+    padding: 13px 18px 4px;
+  }
+
+  .long .bar {
+    flex: 1;
+    padding: 0 4px 4px 6px;
+  }
 }

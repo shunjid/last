@@ -126,6 +126,8 @@ export function Composer({
   const [imageError, setImageError] = useState<string | null>(null);
   const [dragging, setDragging] = useState(false);
   const [sheetOpen, setSheetOpen] = useState(false);
+  const [long, setLong] = useState(false);
+  if (long && !value) setLong(false);
   const fileRef = useRef<HTMLInputElement>(null);
   const lastScope = useRef(scope);
   const wasBusy = useRef(busy);
@@ -160,7 +162,19 @@ export function Composer({
     if (!node) return;
     node.style.height = "auto";
     node.style.height = `${Math.min(node.scrollHeight, 280)}px`;
-  }, [fieldRef, value]);
+  }, [fieldRef, long, value]);
+
+  useEffect(() => {
+    const node = fieldRef.current;
+    if (!node) return;
+    const observer = new ResizeObserver(() => {
+      if (node.value && node.clientHeight > parseFloat(getComputedStyle(node).minHeight)) {
+        setLong(true);
+      }
+    });
+    observer.observe(node);
+    return () => observer.disconnect();
+  }, [fieldRef]);
 
   useEffect(() => {
     const previous = lastScope.current;
@@ -292,7 +306,7 @@ export function Composer({
       )}
 
       <div
-        className={`${styles.shell} ${disabled ? styles.disabled : ""} ${dragging ? styles.dragging : ""}`}
+        className={`${styles.shell} ${disabled ? styles.disabled : ""} ${dragging ? styles.dragging : ""} ${long ? styles.long : ""}`}
         onDragLeave={(event) => {
           if (!event.currentTarget.contains(event.relatedTarget as Node | null)) setDragging(false);
         }}
