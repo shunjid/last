@@ -21,7 +21,7 @@ import {
   revealFind,
 } from "@/client/find";
 import { OpenCards } from "@/client/open-cards";
-import { collectReplies } from "@/client/replies";
+import { collectReplies, taskCards } from "@/client/replies";
 import type { ChatView } from "@/client/use-chat";
 import { cost, duration, tokens } from "@/lib/format";
 import type { PermissionAsk, ResultStats, ThreadItem } from "@/lib/types";
@@ -31,8 +31,8 @@ import { AnswerDeck, type DeckReply } from "./answer-deck";
 import { FindBar } from "./find-bar";
 import { IconArrowDown, IconCircleExclamation, IconLayerGroup, IconRefresh } from "./icons";
 import { PermissionCard } from "./permission-card";
-import { ReplyEntry } from "./reply-row";
-import { TaskCard } from "./task-card";
+import { ReplyEntry, TaskRow } from "./reply-row";
+import { TASK_KINDS, TaskCard } from "./task-card";
 import styles from "./thread-view.module.css";
 import { TurnBubble } from "./turn-bubble";
 
@@ -304,18 +304,30 @@ export function ThreadView({
 
   const deckReplies = useMemo(
     () =>
-      (entries ?? []).flatMap((entry) =>
-        entry.kind === "reply" && !entry.reply.live && entry.reply.text
-          ? [
-              {
-                cards: entry.reply.cards ?? [entry.reply.text],
-                id: entry.reply.id,
-                prompt: entry.reply.prompt,
-                turnIds: entry.reply.turnIds,
-              } satisfies DeckReply & { turnIds: string[] },
-            ]
-          : [],
-      ),
+      (entries ?? []).flatMap((entry): Array<DeckReply & { turnIds: string[] }> => {
+        if (entry.kind === "item") {
+          if (entry.item.type !== "task") return [];
+          const task = entry.item.task;
+          return [
+            {
+              cards: taskCards(task),
+              id: task.id,
+              prompt: task.title,
+              turnIds: [],
+              who: TASK_KINDS[task.kind].name,
+            },
+          ];
+        }
+        if (entry.reply.live || !entry.reply.text) return [];
+        return [
+          {
+            cards: entry.reply.cards ?? [entry.reply.text],
+            id: entry.reply.id,
+            prompt: entry.reply.prompt,
+            turnIds: entry.reply.turnIds,
+          },
+        ];
+      }),
     [entries],
   );
 
@@ -409,7 +421,15 @@ export function ThreadView({
                   {cards && entries
                     ? entries.map((entry) =>
                         entry.kind === "item" ? (
-                          renderItem(entry.item)
+                          entry.item.type === "task" ? (
+                            <TaskRow
+                              key={entry.item.task.id}
+                              onOpen={setDeckAt}
+                              task={entry.item.task}
+                            />
+                          ) : (
+                            renderItem(entry.item)
+                          )
                         ) : (
                           <ReplyEntry
                             available={available}

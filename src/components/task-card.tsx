@@ -3,6 +3,7 @@
 import { memo, type ReactNode } from "react";
 
 import { useRevealOpen } from "@/client/find";
+import { prettyJson } from "@/client/replies";
 import { duration, tokens } from "@/lib/format";
 import type { TaskNotice } from "@/lib/types";
 
@@ -11,14 +12,14 @@ import { IconChevronRight, IconLayerGroup, IconSubAgent, IconTerminal, IconToolb
 import { Markdown } from "./markdown";
 import styles from "./task-card.module.css";
 
-const KINDS: Record<TaskNotice["kind"], { glyph: ReactNode; name: string }> = {
+export const TASK_KINDS: Record<TaskNotice["kind"], { glyph: ReactNode; name: string }> = {
   agent: { glyph: <IconSubAgent />, name: "Background agent" },
   command: { glyph: <IconTerminal />, name: "Background command" },
   task: { glyph: <IconToolbox />, name: "Background task" },
   workflow: { glyph: <IconLayerGroup />, name: "Workflow" },
 };
 
-const STATUS_LABELS: Record<TaskNotice["status"], string> = {
+export const TASK_STATUS: Record<TaskNotice["status"], string> = {
   completed: "Finished",
   failed: "Failed",
   stopped: "Stopped",
@@ -28,7 +29,7 @@ function plural(count: number, noun: string) {
   return `${count} ${noun}${count === 1 ? "" : "s"}`;
 }
 
-function usageParts(task: TaskNotice) {
+export function usageParts(task: TaskNotice) {
   const usage = task.usage;
   if (!usage) return [];
   const parts: string[] = [];
@@ -39,18 +40,9 @@ function usageParts(task: TaskNotice) {
   return parts;
 }
 
-function prettyJson(text: string) {
-  if (!/^[[{]/.test(text)) return null;
-  try {
-    return JSON.stringify(JSON.parse(text), null, 2);
-  } catch {
-    return null;
-  }
-}
-
 export const TaskCard = memo(function TaskCard({ task }: { task: TaskNotice }) {
   const [open, setOpen] = useRevealOpen(false, task.id);
-  const kind = KINDS[task.kind];
+  const kind = TASK_KINDS[task.kind];
   const usage = usageParts(task);
   const json = open && task.result ? prettyJson(task.result) : null;
 
@@ -70,7 +62,7 @@ export const TaskCard = memo(function TaskCard({ task }: { task: TaskNotice }) {
         <span className={styles.name}>{kind.name}</span>
         <span className={styles.summary}>{task.title}</span>
         <span className={styles.status}>
-          {STATUS_LABELS[task.status]}
+          {TASK_STATUS[task.status]}
           <span className={styles.dot} />
         </span>
         <span className={styles.chevron}>

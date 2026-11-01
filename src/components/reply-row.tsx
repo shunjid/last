@@ -1,13 +1,15 @@
 "use client";
 
 import CircularProgress from "@mui/material/CircularProgress";
-import { memo, useEffect, useRef, useState } from "react";
+import { memo, useEffect, useMemo, useRef, useState } from "react";
 
-import { type Reply, replyPreview } from "@/client/replies";
+import { type Reply, replyPreview, taskCards } from "@/client/replies";
+import type { TaskNotice } from "@/lib/types";
 
 import { IconCards, IconChevronRight, IconLayerGroup, IconNotes } from "./icons";
 import { Markdown } from "./markdown";
 import styles from "./reply-row.module.css";
+import { TASK_KINDS, TASK_STATUS, usageParts } from "./task-card";
 
 function toolCount(tools: number): string {
   return `${tools} tool call${tools === 1 ? "" : "s"}`;
@@ -122,3 +124,37 @@ export const ReplyEntry = memo(
   },
   (a, b) => a.available === b.available && a.onOpen === b.onOpen && sameReply(a.reply, b.reply),
 );
+
+export const TaskRow = memo(function TaskRow({
+  onOpen,
+  task,
+}: {
+  onOpen: (id: string) => void;
+  task: TaskNotice;
+}) {
+  const count = useMemo(() => taskCards(task).length, [task]);
+  const stacked = count > 1;
+  const usage = usageParts(task);
+
+  return (
+    <div className={stacked ? styles.stack : undefined}>
+      <button
+        className={[styles.row, styles.task, styles[task.status], stacked ? styles.stacked : ""]
+          .filter(Boolean)
+          .join(" ")}
+        onClick={() => onOpen(task.id)}
+        type="button"
+      >
+        <span className={styles.glyph}>{TASK_KINDS[task.kind].glyph}</span>
+        <span className={styles.text}>
+          <span className={styles.title}>{task.title || TASK_KINDS[task.kind].name}</span>
+          <span className={styles.meta}>
+            <span className={styles.status}>{TASK_STATUS[task.status]}</span>
+            {usage.map((part) => ` · ${part}`).join("")}
+          </span>
+        </span>
+        <IconChevronRight className={styles.chevron} />
+      </button>
+    </div>
+  );
+});
