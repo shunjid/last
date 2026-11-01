@@ -1,7 +1,7 @@
 "use client";
 
 import { answerCards } from "@/lib/cards";
-import type { ThreadItem, Turn } from "@/lib/types";
+import type { TaskNotice, ThreadItem, Turn } from "@/lib/types";
 
 import { userText } from "./find";
 
@@ -109,4 +109,21 @@ export function replyPreview(text: string): string {
     .replace(/[*_`~]/g, "")
     .trim();
   return /^(.+?[.!?])(?:\s|$)/.exec(plain)?.[1] ?? plain;
+}
+
+export function prettyJson(text: string): string | null {
+  if (!/^[[{]/.test(text)) return null;
+  try {
+    return JSON.stringify(JSON.parse(text), null, 2);
+  } catch {
+    return null;
+  }
+}
+
+export function taskCards(task: TaskNotice): string[] {
+  const result = task.result?.trim();
+  if (!result) return [task.summary];
+  const json = prettyJson(result);
+  if (json) return ["```json\n" + json + "\n```"];
+  return cardsOf(result) ?? [result];
 }

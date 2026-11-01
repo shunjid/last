@@ -12,13 +12,13 @@ import styles from "./answer-deck.module.css";
 import { IconChevronDown, IconChevronUp, IconCodeBranch, IconFolder, IconXmark } from "./icons";
 import { Markdown } from "./markdown";
 
-export type DeckReply = { cards: string[]; id: string; prompt: string };
+export type DeckReply = { cards: string[]; id: string; prompt: string; who?: string };
 
 function sameCards(a: string[], b: string[]): boolean {
   return a === b || (a.length === b.length && a.every((card, index) => card === b[index]));
 }
 
-function Asked({ prompt }: { prompt: string }) {
+function Asked({ prompt, who }: { prompt: string; who: string }) {
   const ref = useRef<HTMLSpanElement>(null);
   const [open, setOpen] = useState(false);
   const [clipped, setClipped] = useState(false);
@@ -40,7 +40,7 @@ function Asked({ prompt }: { prompt: string }) {
       onClick={() => setOpen(!open)}
       type="button"
     >
-      <span className={styles.you}>You</span>
+      <span className={styles.you}>{who}</span>
       <span className={`${styles.prompt} ${open ? styles.promptOpen : ""}`} ref={ref}>
         {prompt}
       </span>
@@ -82,7 +82,9 @@ const Page = memo(
           >
             {reply.cards.map((card, cardIndex) => (
               <article className={styles.card} key={cardIndex}>
-                {cardIndex === 0 && reply.prompt && <Asked prompt={reply.prompt} />}
+                {cardIndex === 0 && reply.prompt && (
+                  <Asked prompt={reply.prompt} who={reply.who ?? "You"} />
+                )}
                 <Markdown text={card} />
               </article>
             ))}
@@ -98,6 +100,7 @@ const Page = memo(
     a.register === b.register &&
     a.reply.id === b.reply.id &&
     a.reply.prompt === b.reply.prompt &&
+    a.reply.who === b.reply.who &&
     sameCards(a.reply.cards, b.reply.cards),
 );
 
@@ -186,7 +189,7 @@ export function AnswerDeck({
         <span className={styles.chips}>
           {replies.length > 1 && (
             <span className={styles.position}>
-              Reply {current + 1} of {replies.length}
+              {current + 1} of {replies.length}
             </span>
           )}
           <span className={styles.chip}>

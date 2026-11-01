@@ -117,6 +117,50 @@ button.row:focus-visible {
   color: var(--last-fg-tertiary);
 }
 
+.task .title {
+  display: -webkit-box;
+  -webkit-box-orient: vertical;
+  -webkit-line-clamp: 2;
+  white-space: normal;
+  overflow-wrap: anywhere;
+}
+
+.task .glyph {
+  background: var(--last-surface-highest);
+  color: var(--last-fg-secondary);
+}
+
+.status {
+  font-weight: 500;
+  color: var(--last-fg-success);
+}
+
+.failed {
+  border-color: var(--last-border-error);
+}
+
+.failed .glyph {
+  background: var(--last-bg-error-container);
+  color: var(--last-fg-error-container);
+}
+
+.failed .status {
+  color: var(--last-fg-error);
+}
+
+.stopped {
+  border-color: var(--last-border-warning);
+}
+
+.stopped .glyph {
+  background: var(--last-bg-warning-container);
+  color: var(--last-fg-warning-container);
+}
+
+.stopped .status {
+  color: var(--last-fg-warning);
+}
+
 .working .glyph {
   background: var(--last-surface-high);
 }
