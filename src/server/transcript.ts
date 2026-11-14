@@ -55,6 +55,7 @@ type RawEntry = {
   isSidechain?: boolean;
   isCompactSummary?: boolean;
   promptSource?: string | null;
+  queueTranscriptOnly?: boolean;
   toolUseResult?: unknown;
   message?: {
     role?: string;
@@ -500,6 +501,7 @@ export function feedLine(builder: ThreadBuilder, line: string) {
 
   const prompted =
     entry.promptSource != null &&
+    entry.queueTranscriptOnly !== true &&
     entry.toolUseResult === undefined &&
     entry.isSidechain !== true &&
     entry.isCompactSummary !== true;

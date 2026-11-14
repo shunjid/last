@@ -70,6 +70,7 @@ type Tail = {
   isSidechain?: boolean;
   message?: { content?: unknown; stop_reason?: string | null };
   promptSource?: string | null;
+  queueTranscriptOnly?: boolean;
   subtype?: string;
   type?: string;
 };
@@ -101,7 +102,7 @@ function midTurn(lines: string[]): boolean {
     }
     if (record.type === "user") {
       if (interrupted(record)) return false;
-      if (record.promptSource == null) continue;
+      if (record.promptSource == null || record.queueTranscriptOnly) continue;
       return true;
     }
     if (record.type !== "assistant") continue;
