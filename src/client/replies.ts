@@ -11,6 +11,7 @@ export type Reply = {
   live: boolean;
   prompt: string;
   text: string;
+  timestamp: string | null;
   tools: number;
   turnIds: string[];
 };
@@ -46,6 +47,7 @@ function finish(draft: Draft, live: boolean): Reply {
     live,
     prompt: draft.prompt,
     text,
+    timestamp: draft.turns.find((turn) => turn.timestamp)?.timestamp ?? null,
     tools,
     turnIds: draft.turns.map((turn) => turn.id),
   };

@@ -33,6 +33,13 @@ export function absoluteTime(iso: string | null): string {
   });
 }
 
+export function clockTime(iso: string | null): string {
+  if (!iso) return "";
+  const date = new Date(iso);
+  if (Number.isNaN(date.getTime())) return "";
+  return date.toLocaleTimeString(LOCALE, { hour: "numeric", minute: "2-digit" });
+}
+
 export function fileSize(bytes: number | null): string {
   if (bytes === null || bytes <= 0) return "";
   if (bytes < 1024) return `${bytes} B`;

@@ -9,6 +9,7 @@ import type { TaskNotice } from "@/lib/types";
 import { IconCards, IconChevronRight, IconLayerGroup, IconNotes } from "./icons";
 import { Markdown } from "./markdown";
 import styles from "./reply-row.module.css";
+import { TimeStamp } from "./time-stamp";
 import { TASK_KINDS, TASK_STATUS, usageParts } from "./task-card";
 
 function toolCount(tools: number): string {
@@ -80,7 +81,8 @@ function sameReply(a: Reply, b: Reply): boolean {
     a.text === b.text &&
     a.tools === b.tools &&
     a.live === b.live &&
-    a.cards === b.cards
+    a.cards === b.cards &&
+    a.timestamp === b.timestamp
   );
 }
 
@@ -110,17 +112,21 @@ export const ReplyEntry = memo(
       );
     }
 
-    if (!reply.text) {
-      return (
-        <div className={styles.empty}>
-          <IconLayerGroup />
-          {reply.tools > 0 ? `${toolCount(reply.tools)}, no reply text` : "No reply text"}
-        </div>
-      );
-    }
-
-    if (reply.cards) return <ReplyRow onOpen={onOpen} reply={reply} />;
-    return <ShortReply available={available} key={available} onOpen={onOpen} reply={reply} />;
+    return (
+      <div className={styles.entry}>
+        <TimeStamp className={styles.stamp} iso={reply.timestamp} />
+        {!reply.text ? (
+          <div className={styles.empty}>
+            <IconLayerGroup />
+            {reply.tools > 0 ? `${toolCount(reply.tools)}, no reply text` : "No reply text"}
+          </div>
+        ) : reply.cards ? (
+          <ReplyRow onOpen={onOpen} reply={reply} />
+        ) : (
+          <ShortReply available={available} key={available} onOpen={onOpen} reply={reply} />
+        )}
+      </div>
+    );
   },
   (a, b) => a.available === b.available && a.onOpen === b.onOpen && sameReply(a.reply, b.reply),
 );
