@@ -162,14 +162,6 @@ function latestStamp(lines: string[]): number | null {
   return latest;
 }
 
-/**
- * When a session was last worked in, from the transcript's own entries.
- *
- * The file's mtime is not that: the CLI rewrites bookkeeping lines (cost-state,
- * last-prompt, titles) long after the conversation ends, which makes sessions
- * nobody has touched in days surface as "17m ago". Entry timestamps only move
- * when something actually happens in the session.
- */
 export async function activityAt(sessionId: string): Promise<number | null> {
   const file = await locate(sessionId);
   if (!file) return null;
@@ -190,14 +182,12 @@ export async function activityAt(sessionId: string): Promise<number | null> {
   if (hit?.key === key) return hit.at;
 
   const found = latestStamp(await tail(file, size));
-  // mtime is an upper bound on any write, so never report a later time than it.
   const at = found === null ? null : Math.min(found, mtime);
   if (store.stamps.size > MAX_CACHE) store.stamps.clear();
   store.stamps.set(sessionId, { at, key });
   return at;
 }
 
-/** Replace mtime-derived recency with real activity times, in place. */
 export async function markActivity(sessions: SessionSummary[]): Promise<void> {
   let cursor = 0;
   const worker = async () => {
