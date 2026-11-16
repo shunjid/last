@@ -14,6 +14,7 @@ import type { Block, Turn } from "@/lib/types";
 
 import { IconCheck, IconCopy, IconFileLines, IconImage } from "./icons";
 import { Markdown } from "./markdown";
+import { TimeStamp } from "./time-stamp";
 import styles from "./turn-bubble.module.css";
 import { ThinkingCard } from "./thinking-card";
 import { ToolCard } from "./tool-card";
@@ -91,11 +92,17 @@ function BlockView({ block, findKey, live }: { block: Block; findKey: string; li
   }
 }
 
+function TurnStamp({ turn }: { turn: Turn }) {
+  return <TimeStamp className={styles.stamp} iso={turn.timestamp} />;
+}
+
 function UserTurn({ turn }: { turn: Turn }) {
   const text = userText(turn);
 
   return (
     <div className={`${styles.row} ${styles.user}`} data-anchor={turn.id}>
+      <TurnStamp turn={turn} />
+
       {text && (
         <div
           className={`${styles.bubble} ${turn.pending ? styles.pending : ""}`}
@@ -157,6 +164,8 @@ function AssistantTurn({ live, turn }: { live: boolean; turn: Turn }) {
 
   return (
     <div className={`${styles.row} ${styles.assistant}`}>
+      <TurnStamp turn={turn} />
+
       <div className={styles.blocks}>
         {segments.map((segment) =>
           segment.kind === "toolRun" ? (
