@@ -9,7 +9,7 @@ import { getSessionInfo, listSessions, type SDKSessionInfo } from "@anthropic-ai
 
 import { basename } from "@/lib/format";
 import type { ProjectSummary, SessionSummary } from "@/lib/types";
-import { markRunning } from "./activity";
+import { activityAt, markActivity, markRunning } from "./activity";
 import { invalidateTrustMap, isTrustedCwd, knownCwds } from "./folders";
 import { findTranscriptFile } from "./transcript";
 
@@ -82,9 +82,9 @@ export async function fetchSessions(limit = 300): Promise<SessionSummary[]> {
   const sessions = await listSessions({ limit });
   const summaries = (
     await Promise.all(sessions.map(async (info) => toSummary(info, await sessionCwd(info))))
-  )
-    .filter((session) => !isPluginCwd(session.cwd))
-    .sort((a, b) => b.lastModified - a.lastModified);
+  ).filter((session) => !isPluginCwd(session.cwd));
+  await markActivity(summaries);
+  summaries.sort((a, b) => b.lastModified - a.lastModified);
   await markRunning(summaries);
   return summaries;
 }
@@ -182,7 +182,7 @@ export async function fetchSessionMeta(sessionId: string): Promise<SessionMeta |
   return {
     cwd,
     gitBranch: info?.gitBranch ?? null,
-    lastModified: info?.lastModified ?? Date.now(),
+    lastModified: (await activityAt(sessionId)) ?? info?.lastModified ?? Date.now(),
     project: cwd ? basename(cwd) : "unknown",
     sessionId,
     title: info?.customTitle || info?.summary || info?.firstPrompt || "Untitled session",

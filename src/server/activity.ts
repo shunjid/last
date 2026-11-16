@@ -24,7 +24,13 @@ const SETTLED = new Set([
 
 type Probe = { key: string; running: boolean };
 
-type Store = { paths: Map<string, string>; probes: Map<string, Probe> };
+type Stamp = { key: string; at: number | null };
+
+type Store = {
+  paths: Map<string, string>;
+  probes: Map<string, Probe>;
+  stamps: Map<string, Stamp>;
+};
 
 declare global {
   var __lastActivity__: Store | undefined;
@@ -32,7 +38,9 @@ declare global {
 
 const store: Store =
   globalThis.__lastActivity__ ??
-  (globalThis.__lastActivity__ = { paths: new Map(), probes: new Map() });
+  (globalThis.__lastActivity__ = { paths: new Map(), probes: new Map(), stamps: new Map() });
+
+store.stamps ??= new Map();
 
 async function locate(sessionId: string): Promise<string | null> {
   const known = store.paths.get(sessionId);
@@ -135,6 +143,78 @@ async function probe(sessionId: string): Promise<boolean> {
   if (store.probes.size > MAX_CACHE) store.probes.clear();
   store.probes.set(sessionId, { key, running });
   return running;
+}
+
+function latestStamp(lines: string[]): number | null {
+  let latest: number | null = null;
+  for (const line of lines) {
+    let record: { timestamp?: unknown };
+    try {
+      record = JSON.parse(line) as { timestamp?: unknown };
+    } catch {
+      continue;
+    }
+    if (typeof record.timestamp !== "string") continue;
+    const at = Date.parse(record.timestamp);
+    if (!Number.isFinite(at)) continue;
+    if (latest === null || at > latest) latest = at;
+  }
+  return latest;
+}
+
+/**
+ * When a session was last worked in, from the transcript's own entries.
+ *
+ * The file's mtime is not that: the CLI rewrites bookkeeping lines (cost-state,
+ * last-prompt, titles) long after the conversation ends, which makes sessions
+ * nobody has touched in days surface as "17m ago". Entry timestamps only move
+ * when something actually happens in the session.
+ */
+export async function activityAt(sessionId: string): Promise<number | null> {
+  const file = await locate(sessionId);
+  if (!file) return null;
+
+  let size = 0;
+  let mtime = 0;
+  try {
+    const info = await stat(file);
+    size = info.size;
+    mtime = info.mtimeMs;
+  } catch {
+    store.paths.delete(sessionId);
+    return null;
+  }
+
+  const key = `${mtime}:${size}`;
+  const hit = store.stamps.get(sessionId);
+  if (hit?.key === key) return hit.at;
+
+  const found = latestStamp(await tail(file, size));
+  // mtime is an upper bound on any write, so never report a later time than it.
+  const at = found === null ? null : Math.min(found, mtime);
+  if (store.stamps.size > MAX_CACHE) store.stamps.clear();
+  store.stamps.set(sessionId, { at, key });
+  return at;
+}
+
+/** Replace mtime-derived recency with real activity times, in place. */
+export async function markActivity(sessions: SessionSummary[]): Promise<void> {
+  let cursor = 0;
+  const worker = async () => {
+    while (cursor < sessions.length) {
+      const session = sessions[cursor];
+      cursor += 1;
+      try {
+        const at = await activityAt(session.sessionId);
+        if (at !== null) session.lastModified = at;
+      } catch {
+        continue;
+      }
+    }
+  };
+
+  const workers = Math.min(MAX_PROBE_WORKERS, sessions.length);
+  await Promise.all(Array.from({ length: workers }, () => worker()));
 }
 
 export async function markRunning(sessions: SessionSummary[]): Promise<void> {
