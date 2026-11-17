@@ -8,10 +8,13 @@ import { useCallback, useMemo, useState } from "react";
 
 import { useLocalRuns } from "@/client/activity";
 import { usePins } from "@/client/pins";
+import type { Notify } from "@/client/use-notify";
 import { homeRelative, relativeStamp, truncateMiddle } from "@/lib/format";
 import type { SessionSummary } from "@/lib/types";
 
 import {
+  IconBell,
+  IconBellOff,
   IconChevronRight,
   IconCodeBranch,
   IconOpenInFull,
@@ -58,6 +61,7 @@ export function Sidebar({
   activeSessionId,
   home,
   loadError,
+  notify,
   onBrowseGroup,
   onJump,
   onNewChat,
@@ -68,6 +72,7 @@ export function Sidebar({
   activeSessionId: string | null;
   home: string;
   loadError: string | null;
+  notify: Notify;
   onBrowseGroup: (group: { cwd: string; label: string }) => void;
   onJump: () => void;
   onNewChat: () => void;
@@ -288,6 +293,30 @@ export function Sidebar({
       </div>
 
       <div className={styles.foot}>
+        {notify.supported && (
+          <Tooltip
+            title={
+              notify.blocked
+                ? "Your browser is blocking notifications for this site"
+                : notify.enabled
+                  ? "Notifications on — turn them off"
+                  : "Notify me when a session needs an answer"
+            }
+          >
+            <span>
+              <IconButton
+                aria-label="Notifications when a session needs an answer"
+                aria-pressed={notify.enabled}
+                className={`${styles.bell} ${notify.enabled ? styles.bellOn : ""}`}
+                disabled={notify.blocked}
+                onClick={notify.toggle}
+              >
+                {notify.enabled ? <IconBell /> : <IconBellOff />}
+              </IconButton>
+            </span>
+          </Tooltip>
+        )}
+
         <span>
           {sessions.length} session{sessions.length === 1 ? "" : "s"} on this machine
         </span>

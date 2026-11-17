@@ -7,6 +7,7 @@ import { useBackClose } from "@/client/back";
 import { nextDraftId, type ChatTarget } from "@/client/use-chat";
 import { COMPACT_QUERY, useMediaQuery } from "@/client/use-media-query";
 import { useModels } from "@/client/use-models";
+import { useNotify } from "@/client/use-notify";
 import { useSessionList, type SessionListPush } from "@/client/use-session-list";
 import {
   DEFAULT_MODE,
@@ -34,8 +35,14 @@ function initialPane(
   home: string,
   startCwd: string | null,
   startNew: boolean,
+  startSession: string | null,
 ): Pane {
   if (startNew) return newPane(startCwd ?? projects[0]?.cwd ?? home, null);
+  // A notification click can open the app straight onto a session.
+  const asked = startSession
+    ? sessions.find((session) => session.sessionId === startSession)
+    : undefined;
+  if (asked) return newPane(asked.cwd ?? projects[0]?.cwd ?? home, asked.sessionId);
   const newest = sessions[0];
   if (newest) return newPane(newest.cwd ?? projects[0]?.cwd ?? home, newest.sessionId);
   return newPane(projects[0]?.cwd ?? home, null);
@@ -60,8 +67,10 @@ export function Workspace({
   const askedCwd =
     askedCwdRaw && folders.some((folder) => folder.cwd === askedCwdRaw) ? askedCwdRaw : null;
 
+  const askedSession = searchParams.get("session");
+
   const [pane, setPane] = useState<Pane>(() =>
-    initialPane(sessions, projects, home, askedCwd, askedNew),
+    initialPane(sessions, projects, home, askedCwd, askedNew, askedSession),
   );
   const [createdId, setCreatedId] = useState<string | null>(null);
   const [pushed, setPushed] = useState<SessionListPush | null>(null);
@@ -106,6 +115,16 @@ export function Workspace({
     setPaneKey((value) => value + 1);
     setDrawerOpen(false);
   }, []);
+
+  const openSessionId = useCallback(
+    (sessionId: string) => {
+      const found = liveSessions.find((session) => session.sessionId === sessionId);
+      if (found) openSession(found);
+    },
+    [liveSessions, openSession],
+  );
+
+  const notify = useNotify(liveSessions, activeSessionId, openSessionId);
 
   const newChatIn = useCallback((cwd: string) => {
     setCreatedId(null);
@@ -185,6 +204,7 @@ export function Workspace({
             setDrawerOpen(false);
             setPaletteOpen(true);
           }}
+          notify={notify}
           onNewChat={newChat}
           onSelect={openSession}
           onToggle={() => setRailOpen(false)}

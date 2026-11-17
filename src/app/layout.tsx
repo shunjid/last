@@ -10,7 +10,9 @@ const sans = Google_Sans({ display: "swap", subsets: ["latin"], variable: "--fon
 const mono = Google_Sans_Code({ display: "swap", subsets: ["latin"], variable: "--font-mono" });
 
 export const metadata: Metadata = {
+  appleWebApp: { capable: true, statusBarStyle: "default", title: "LAST" },
   description: "LAST — browse and continue your local Claude Code terminal sessions.",
+  manifest: "/manifest.webmanifest",
   title: "LAST",
 };
 

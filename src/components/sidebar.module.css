@@ -401,6 +401,21 @@
   color: var(--last-fg-tertiary);
 }
 
+.bell {
+  flex: none;
+  margin: -6px 0 -6px -6px;
+  padding: 6px;
+  color: var(--last-fg-tertiary);
+}
+
+.bell svg {
+  font-size: 17px;
+}
+
+.bellOn {
+  color: var(--last-fg-accent);
+}
+
 .footRun {
   margin-left: auto;
   font-weight: 500;
