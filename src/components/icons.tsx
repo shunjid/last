@@ -2,6 +2,8 @@ export { default as IconArrowDown } from "@mui/icons-material/ArrowDownward";
 export { default as IconArrowRight } from "@mui/icons-material/ArrowForward";
 export { default as IconArrowUp } from "@mui/icons-material/ArrowUpward";
 export { default as IconBan } from "@mui/icons-material/Block";
+export { default as IconBell } from "@mui/icons-material/NotificationsActiveOutlined";
+export { default as IconBellOff } from "@mui/icons-material/NotificationsOffOutlined";
 export { default as IconBrain } from "@mui/icons-material/Psychology";
 export { default as IconCards } from "@mui/icons-material/ViewCarouselOutlined";
 export { default as IconCheck } from "@mui/icons-material/Check";

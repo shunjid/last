@@ -22,7 +22,15 @@ const SETTLED = new Set([
   "stop_sequence",
 ]);
 
-type Probe = { key: string; running: boolean };
+// Tools the CLI always stops and asks the user about, so an unanswered call to
+// one of them means that session is waiting on a human.
+const ASK_TOOLS = new Set(["AskUserQuestion", "ExitPlanMode"]);
+
+type Scan = { running: boolean; waiting: boolean };
+
+const IDLE: Scan = { running: false, waiting: false };
+
+type Probe = { key: string; scan: Scan };
 
 type Stamp = { key: string; at: number | null };
 
@@ -95,7 +103,28 @@ function interrupted(record: Tail): boolean {
   return false;
 }
 
-function midTurn(lines: string[]): boolean {
+type ContentBlock = { id?: unknown; name?: unknown; tool_use_id?: unknown; type?: unknown };
+
+function blocksOf(record: Tail): ContentBlock[] {
+  const content = record.message?.content;
+  return Array.isArray(content) ? (content as ContentBlock[]) : [];
+}
+
+function asksInput(record: Tail, answered: Set<string>): boolean {
+  for (const block of blocksOf(record)) {
+    if (block.type !== "tool_use") continue;
+    if (typeof block.name !== "string" || !ASK_TOOLS.has(block.name)) continue;
+    if (typeof block.id === "string" && !answered.has(block.id)) return true;
+  }
+  return false;
+}
+
+// Walks the tail backwards to the start of the current turn. `answered` collects
+// tool_use ids that already have a result, since those records are passed before
+// the assistant record that opened the call.
+function scanTail(lines: string[]): Scan {
+  const answered = new Set<string>();
+
   for (let index = lines.length - 1; index >= 0; index -= 1) {
     let record: Tail;
     try {
@@ -104,25 +133,34 @@ function midTurn(lines: string[]): boolean {
       continue;
     }
     if (record.isSidechain) continue;
+
+    for (const block of blocksOf(record)) {
+      if (block.type === "tool_result" && typeof block.tool_use_id === "string")
+        answered.add(block.tool_use_id);
+    }
+
     if (record.type === "system") {
-      if (record.subtype === "turn_duration") return false;
+      if (record.subtype === "turn_duration") return IDLE;
       continue;
     }
     if (record.type === "user") {
-      if (interrupted(record)) return false;
+      if (interrupted(record)) return IDLE;
       if (record.promptSource == null || record.queueTranscriptOnly) continue;
-      return true;
+      return { running: true, waiting: false };
     }
     if (record.type !== "assistant") continue;
+
     const reason = record.message?.stop_reason;
-    return !(typeof reason === "string" && SETTLED.has(reason));
+    const running = !(typeof reason === "string" && SETTLED.has(reason));
+    return { running, waiting: running && asksInput(record, answered) };
   }
-  return false;
+
+  return IDLE;
 }
 
-async function probe(sessionId: string): Promise<boolean> {
+async function probe(sessionId: string): Promise<Scan> {
   const file = await locate(sessionId);
-  if (!file) return false;
+  if (!file) return IDLE;
 
   let size = 0;
   let stamp = 0;
@@ -132,17 +170,17 @@ async function probe(sessionId: string): Promise<boolean> {
     stamp = info.mtimeMs;
   } catch {
     store.paths.delete(sessionId);
-    return false;
+    return IDLE;
   }
 
   const key = `${stamp}:${size}`;
   const hit = store.probes.get(sessionId);
-  if (hit?.key === key) return hit.running;
+  if (hit?.key === key) return hit.scan;
 
-  const running = midTurn(await tail(file, size));
+  const scan = scanTail(await tail(file, size));
   if (store.probes.size > MAX_CACHE) store.probes.clear();
-  store.probes.set(sessionId, { key, running });
-  return running;
+  store.probes.set(sessionId, { key, scan });
+  return scan;
 }
 
 function latestStamp(lines: string[]): number | null {
@@ -231,7 +269,9 @@ export async function markRunning(sessions: SessionSummary[]): Promise<void> {
       const session = targets[cursor];
       cursor += 1;
       try {
-        session.running = await probe(session.sessionId);
+        const scan = await probe(session.sessionId);
+        session.running = scan.running;
+        if (scan.waiting) session.waiting = true;
       } catch {
         continue;
       }
