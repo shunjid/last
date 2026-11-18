@@ -173,7 +173,10 @@ has to ship in the same change, per the SDK's docs on that field.
 LAST reads `~/.claude/projects/**/*.jsonl`, or `$CLAUDE_CONFIG_DIR/projects` when that variable is
 set. New turns are appended by Claude Code to the same transcript file your terminal uses. Sessions
 whose working directory sits under `~/.claude` or a `~/.claude-*` folder (the claude-mem plugin, for
-example) are hidden from the list as plugin scratch sessions.
+example) are hidden from the list as plugin scratch sessions. Headless `claude -p` runs (transcripts
+whose entrypoint is `sdk-cli`) are hidden too, so scheduled agents don't crowd out the sessions you
+work in. The list still fills up to 300 sessions you can see, and a hidden session still opens from
+its direct URL.
 
 Outside of that it writes nothing but your browser's `localStorage`:
 
