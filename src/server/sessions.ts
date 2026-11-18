@@ -20,10 +20,13 @@ const PLUGIN_ROOT_PATTERN = /^\.claude(-|$)/;
 const CWD_SCAN_CHUNK = 256 * 1024;
 const CWD_SCAN_LIMIT = 16 * 1024 * 1024;
 const CWD_FIELD = /"cwd":("(?:[^"\\]|\\.)*")/;
+const ENTRYPOINT_FIELD = /"entrypoint":("(?:[^"\\]|\\.)*")/;
+const HEADLESS_ENTRYPOINT = "sdk-cli";
 
 let allowlistCache: { at: number; dirs: Set<string> } | null = null;
+const headlessCache = new Map<string, boolean>();
 
-async function cwdInTranscript(file: string): Promise<string | null> {
+async function fieldInTranscript(file: string, field: RegExp): Promise<string | null> {
   let handle: Awaited<ReturnType<typeof open>> | null = null;
   try {
     handle = await open(file, "r");
@@ -34,7 +37,7 @@ async function cwdInTranscript(file: string): Promise<string | null> {
       const { bytesRead } = await handle.read(buffer, 0, CWD_SCAN_CHUNK, offset);
       if (bytesRead === 0) return null;
       const text = carry + decoder.write(buffer.subarray(0, bytesRead));
-      const match = CWD_FIELD.exec(text);
+      const match = field.exec(text);
       if (match) {
         const value: unknown = JSON.parse(match[1]);
         return typeof value === "string" && value ? value : null;
@@ -52,7 +55,18 @@ async function cwdInTranscript(file: string): Promise<string | null> {
 async function sessionCwd(info: SDKSessionInfo): Promise<string | null> {
   if (info.cwd) return info.cwd;
   const file = await findTranscriptFile(info.sessionId);
-  return file ? cwdInTranscript(file) : null;
+  return file ? fieldInTranscript(file, CWD_FIELD) : null;
+}
+
+async function isHeadless(sessionId: string): Promise<boolean> {
+  const cached = headlessCache.get(sessionId);
+  if (cached !== undefined) return cached;
+  const file = await findTranscriptFile(sessionId);
+  const entrypoint = file ? await fieldInTranscript(file, ENTRYPOINT_FIELD) : null;
+  if (entrypoint === null) return false;
+  const headless = entrypoint === HEADLESS_ENTRYPOINT;
+  headlessCache.set(sessionId, headless);
+  return headless;
 }
 
 function toSummary(info: SDKSessionInfo, cwd: string | null): SessionSummary {
@@ -79,10 +93,20 @@ function isPluginCwd(cwd: string | null): boolean {
 }
 
 export async function fetchSessions(limit = 300): Promise<SessionSummary[]> {
-  const sessions = await listSessions({ limit });
-  const summaries = (
-    await Promise.all(sessions.map(async (info) => toSummary(info, await sessionCwd(info))))
-  ).filter((session) => !isPluginCwd(session.cwd));
+  const summaries: SessionSummary[] = [];
+  for (let offset = 0; summaries.length < limit; offset += limit) {
+    const page = await listSessions({ limit, offset });
+    const visible = await Promise.all(
+      page.map(async (info) => {
+        if (await isHeadless(info.sessionId)) return null;
+        const summary = toSummary(info, await sessionCwd(info));
+        return isPluginCwd(summary.cwd) ? null : summary;
+      }),
+    );
+    for (const summary of visible) if (summary) summaries.push(summary);
+    if (page.length < limit) break;
+  }
+  summaries.splice(limit);
   await markActivity(summaries);
   summaries.sort((a, b) => b.lastModified - a.lastModified);
   await markRunning(summaries);
@@ -177,7 +201,7 @@ export async function fetchSessionMeta(sessionId: string): Promise<SessionMeta |
   const file = await findTranscriptFile(sessionId);
   if (!info && !file) return null;
 
-  const cwd = info?.cwd ?? (file ? await cwdInTranscript(file) : null);
+  const cwd = info?.cwd ?? (file ? await fieldInTranscript(file, CWD_FIELD) : null);
 
   return {
     cwd,
