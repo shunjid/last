@@ -175,7 +175,9 @@ It isn't declared in `sdk.d.ts`, so `src/server/side-question.ts` reaches it thr
 fails with a clear error if an SDK bump removes it. Check that it still exists when you raise the
 SDK version.
 
-It only works on a live query, so side questions are refused when no turn is running. When a turn's
+It only works on a live query, so side questions are refused when no turn is running and when the
+turn is running in a terminal, and the composer says which. A resumed copy of the session could
+answer those too, but it would re-read the whole conversation for every question. When a turn's
 result arrives the SDK closes the CLI's stdin, which cancels any side question still in flight. The
 drawer shows that as "The turn ended before Claude answered", with a button to ask it in the main
 thread.

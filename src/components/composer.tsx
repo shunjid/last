@@ -150,12 +150,15 @@ export function Composer({
         ? "These images are too large to send together."
         : null;
   const side = sideQuestionIn(value);
-  const notice =
-    imageError ??
-    imageLimit ??
-    (side !== null && !onSideQuestion
-      ? "Side questions work while Claude is working. Remove /btw to send this as a message."
-      : null);
+  const sideBlocked =
+    side === null || onSideQuestion
+      ? null
+      : terminal
+        ? "This turn is running in your terminal, so LAST can't ask on the side. Remove /btw to queue this as a message."
+        : busy
+          ? "Claude is still starting. Try /btw again in a moment."
+          : "Nothing is running, so there's nothing to ask on the side. Remove /btw to send this as a message.";
+  const notice = imageError ?? imageLimit ?? sideBlocked;
   const canSend =
     side !== null
       ? !disabled && Boolean(onSideQuestion) && side.length > 0

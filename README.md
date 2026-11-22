@@ -29,9 +29,10 @@ SDK, so a reply you send here is waiting for you the next time you run `claude -
   Send now button cuts in like `ctrl+x ctrl+s` in the terminal: Claude stops what it's doing and
   answers the message straight away, keeping everything it had already done. `⌘J` or `⌘⇧↵` sends
   what you typed that way without queueing it first.
-- **Side questions with `/btw`.** While Claude works, type `/btw` and a question. A drawer answers it
-  from the conversation so far, without tools and without interrupting the turn, and nothing is
-  saved to the session. The drawer keeps your side questions until you reload.
+- **Side questions with `/btw`.** While a turn you started in LAST is running, type `/btw` and a
+  question. A drawer answers it from the conversation so far, without tools and without interrupting
+  the turn, and nothing is saved to the session. The drawer keeps your side questions until you
+  reload. Turns running in your terminal can't take side questions.
 - **Model and effort pickers**, and a light / dark / system theme.
 - **Works on a phone.** The sidebar becomes a drawer and the whole app resizes down to a small
   screen.

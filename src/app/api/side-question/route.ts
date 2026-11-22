@@ -6,7 +6,8 @@ import { askSideQuestion } from "@/server/side-question";
 export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
 
-const NOT_RUNNING = "Claude isn't working in this session, so ask in the main thread instead.";
+const NOT_RUNNING =
+  "LAST isn't running a turn in this session, so there's nothing to ask on the side.";
 const TURN_ENDED = "The turn ended before Claude answered. Ask it in the main thread instead.";
 
 export async function POST(request: Request) {

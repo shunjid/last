@@ -135,7 +135,7 @@ export function SideQuestions({
           name="side-question"
           onChange={(event) => setValue(event.target.value)}
           placeholder={
-            onAsk ? "Ask a side question…" : "Side questions work while Claude is working"
+            onAsk ? "Ask a side question…" : "Side questions need a turn running in LAST"
           }
           value={value}
         />
