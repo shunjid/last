@@ -2,6 +2,8 @@
 
 import { useCallback, useSyncExternalStore } from "react";
 
+import { MAX_SIDE_HISTORY } from "@/lib/types";
+
 import { askSideQuestion } from "./api";
 import { localId } from "./thread";
 
@@ -34,6 +36,7 @@ export function askSide(sessionId: string, question: string) {
   const list = threads.get(sessionId) ?? EMPTY;
   const history = list
     .filter((item) => item.status === "answered")
+    .slice(-MAX_SIDE_HISTORY)
     .map((item) => ({ question: item.question, response: item.text }));
   const id = localId("side");
   threads.set(sessionId, [...list, { id, question, status: "asking", text: "" }]);

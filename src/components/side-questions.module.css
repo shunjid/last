@@ -14,7 +14,7 @@
   .root {
     position: fixed;
     inset: 0 0 0 auto;
-    z-index: var(--last-z-popover);
+    z-index: var(--last-z-drawer);
     width: min(420px, 100vw);
     padding-bottom: env(safe-area-inset-bottom, 0px);
     border-left: 0;

@@ -72,6 +72,7 @@
   --last-ease-standard: cubic-bezier(0.2, 0, 0, 1);
   --last-ease-emphasized: cubic-bezier(0.05, 0.7, 0.1, 1);
 
+  --last-z-drawer: var(--mui-zIndex-drawer);
   --last-z-popover: 1500;
 
   --last-sidebar: 312px;

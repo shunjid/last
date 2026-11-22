@@ -22,6 +22,8 @@ export const MAX_IMAGE_CHARS = 5_000_000;
 
 export const MAX_IMAGES_CHARS = 9_000_000;
 
+export const MAX_SIDE_HISTORY = 20;
+
 export type ModelChoice = {
   value: string;
   resolvedModel?: string;
