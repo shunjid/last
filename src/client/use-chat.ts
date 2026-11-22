@@ -218,6 +218,7 @@ export function useChat(target: ChatTarget, onSessionCreated: (sessionId: string
     sendPromptNow,
     sendingNow,
     serverBusy,
+    sessionId: liveSessionId,
     stop,
     terminalBusy,
     unqueue,

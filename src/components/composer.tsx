@@ -61,6 +61,13 @@ const EFFORT_LABELS: Record<EffortLevel, string> = {
   xhigh: "Extra-high",
 };
 
+const SIDE_QUESTION = /^\/btw(?:\s+([\s\S]*))?$/i;
+
+function sideQuestionIn(value: string): string | null {
+  const match = SIDE_QUESTION.exec(value.trim());
+  return match ? (match[1] ?? "").trim() : null;
+}
+
 function draggingFiles(event: DragEvent) {
   return event.dataTransfer.types.includes("Files");
 }
@@ -91,6 +98,7 @@ export function Composer({
   onSend,
   onSendNow,
   onSendPromptNow,
+  onSideQuestion,
   onUnqueue,
   owner,
   placeholder,
@@ -113,6 +121,7 @@ export function Composer({
   onSend: (prompt: string, images: PromptImage[]) => void;
   onSendNow?: (id: string) => void;
   onSendPromptNow?: (prompt: string, images: PromptImage[]) => void;
+  onSideQuestion?: (question: string) => void;
   onUnqueue: (id: string) => void;
   owner: "local" | "terminal";
   placeholder: string;
@@ -140,9 +149,17 @@ export function Composer({
       : imageChars > MAX_IMAGES_CHARS
         ? "These images are too large to send together."
         : null;
-  const notice = imageError ?? imageLimit;
+  const side = sideQuestionIn(value);
+  const notice =
+    imageError ??
+    imageLimit ??
+    (side !== null && !onSideQuestion
+      ? "Side questions work while Claude is working. Remove /btw to send this as a message."
+      : null);
   const canSend =
-    !disabled && reading === 0 && !imageLimit && (value.trim().length > 0 || images.length > 0);
+    side !== null
+      ? !disabled && Boolean(onSideQuestion) && side.length > 0
+      : !disabled && reading === 0 && !imageLimit && (value.trim().length > 0 || images.length > 0);
 
   const modelOptions = useMemo(
     () => models.map((choice) => ({ label: choice.displayName, value: choice.value })),
@@ -216,6 +233,11 @@ export function Composer({
 
   function submit(now: boolean) {
     if (!canSend) return;
+    if (side !== null) {
+      setValue("");
+      onSideQuestion?.(side);
+      return;
+    }
     const text = value.trim();
     const attached = images.map(toPromptImage);
     setValue("");
@@ -306,7 +328,7 @@ export function Composer({
       )}
 
       <div
-        className={`${styles.shell} ${disabled ? styles.disabled : ""} ${dragging ? styles.dragging : ""} ${long ? styles.long : ""}`}
+        className={`${styles.shell} ${disabled ? styles.disabled : ""} ${dragging ? styles.dragging : ""} ${long ? styles.long : ""} ${side !== null ? styles.side : ""}`}
         onDragLeave={(event) => {
           if (!event.currentTarget.contains(event.relatedTarget as Node | null)) setDragging(false);
         }}
@@ -497,7 +519,9 @@ export function Composer({
 
           <div className={styles.end}>
             <span className={styles.hint}>
-              {value.startsWith("/") ? (
+              {side !== null ? (
+                <span className={styles.slash}>side question · not saved</span>
+              ) : value.startsWith("/") ? (
                 <span className={styles.slash}>slash command</span>
               ) : (
                 <>

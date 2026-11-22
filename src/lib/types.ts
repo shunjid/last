@@ -285,6 +285,14 @@ export type SendNowBody = {
   images?: PromptImage[];
 };
 
+export type SideQuestionTurn = { question: string; response: string };
+
+export type SideQuestionBody = {
+  sessionId: string;
+  question: string;
+  history: SideQuestionTurn[];
+};
+
 export type RunOptionsBody = {
   streamId: string;
   sessionId?: string;

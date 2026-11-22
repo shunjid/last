@@ -1,0 +1,196 @@
+.root {
+  flex: none;
+  display: flex;
+  flex-direction: column;
+  width: 380px;
+  height: 100%;
+  min-height: 0;
+  padding-right: env(safe-area-inset-right, 0px);
+  border-left: 1px solid var(--last-border-secondary);
+  background: var(--last-surface-low);
+}
+
+@media (max-width: 900px) {
+  .root {
+    position: fixed;
+    inset: 0 0 0 auto;
+    z-index: var(--last-z-popover);
+    width: min(420px, 100vw);
+    padding-bottom: env(safe-area-inset-bottom, 0px);
+    border-left: 0;
+    box-shadow: var(--last-elev-3);
+    animation: slide var(--last-duration-md) var(--last-ease-emphasized);
+  }
+}
+
+@keyframes slide {
+  from {
+    transform: translateX(100%);
+  }
+  to {
+    transform: none;
+  }
+}
+
+.head {
+  display: flex;
+  flex: none;
+  align-items: center;
+  gap: 8px;
+  min-height: 56px;
+  padding: 8px 8px 8px 16px;
+  border-bottom: 1px solid var(--last-border-secondary);
+}
+
+.tag {
+  flex: none;
+  padding: 2px 8px;
+  border-radius: var(--last-radius-full);
+  background: var(--last-bg-secondary-container);
+  color: var(--last-fg-secondary-container);
+  font-family: var(--last-font-mono);
+  font-size: 11px;
+  font-weight: 600;
+}
+
+.title {
+  flex: 1;
+  font-size: 14px;
+  font-weight: 500;
+}
+
+.note {
+  flex: none;
+  margin: 0;
+  padding: 10px 16px 0;
+  color: var(--last-fg-tertiary);
+  font-size: 12px;
+  line-height: 1.5;
+}
+
+.list {
+  display: flex;
+  flex: 1;
+  flex-direction: column;
+  gap: 20px;
+  min-height: 0;
+  padding: 16px;
+  overflow-y: auto;
+}
+
+.empty {
+  margin: 0;
+  color: var(--last-fg-tertiary);
+  font-size: 13px;
+  line-height: 1.6;
+}
+
+.item {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.question {
+  margin: 0;
+  font-size: 14px;
+  font-weight: 500;
+  line-height: 1.5;
+  white-space: pre-wrap;
+  overflow-wrap: anywhere;
+}
+
+.status {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin: 0;
+  color: var(--last-fg-tertiary);
+  font-size: 13px;
+}
+
+.answer {
+  font-size: 14px;
+  min-width: 0;
+}
+
+.error {
+  margin: 0;
+  color: var(--last-fg-error);
+  font-size: 13px;
+  line-height: 1.5;
+}
+
+.actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 2px;
+  margin-left: -10px;
+}
+
+.action {
+  padding: 6px 10px;
+  border: 0;
+  border-radius: var(--last-radius-full);
+  background: none;
+  color: var(--last-fg-accent);
+  font: inherit;
+  font-size: 12.5px;
+  font-weight: 500;
+  cursor: pointer;
+}
+
+.action:focus-visible {
+  outline: 2px solid var(--last-border-focus);
+}
+
+@media (hover: hover) {
+  .action:hover {
+    background: var(--last-state-hover);
+  }
+}
+
+.foot {
+  display: flex;
+  flex: none;
+  align-items: center;
+  gap: 8px;
+  padding: 8px 8px 8px 16px;
+  border-top: 1px solid var(--last-border-secondary);
+}
+
+.input {
+  flex: 1;
+  min-width: 0;
+  padding: 8px 0;
+  border: 0;
+  background: none;
+  color: var(--last-fg-default);
+  font: inherit;
+  font-size: 14px;
+}
+
+.input:focus {
+  outline: none;
+}
+
+.input::placeholder {
+  color: var(--last-fg-tertiary);
+}
+
+@media (pointer: coarse) {
+  .input {
+    font-size: 16px;
+  }
+}
+
+.send:not(:disabled) {
+  background: var(--last-fg-default);
+  color: var(--last-bg-page);
+}
+
+@media (hover: hover) {
+  .send:not(:disabled):hover {
+    background: var(--last-fg-secondary);
+  }
+}

@@ -102,6 +102,15 @@ export const SendNowBodySchema = z
   })
   .refine(hasContent, { message: "prompt or images are required" });
 
+export const SideQuestionBodySchema = z.strictObject({
+  history: z
+    .array(z.strictObject({ question: PromptSchema, response: PromptSchema }))
+    .max(50)
+    .default([]),
+  question: PromptSchema.min(1),
+  sessionId: SessionIdSchema,
+});
+
 export const RunOptionsBodySchema = z
   .strictObject({
     effort: EffortSchema.nullable().optional(),

@@ -6,8 +6,15 @@ import { useCallback, useEffect, useLayoutEffect, useMemo, useRef, useState } fr
 import { AUTO_EFFORT, useEffortPref, useModelPref } from "@/client/prefs";
 import { RunsHere } from "@/client/runs-here";
 import { SessionIdentity } from "@/client/session-identity";
+import { askSide, useSideQuestions } from "@/client/side-questions";
 import { useChat, type ChatTarget } from "@/client/use-chat";
-import { PHONE_QUERY, SHEET_QUERY, useMediaQuery } from "@/client/use-media-query";
+import {
+  COARSE_QUERY,
+  COMPACT_QUERY,
+  PHONE_QUERY,
+  SHEET_QUERY,
+  useMediaQuery,
+} from "@/client/use-media-query";
 import { useTitleSignal } from "@/client/use-title-signal";
 import { resolveModelChoice } from "@/lib/models";
 import {
@@ -24,6 +31,7 @@ import { Composer, PENDING_SCOPE_PREFIX } from "./composer";
 import { EmptyState } from "./empty-state";
 import { IconPen } from "./icons";
 import { QuestionModal } from "./question-modal";
+import { SideQuestions } from "./side-questions";
 import { ThreadView } from "./thread-view";
 
 type Pick = { against: string | null; value: string };
@@ -70,6 +78,7 @@ export function ChatPane({
     sendPromptNow,
     sendingNow,
     serverBusy,
+    sessionId: liveSessionId,
     stop,
     terminalBusy,
     unqueue,
@@ -231,101 +240,143 @@ export function ChatPane({
 
   const away = sheet && barsHidden && !fresh;
 
+  const sideSessionId = target.sessionId ?? liveSessionId;
+  const sideItems = useSideQuestions(sideSessionId);
+  const [sideOpen, setSideOpen] = useState(false);
+
+  const askOnSide =
+    sideSessionId && (view.phase === "running" || serverBusy)
+      ? (question: string) => {
+          askSide(sideSessionId, question);
+          setSideOpen(true);
+        }
+      : undefined;
+
+  const closeSide = useCallback(() => {
+    setSideOpen(false);
+    if (!window.matchMedia(COARSE_QUERY).matches) {
+      composerRef.current?.focus({ preventScroll: true });
+    }
+  }, []);
+
+  const promoteSide = (question: string) => {
+    if (stoppable || terminalBusy) enqueue(question, options);
+    else void send(question, options);
+    if (window.matchMedia(COMPACT_QUERY).matches) setSideOpen(false);
+  };
+
   return (
-    <main
-      className={`${styles.main} ${sidebarHidden ? styles.edge : ""} ${fresh ? "" : styles.overlay} ${away ? styles.away : ""}`}
-      ref={mainRef}
-    >
-      <div className={styles.top} onFocus={showBars} ref={topRef}>
-        <ChatHeader
-          attention={attention}
-          branch={branch}
-          busy={busy}
-          contextStats={view.contextStats}
-          cwd={cwd}
-          home={home}
-          cardsView={cardsView}
-          onOpenFind={fresh ? undefined : openFind}
-          onToggleCards={
-            phone && !fresh
-              ? () => {
-                  setFindOpen(false);
-                  setCardsOn(!cardsView);
-                }
-              : undefined
-          }
-          onOpenPalette={onOpenPalette}
-          onToggleSidebar={onToggleSidebar}
-          sessionId={target.sessionId ?? detail?.sessionId ?? null}
-          sidebarHidden={sidebarHidden}
-          title={title}
-        />
-      </div>
+    <div className={styles.pane}>
+      <main
+        className={`${styles.main} ${sidebarHidden ? styles.edge : ""} ${fresh ? "" : styles.overlay} ${away ? styles.away : ""}`}
+        ref={mainRef}
+      >
+        <div className={styles.top} onFocus={showBars} ref={topRef}>
+          <ChatHeader
+            attention={attention}
+            branch={branch}
+            busy={busy}
+            contextStats={view.contextStats}
+            cwd={cwd}
+            home={home}
+            cardsView={cardsView}
+            onOpenFind={fresh ? undefined : openFind}
+            onToggleCards={
+              phone && !fresh
+                ? () => {
+                    setFindOpen(false);
+                    setCardsOn(!cardsView);
+                  }
+                : undefined
+            }
+            onOpenPalette={onOpenPalette}
+            onOpenSideQuestions={
+              !sideOpen && sideItems.length > 0 ? () => setSideOpen(true) : undefined
+            }
+            onToggleSidebar={onToggleSidebar}
+            sessionId={target.sessionId ?? detail?.sessionId ?? null}
+            sidebarHidden={sidebarHidden}
+            title={title}
+          />
+        </div>
 
-      {questionAsk && (
-        <QuestionModal
-          ask={questionAsk}
-          onSubmit={(outcome) => void decideQuestion(questionAsk, outcome)}
+        {questionAsk && (
+          <QuestionModal
+            ask={questionAsk}
+            onSubmit={(outcome) => void decideQuestion(questionAsk, outcome)}
+          />
+        )}
+
+        {fresh ? (
+          <EmptyState cwd={cwd} home={home} onPick={(prompt) => void send(prompt, options)} />
+        ) : (
+          <SessionIdentity.Provider value={identity}>
+            <RunsHere.Provider value={stoppable}>
+              <ThreadView
+                cards={cardsView && !findOpen}
+                findInputRef={findInputRef}
+                findOpen={findOpen}
+                loading={loading}
+                onCloseFind={() => setFindOpen(false)}
+                onDecide={(ask, decision, scope) => void decide(ask, decision, scope)}
+                onHideBars={sheet ? hideBars : undefined}
+                onRetry={view.canRetry ? retry : undefined}
+                onShowBars={showBars}
+                onStop={() => void stop()}
+                view={{ ...view, error: view.error ?? loadError }}
+              />
+            </RunsHere.Provider>
+          </SessionIdentity.Provider>
+        )}
+
+        <div className={styles.bottom} onFocus={showBars} ref={bottomRef}>
+          <Composer
+            busy={stoppable || terminalBusy}
+            disabled={loading}
+            effort={effort ?? AUTO_EFFORT}
+            effortLevels={effortLevels}
+            inputRef={composerRef}
+            mode={mode}
+            model={model}
+            models={modelList}
+            onEffortChange={pickEffort}
+            onModeChange={pickMode}
+            onModelChange={pickModel}
+            onQueue={(prompt, images) => enqueue(prompt, options, images)}
+            onSend={(prompt, images) => void send(prompt, options, images)}
+            onSendNow={canSendNow ? (id) => void sendNow(id) : undefined}
+            onSendPromptNow={
+              canSendNow
+                ? (prompt, images) => void sendPromptNow(prompt, options, images)
+                : undefined
+            }
+            onSideQuestion={askOnSide}
+            onUnqueue={unqueue}
+            owner={terminalBusy ? "terminal" : "local"}
+            placeholder={
+              target.sessionId ? "Reply to this session…" : "Ask Claude to work in this folder…"
+            }
+            queue={queue}
+            scope={scope}
+            sendingNow={sendingNow}
+          />
+        </div>
+
+        {away && (
+          <IconButton aria-label="Write a reply" className={styles.compose} onClick={compose}>
+            <IconPen />
+          </IconButton>
+        )}
+      </main>
+
+      {sideOpen && (
+        <SideQuestions
+          items={sideItems}
+          onAsk={askOnSide}
+          onClose={closeSide}
+          onPromote={promoteSide}
         />
       )}
-
-      {fresh ? (
-        <EmptyState cwd={cwd} home={home} onPick={(prompt) => void send(prompt, options)} />
-      ) : (
-        <SessionIdentity.Provider value={identity}>
-          <RunsHere.Provider value={stoppable}>
-            <ThreadView
-              cards={cardsView && !findOpen}
-              findInputRef={findInputRef}
-              findOpen={findOpen}
-              loading={loading}
-              onCloseFind={() => setFindOpen(false)}
-              onDecide={(ask, decision, scope) => void decide(ask, decision, scope)}
-              onHideBars={sheet ? hideBars : undefined}
-              onRetry={view.canRetry ? retry : undefined}
-              onShowBars={showBars}
-              onStop={() => void stop()}
-              view={{ ...view, error: view.error ?? loadError }}
-            />
-          </RunsHere.Provider>
-        </SessionIdentity.Provider>
-      )}
-
-      <div className={styles.bottom} onFocus={showBars} ref={bottomRef}>
-        <Composer
-          busy={stoppable || terminalBusy}
-          disabled={loading}
-          effort={effort ?? AUTO_EFFORT}
-          effortLevels={effortLevels}
-          inputRef={composerRef}
-          mode={mode}
-          model={model}
-          models={modelList}
-          onEffortChange={pickEffort}
-          onModeChange={pickMode}
-          onModelChange={pickModel}
-          onQueue={(prompt, images) => enqueue(prompt, options, images)}
-          onSend={(prompt, images) => void send(prompt, options, images)}
-          onSendNow={canSendNow ? (id) => void sendNow(id) : undefined}
-          onSendPromptNow={
-            canSendNow ? (prompt, images) => void sendPromptNow(prompt, options, images) : undefined
-          }
-          onUnqueue={unqueue}
-          owner={terminalBusy ? "terminal" : "local"}
-          placeholder={
-            target.sessionId ? "Reply to this session…" : "Ask Claude to work in this folder…"
-          }
-          queue={queue}
-          scope={scope}
-          sendingNow={sendingNow}
-        />
-      </div>
-
-      {away && (
-        <IconButton aria-label="Write a reply" className={styles.compose} onClick={compose}>
-          <IconPen />
-        </IconButton>
-      )}
-    </main>
+    </div>
   );
 }

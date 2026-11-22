@@ -168,6 +168,18 @@ it, so pressing Stop or Escape kills any background workflow along with the curr
 the safe default given LAST has no per-task stop control. If that ever changes, a real stop control
 has to ship in the same change, per the SDK's docs on that field.
 
+## Side questions
+
+`/btw` calls the SDK's `Query.askSideQuestion`, the same control request the CLI's own `/btw` uses.
+It isn't declared in `sdk.d.ts`, so `src/server/side-question.ts` reaches it through a cast and
+fails with a clear error if an SDK bump removes it. Check that it still exists when you raise the
+SDK version.
+
+It only works on a live query, so side questions are refused when no turn is running. When a turn's
+result arrives the SDK closes the CLI's stdin, which cancels any side question still in flight. The
+drawer shows that as "The turn ended before Claude answered", with a button to ask it in the main
+thread.
+
 ## Where your data lives
 
 LAST reads `~/.claude/projects/**/*.jsonl`, or `$CLAUDE_CONFIG_DIR/projects` when that variable is
