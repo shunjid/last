@@ -8,6 +8,7 @@ import type {
   SendNowBody,
   SessionDetail,
   SessionSummary,
+  SideQuestionBody,
   StreamFrame,
 } from "@/lib/types";
 
@@ -68,6 +69,15 @@ export async function sendNowToSession(body: SendNowBody) {
     method: "POST",
   });
   return unwrap<{ ok: true }>(response);
+}
+
+export async function askSideQuestion(body: SideQuestionBody) {
+  const response = await fetch("/api/side-question", {
+    body: JSON.stringify(body),
+    headers: JSON_HEADERS,
+    method: "POST",
+  });
+  return unwrap<{ response: string }>(response);
 }
 
 export async function updateRunOptions(body: RunOptionsBody) {

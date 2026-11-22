@@ -39,6 +39,12 @@
   border-style: dashed;
 }
 
+.shell.side,
+.shell.side:focus-within {
+  border-color: var(--last-fg-tertiary);
+  border-style: dashed;
+}
+
 .attachments {
   display: flex;
   flex-wrap: wrap;

@@ -35,6 +35,7 @@ export { default as IconPin } from "@mui/icons-material/PushPin";
 export { default as IconPinOutlined } from "@mui/icons-material/PushPinOutlined";
 export { default as IconPlus } from "@mui/icons-material/Add";
 export { default as IconPuzzlePiece } from "@mui/icons-material/Extension";
+export { default as IconQuestionAnswer } from "@mui/icons-material/QuestionAnswerOutlined";
 export { default as IconRefresh } from "@mui/icons-material/Refresh";
 export { default as IconSearch } from "@mui/icons-material/Search";
 export { default as IconSidebar } from "@mui/icons-material/ViewSidebar";

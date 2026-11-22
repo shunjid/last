@@ -27,6 +27,7 @@ import {
   IconMore,
   IconPin,
   IconPinOutlined,
+  IconQuestionAnswer,
   IconSearch,
   IconSidebar,
 } from "./icons";
@@ -66,6 +67,7 @@ export function ChatHeader({
   home,
   onOpenFind,
   onOpenPalette,
+  onOpenSideQuestions,
   onToggleCards,
   onToggleSidebar,
   sessionId,
@@ -81,6 +83,7 @@ export function ChatHeader({
   home: string;
   onOpenFind?: () => void;
   onOpenPalette: () => void;
+  onOpenSideQuestions?: () => void;
   onToggleCards?: () => void;
   onToggleSidebar: () => void;
   sessionId: string | null;
@@ -211,6 +214,17 @@ export function ChatHeader({
       </div>
 
       <div className={styles.actions}>
+        {onOpenSideQuestions && (
+          <Tooltip title="Side questions">
+            <IconButton
+              aria-label="Show side questions"
+              className={styles.tap}
+              onClick={onOpenSideQuestions}
+            >
+              <IconQuestionAnswer />
+            </IconButton>
+          </Tooltip>
+        )}
         {onOpenFind && (
           <button
             aria-label="Search this session"

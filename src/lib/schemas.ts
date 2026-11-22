@@ -6,6 +6,7 @@ import {
   MAX_IMAGE_CHARS,
   MAX_IMAGES,
   MAX_IMAGES_CHARS,
+  MAX_SIDE_HISTORY,
 } from "./types";
 
 export const MAX_PROMPT_CHARS = 100_000;
@@ -101,6 +102,15 @@ export const SendNowBodySchema = z
     streamId: z.uuid(),
   })
   .refine(hasContent, { message: "prompt or images are required" });
+
+export const SideQuestionBodySchema = z.strictObject({
+  history: z
+    .array(z.strictObject({ question: PromptSchema, response: PromptSchema }))
+    .max(MAX_SIDE_HISTORY)
+    .default([]),
+  question: PromptSchema.min(1),
+  sessionId: SessionIdSchema,
+});
 
 export const RunOptionsBodySchema = z
   .strictObject({

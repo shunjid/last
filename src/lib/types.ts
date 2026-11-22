@@ -22,6 +22,8 @@ export const MAX_IMAGE_CHARS = 5_000_000;
 
 export const MAX_IMAGES_CHARS = 9_000_000;
 
+export const MAX_SIDE_HISTORY = 20;
+
 export type ModelChoice = {
   value: string;
   resolvedModel?: string;
@@ -283,6 +285,14 @@ export type SendNowBody = {
   sessionId?: string;
   prompt: string;
   images?: PromptImage[];
+};
+
+export type SideQuestionTurn = { question: string; response: string };
+
+export type SideQuestionBody = {
+  sessionId: string;
+  question: string;
+  history: SideQuestionTurn[];
 };
 
 export type RunOptionsBody = {
